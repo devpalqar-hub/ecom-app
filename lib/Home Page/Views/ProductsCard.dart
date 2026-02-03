@@ -34,6 +34,7 @@ class ProductCard extends StatelessWidget {
         Get.to(
           () => ProductDetailScreen(productId: productId),
           transition: Transition.rightToLeft,
+          preventDuplicates: false,
         );
       },
 
