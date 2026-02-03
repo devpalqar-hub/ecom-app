@@ -428,33 +428,39 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
 
-            SizedBox(height: 40.h),
-            Padding(
-              padding: EdgeInsets.symmetric(vertical: 40.h),
-              child: Column(
-                children: [
-                  Text(
-                    "RAHEEB",
-                    style: TextStyle(
-                      fontSize: 26.sp,
-                      fontWeight: FontWeight.w600,
-                      letterSpacing: 2,
-                      color: Colors.grey.shade400,
-                    ),
+            SizedBox(height: 20.h),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                SizedBox(width: double.infinity),
+                Padding(
+                  padding: EdgeInsets.symmetric(vertical: 40.h),
+                  child: Column(
+                    children: [
+                      Text(
+                        "RAHEEB",
+                        style: TextStyle(
+                          fontSize: 26.sp,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 2,
+                          color: Colors.grey.shade400,
+                        ),
+                      ),
+                      SizedBox(height: 8.h),
+                      Text(
+                        "DEFINED BY ELEGANCE",
+                        style: TextStyle(
+                          fontSize: 12.sp,
+                          letterSpacing: 3,
+                          color: Colors.grey.shade500,
+                        ),
+                      ),
+                    ],
                   ),
-                  SizedBox(height: 8.h),
-                  Text(
-                    "DEFINED BY ELEGANCE",
-                    style: TextStyle(
-                      fontSize: 12.sp,
-                      letterSpacing: 3,
-                      color: Colors.grey.shade500,
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
-
+            SizedBox(height: 20.h),
           ],
         ),
       ),
