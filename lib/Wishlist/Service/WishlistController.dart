@@ -125,7 +125,10 @@ Future<void> fetchWishlist({
 }
 
 
-  Future<void> removeFromWishlist(String wishlistItemId) async {
+  Future<void> removeFromWishlist(
+      String wishlistItemId, {
+        bool showMessage = true,
+      }) async {
     try {
       isLoading.value = true;
       error.value = null;
@@ -148,7 +151,14 @@ Future<void> fetchWishlist({
           wishlistItems.removeWhere(
             (item) => item.wishlistId == wishlistItemId,
           );
-          Get.snackbar("Success", "Removed from wishlist");
+          if (showMessage) {
+            Get.snackbar(
+              "Success",
+              "Removed from wishlist",
+              snackPosition: SnackPosition.BOTTOM,
+            );
+          }
+
         } else {
           error.value = "Failed to remove item";
         }

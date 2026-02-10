@@ -126,9 +126,39 @@ class _AddressListScreenState extends State<AddressListScreen> {
                     '${address.address}, ${address.city}, ${address.state} - ${address.postalCode}',
                     style: TextStyle(color: Colors.grey, fontSize: 12.sp),
                   ),
-                  trailing: address.isDefault
-                      ? Icon(Icons.check_circle, color: Colors.green, size: 22.sp)
-                      : null,
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (address.isDefault)
+                        Icon(Icons.check_circle, color: Colors.green, size: 20.sp),
+
+                      IconButton(
+                        icon: Icon(Icons.edit, color: Color(0xffC47C47), size: 20.sp),
+                        onPressed: () async {
+                          final updated = await Get.to(
+                                () => AddressFormScreen(
+                              initialData: {
+                                "id": address.id,
+                                "name": address.name,
+                                "address": address.address,
+                                "city": address.city,
+                                "state": address.state,
+                                "postalCode": address.postalCode,
+                                "country": address.country,
+                                "phone": address.phone,
+                                "isDefault": address.isDefault,
+                              },
+                            ),
+                          );
+
+                          if (updated == true) {
+                            controller.fetchAddresses();
+                          }
+                        },
+                      ),
+                    ],
+                  ),
+
                   onTap: () {
                     Get.back(result: address.id);
                   },

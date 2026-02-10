@@ -32,12 +32,10 @@ class MyOrderScreen extends StatelessWidget {
           backgroundColor: Colors.white,
           elevation: 0,
           centerTitle: true,
-          leading: (!showback)
-              ? Container()
-              : IconButton(
-                  icon: const Icon(Icons.arrow_back_ios, color: Colors.black),
-                  onPressed: () => Get.back(),
-                ),
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back_ios, color: Colors.black),
+            onPressed: () => Get.back(),
+          ),
           title: Text(
             'My Orders',
             style: TextStyle(
@@ -48,6 +46,7 @@ class MyOrderScreen extends StatelessWidget {
             ),
           ),
         ),
+
         body: SafeArea(
           child: Container(
             color: Colors.white,

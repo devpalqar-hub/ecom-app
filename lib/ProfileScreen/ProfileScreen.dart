@@ -21,8 +21,26 @@ class ProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xFFF8F9FA),
-      body: SafeArea(
+        backgroundColor: Color(0xFFF8F9FA),
+
+        appBar: AppBar(
+          backgroundColor: Colors.white,
+          elevation: 0,
+          centerTitle: true,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back_ios, color: Colors.black),
+            onPressed: () => Get.back(),
+          ),
+          title: const Text(
+            'Profile',
+            style: TextStyle(
+              color: Colors.black,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+
+        body: SafeArea(
         child: Obx(() {
           final profile = controller.profile.value;
           final customer = profile?.data.customerProfile;

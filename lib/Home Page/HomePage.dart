@@ -176,13 +176,20 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ),
                   Spacer(),
-                  Text(
-                    "View All",
-                    style: TextStyle(
-                      fontSize: 12.sp,
-                      fontWeight: FontWeight.w400,
+                  TextButton(
+                    onPressed: () {
+                      Get.to(() => SearchProductScreen()); // navigate to all products
+                    },
+                    child: Text(
+                      "View All",
+                      style: TextStyle(
+                        fontSize: 12.sp,
+                        fontWeight: FontWeight.w400,
+                        color: Color(0xFFAE933F),
+                      ),
                     ),
                   ),
+
                 ],
               ),
             ),
@@ -285,7 +292,6 @@ class _HomePageState extends State<HomePage> {
                   final products =
                       productController.featuredProductsMap[category.id] ?? [];
 
-                  if (products.isEmpty) return const SizedBox.shrink();
 
                   return Padding(
                     padding: EdgeInsets.only(bottom: 0.h),

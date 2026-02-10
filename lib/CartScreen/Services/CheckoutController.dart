@@ -342,11 +342,23 @@ class CheckoutController extends GetxController {
     } catch (e) {
       isLoading.value = false;
       debugPrint("Checkout error: $e");
-      Fluttertoast.showToast(
-        msg: "Failed to place order: ${e.toString()}",
-        backgroundColor: Colors.red,
-      );
+
+      String errorText = e.toString().toLowerCase();
+
+      if (errorText.contains("delivery")) {
+        Fluttertoast.showToast(
+          msg: "Delivery not available to this location",
+          backgroundColor: Colors.red,
+        );
+      } else {
+        Fluttertoast.showToast(
+          msg: "Failed to place order. Please try again",
+          backgroundColor: Colors.red,
+        );
+      }
+
       return null;
     }
+
   }
 }

@@ -20,12 +20,21 @@ class WishlistScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: Color(0xFFF8F9FA),
       appBar: AppBar(
+        
         backgroundColor: Colors.white,
         elevation: 0,
         centerTitle: false,
         automaticallyImplyLeading: false,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back),
+          onPressed: ()
+          {
+            Navigator.pop(context);
+          },
+        ),
         title: Text(
-          'My Wishlist',
+
+          "My Wishlist",
           style: GoogleFonts.poppins(
             color: Colors.black87,
             fontSize: 24.sp,
@@ -37,7 +46,7 @@ class WishlistScreen extends StatelessWidget {
       body: Obx(() {
         if (wishlistController.isLoading.value) {
           return Center(
-            child: CircularProgressIndicator(color: Color(0xFFAE933F)),
+            child: CircularProgressIndicator(color: Color(0xFFAEAC3F)),
           );
         }
 
@@ -198,6 +207,7 @@ class WishlistScreen extends StatelessWidget {
   }
 
   Widget _emptyWishlistView() {
+    
     return Center(
       child: Padding(
         padding: EdgeInsets.symmetric(horizontal: 40.w),
