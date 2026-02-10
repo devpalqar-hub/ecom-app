@@ -15,118 +15,176 @@ class LoginScreen extends StatelessWidget {
       body: SafeArea(
         child: GetBuilder<Authenticationcontroller>(
           builder: (__) {
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              mainAxisAlignment: MainAxisAlignment.center,
-              mainAxisSize: MainAxisSize.max,
-              children: [
-                Container(width: double.infinity),
-                SizedBox(height: 25.h),
-
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 70.0.w),
-                  child: Image.asset("assets/logo_full.png"),
+            return SingleChildScrollView(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  minHeight:
+                      MediaQuery.of(context).size.height -
+                      MediaQuery.of(context).padding.top -
+                      MediaQuery.of(context).padding.bottom,
                 ),
-                SizedBox(height: 25.h),
-                Text(
-                  "Login with Email",
-                  textAlign: TextAlign.center,
+                child: IntrinsicHeight(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(width: double.infinity),
+                      Spacer(),
 
-                  style: GoogleFonts.poppins(
-                    fontWeight: FontWeight.w500,
-                    fontSize: 21.sp,
-                    color: Color(0xFFAE933F),
-                  ),
-                ),
-                SizedBox(height: 10),
-                Text(
-                  "We'll send an OTP to your email",
-                  textAlign: TextAlign.center,
+                      Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 60.0.w),
+                        child: Image.asset("assets/logo_full.png"),
+                      ),
+                      SizedBox(height: 30.h),
+                      Text(
+                        "Login with Email",
+                        textAlign: TextAlign.center,
 
-                  style: GoogleFonts.poppins(
-                    fontWeight: FontWeight.w400,
-                    fontSize: 12.sp,
-                    color: Colors.black87,
-                  ),
-                ),
-                SizedBox(height: 20.h),
+                        style: GoogleFonts.poppins(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 20.sp,
+                          color: Color(0xFFAE933F),
+                        ),
+                      ),
+                      SizedBox(height: 8.h),
+                      Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 40.w),
+                        child: Text(
+                          "We'll send a verification code to your email",
+                          textAlign: TextAlign.center,
+                          style: GoogleFonts.poppins(
+                            fontWeight: FontWeight.w400,
+                            fontSize: 12.sp,
+                            color: Colors.black54,
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 30.h),
 
-                Container(
-                  margin: EdgeInsets.symmetric(horizontal: 50.w),
-                  height: 45.h,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    border: Border.all(color: Color(0xFFAE933F)),
-                    borderRadius: BorderRadius.circular(12.r),
-                  ),
-                  child: TextField(
-                    controller: authCtrl.emailController,
-                    textAlign: TextAlign.start,
-                    textAlignVertical: TextAlignVertical.center,
-                    decoration: InputDecoration(
-                      border: InputBorder.none,
-                      isDense: true,
-                      isCollapsed: true,
-                      hintText: "Enter Your Email ID",
-                      prefixIcon: Icon(Icons.email),
-                    ),
-                  ),
-                ),
-
-                SizedBox(height: 20.h),
-
-                InkWell(
-                  onTap: () {
-                    authCtrl.sendOtp();
-                  },
-                  child: Container(
-                    margin: EdgeInsets.symmetric(horizontal: 50.w),
-                    height: 45.h,
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(
-                      //border: Border.all(color: Color(0xFFAE933F)),
-                      color: Color(0xFFAE933F),
-                      borderRadius: BorderRadius.circular(12.r),
-                    ),
-                    child: (__.isLoading)
-                        ? CircularProgressIndicator(
-                            color: Colors.white,
-                            padding: EdgeInsetsGeometry.all(2.w),
-                          )
-                        : Text(
-                            "Login Now",
-                            style: GoogleFonts.poppins(
-                              fontWeight: FontWeight.w600,
-                              fontSize: 14.sp,
-                              color: Colors.white,
+                      Container(
+                        margin: EdgeInsets.symmetric(horizontal: 40.w),
+                        height: 50.h,
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          border: Border.all(
+                            color: Color(0xFFAE933F),
+                            width: 1.5,
+                          ),
+                          borderRadius: BorderRadius.circular(12.r),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.03),
+                              blurRadius: 8,
+                              offset: Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: TextField(
+                          controller: authCtrl.emailController,
+                          keyboardType: TextInputType.emailAddress,
+                          style: GoogleFonts.poppins(
+                            fontSize: 14.sp,
+                            color: Colors.black87,
+                          ),
+                          textAlign: TextAlign.start,
+                          textAlignVertical: TextAlignVertical.center,
+                          decoration: InputDecoration(
+                            border: InputBorder.none,
+                            contentPadding: EdgeInsets.symmetric(
+                              horizontal: 16.w,
+                              vertical: 14.h,
+                            ),
+                            isDense: true,
+                            hintText: "Enter your email address",
+                            hintStyle: GoogleFonts.poppins(
+                              fontSize: 13.sp,
+                              color: Colors.grey.shade400,
+                            ),
+                            prefixIcon: Icon(
+                              Icons.email_outlined,
+                              color: Color(0xFFAE933F),
+                              size: 20.sp,
                             ),
                           ),
-                  ),
-                ),
-                Spacer(),
-                Text(
-                  "Finest Shopping Destination in Qatar",
-                  textAlign: TextAlign.center,
+                        ),
+                      ),
 
-                  style: GoogleFonts.poppins(
-                    fontWeight: FontWeight.w400,
-                    fontSize: 12.sp,
-                    color: Colors.black87,
-                  ),
-                ),
-                SizedBox(height: 4),
-                Text(
-                  "MODEST WEAR • NIGHT WEARS • HIJABS",
-                  textAlign: TextAlign.center,
+                      SizedBox(height: 24.h),
 
-                  style: GoogleFonts.poppins(
-                    fontWeight: FontWeight.w400,
-                    fontSize: 14.sp,
-                    color: Colors.black87,
+                      InkWell(
+                        onTap: () {
+                          authCtrl.sendOtp();
+                        },
+                        child: Container(
+                          margin: EdgeInsets.symmetric(horizontal: 40.w),
+                          height: 50.h,
+                          alignment: Alignment.center,
+                          decoration: BoxDecoration(
+                            color: Color(0xFFAE933F),
+                            borderRadius: BorderRadius.circular(12.r),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Color(0xFFAE933F).withOpacity(0.3),
+                                blurRadius: 12,
+                                offset: Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: (__.isLoading)
+                              ? SizedBox(
+                                  height: 20.h,
+                                  width: 20.w,
+                                  child: CircularProgressIndicator(
+                                    color: Colors.white,
+                                    strokeWidth: 2.5,
+                                  ),
+                                )
+                              : Text(
+                                  "Continue",
+                                  style: GoogleFonts.poppins(
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 15.sp,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                        ),
+                      ),
+
+                      Spacer(),
+
+                      Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 40.w),
+                        child: Column(
+                          children: [
+                            Text(
+                              "Finest Shopping Destination in Qatar",
+                              textAlign: TextAlign.center,
+                              style: GoogleFonts.poppins(
+                                fontWeight: FontWeight.w500,
+                                fontSize: 11.sp,
+                                color: Colors.black54,
+                              ),
+                            ),
+                            SizedBox(height: 6.h),
+                            Text(
+                              "MODEST WEAR • NIGHT WEARS • HIJABS",
+                              textAlign: TextAlign.center,
+                              style: GoogleFonts.poppins(
+                                fontWeight: FontWeight.w600,
+                                fontSize: 10.sp,
+                                color: Color(0xFFAE933F),
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      SizedBox(height: 30.h),
+                    ],
                   ),
                 ),
-                SizedBox(height: 25.h),
-              ],
+              ),
             );
           },
         ),

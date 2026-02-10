@@ -1,4 +1,3 @@
-
 class OrderDetailModel {
   final String id;
   final String orderNumber;
@@ -88,9 +87,7 @@ class OrderItem {
     return OrderItem(
       id: json['id']?.toString() ?? '',
       quantity: json['quantity'] ?? 0,
-      review: json['review'] != null
-          ? Review.fromJson(json['review'])
-          : null,
+      review: json['Review'] != null ? Review.fromJson(json['Review']) : null,
       product: Product.fromJson(json['product']),
     );
   }
@@ -129,7 +126,6 @@ class Review {
     );
   }
 }
-
 
 class Product {
   final String id;
@@ -218,7 +214,6 @@ class ProductImage {
   }
 }
 
-
 class ShippingAddress {
   final String id;
   final String customerProfileId;
@@ -270,7 +265,6 @@ class ShippingAddress {
     );
   }
 }
-
 
 class Tracking {
   final String id;

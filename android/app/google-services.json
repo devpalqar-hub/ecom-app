@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "806325345760",
+    "project_id": "doulas-41702",
+    "storage_bucket": "doulas-41702.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:806325345760:android:f898d07f4beb4c37be5f85",
+        "android_client_info": {
+          "package_name": "com.raheeb.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAqTtwXKkPaIrMjdU2czUBBlsOwl7_F7qk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

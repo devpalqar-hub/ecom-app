@@ -2,27 +2,59 @@ import 'package:animate_do/animate_do.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get_instance/get_instance.dart';
 import 'package:get/route_manager.dart';
 import 'package:get/state_manager.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lottie/lottie.dart';
+import 'package:new_project/CartScreen/CartScreen.dart';
 import 'package:new_project/Home%20Page/Views/ProductsCard.dart';
-import 'package:new_project/ProductDetailScreen/Models./ProductDetailModel.dart';
+import 'package:new_project/ProductDetailScreen/Models/ProductDetailModel.dart';
 import 'package:new_project/ProductDetailScreen/Services/ProductController.dart';
 import 'package:new_project/ProductDetailScreen/Views/RatingBar.dart';
 import 'package:readmore/readmore.dart';
 
-class ProductDetailScreen extends StatelessWidget {
+class ProductDetailScreen extends StatefulWidget {
   String productId;
   ProductDetailScreen({super.key, required this.productId});
 
+  @override
+  State<ProductDetailScreen> createState() => _ProductDetailScreenState();
+}
+
+class _ProductDetailScreenState extends State<ProductDetailScreen>
+    with RouteAware {
   late Productcontroller ctrl;
 
   @override
-  Widget build(BuildContext context) {
-    ctrl = Get.put(Productcontroller(productId), tag: productId);
+  void initState() {
+    super.initState();
+    ctrl = Get.put(Productcontroller(widget.productId), tag: widget.productId);
+  }
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Subscribe to route changes
+    final route = ModalRoute.of(context);
+    if (route is PageRoute) {
+      // Refetch when coming back to this screen
+      Future.delayed(Duration.zero, () {
+        if (mounted) {
+          ctrl.fetchProduct();
+        }
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -38,9 +70,38 @@ class ProductDetailScreen extends StatelessWidget {
           ),
         ),
         foregroundColor: Colors.black,
+        actions: [
+          GetBuilder<Productcontroller>(
+            tag: widget.productId,
+            builder: (___) {
+              if (___.product == null) return SizedBox();
+
+              return IconButton(
+                onPressed: () {
+                  ___.toggleWishlist();
+                },
+                icon: ___.isWishlistLoading
+                    ? SizedBox(
+                        width: 20.w,
+                        height: 20.h,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Color(0xFFAE933F),
+                        ),
+                      )
+                    : Icon(
+                        ___.product!.isWishlisted ?? false
+                            ? Icons.favorite
+                            : Icons.favorite_border,
+                        color: Color(0xFFAE933F),
+                      ),
+              );
+            },
+          ),
+        ],
       ),
       bottomNavigationBar: GetBuilder<Productcontroller>(
-        tag: productId,
+        tag: widget.productId,
         builder: (___) {
           return (___.product == null)
               ? Container()
@@ -85,19 +146,16 @@ class ProductDetailScreen extends StatelessWidget {
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Text(
-                                  "${(___.product!.discountedPrice)} QAR  ",
+                                  "${___.getCurrentPrice()} QAR  ",
                                   style: GoogleFonts.montserrat(
                                     fontSize: 14.sp,
                                     fontWeight: FontWeight.w600,
                                     color: Colors.black87,
                                   ),
                                 ),
-                                if (___.product!.discountedPrice !=
-                                        ___.product!.actualPrice &&
-                                    ___.product!.actualPrice != null)
+                                if (___.getCurrentActualPrice() != null)
                                   Text(
-                                    "${___.product!.actualPrice} QAR",
-
+                                    "${___.getCurrentActualPrice()} QAR",
                                     style: GoogleFonts.montserrat(
                                       decoration: TextDecoration.lineThrough,
                                       fontSize: 10.sp,
@@ -110,17 +168,64 @@ class ProductDetailScreen extends StatelessWidget {
                           ],
                         ),
                         Spacer(),
-                        Container(
-                          width: 180.w,
-                          height: 45.h,
-                          margin: EdgeInsets.symmetric(horizontal: 10.w),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(16.r),
-                            color: Color(0xFFAE933F),
-                          ),
-                          child: Row(children: [
-                              
-                            ],
+                        InkWell(
+                          onTap: () {
+                            if (!(___.product!.isStock ?? false)) {
+                              Fluttertoast.showToast(
+                                msg: "Product is out of stock",
+                              );
+                              return;
+                            }
+                            if (___.product!.isInCart ?? false) {
+                              // Navigate to cart page
+                              Get.to(
+                                () => CartScreen(),
+                                transition: Transition.rightToLeft,
+                              );
+                            } else {
+                              ___.addToCart();
+                            }
+                          },
+                          child: Container(
+                            width: 180.w,
+                            height: 45.h,
+                            margin: EdgeInsets.symmetric(horizontal: 10.w),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(16.r),
+                              color: Color(0xFFAE933F),
+                            ),
+                            child: ___.isCartLoading
+                                ? Center(
+                                    child: CircularProgressIndicator(
+                                      color: Colors.white,
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                : Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(
+                                        ___.product!.isInCart ?? false
+                                            ? Icons.shopping_cart
+                                            : Icons.add_shopping_cart,
+                                        color: Colors.white,
+                                        size: 20.sp,
+                                      ),
+                                      SizedBox(width: 8.w),
+                                      Text(
+                                        (!(___.product!.isStock ?? false))
+                                            ? "Out of Stock"
+                                            : ___.product!.isInCart ?? false
+                                            ? "View Cart"
+                                            : "Add to Cart",
+                                        style: GoogleFonts.montserrat(
+                                          fontSize: 14.sp,
+                                          fontWeight: FontWeight.w600,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                           ),
                         ),
                       ],
@@ -131,7 +236,7 @@ class ProductDetailScreen extends StatelessWidget {
       ),
       body: SafeArea(
         child: GetBuilder<Productcontroller>(
-          tag: productId,
+          tag: widget.productId,
           builder: (___) {
             return (ctrl.isLoading)
                 ? Center(
@@ -291,23 +396,55 @@ class ProductDetailScreen extends StatelessWidget {
                           ),
                           SizedBox(height: 5.h),
                           SingleChildScrollView(
-                            scrollDirection: Axis.vertical,
+                            scrollDirection: Axis.horizontal,
                             child: Row(
                               children: [
                                 SizedBox(width: 16.w),
-                                for (Variations data
-                                    in ctrl.product!.variations ?? [])
-                                  Container(
-                                    padding: EdgeInsets.symmetric(
-                                      horizontal: 10.w,
-                                      vertical: 3.h,
+                                for (
+                                  int i = 0;
+                                  i < (ctrl.product!.variations ?? []).length;
+                                  i++
+                                )
+                                  GestureDetector(
+                                    onTap: () {
+                                      ctrl.selectVariation(i);
+                                    },
+                                    child: Container(
+                                      padding: EdgeInsets.symmetric(
+                                        horizontal: 15.w,
+                                        vertical: 8.h,
+                                      ),
+                                      margin: EdgeInsets.only(right: 10.w),
+                                      decoration: BoxDecoration(
+                                        color: ctrl.selectedVariationIndex == i
+                                            ? Color(0xFFAE933F)
+                                            : Colors.white,
+                                        border: Border.all(
+                                          color:
+                                              ctrl.selectedVariationIndex == i
+                                              ? Color(0xFFAE933F)
+                                              : Colors.black12,
+                                        ),
+                                        borderRadius: BorderRadius.circular(
+                                          8.r,
+                                        ),
+                                      ),
+                                      child: Text(
+                                        ctrl
+                                                .product!
+                                                .variations![i]
+                                                .variationName ??
+                                            "",
+                                        style: GoogleFonts.montserrat(
+                                          fontSize: 13.sp,
+                                          fontWeight: FontWeight.w500,
+                                          color:
+                                              ctrl.selectedVariationIndex == i
+                                              ? Colors.white
+                                              : Colors.black87,
+                                        ),
+                                      ),
                                     ),
-                                    margin: EdgeInsets.only(right: 10.w),
-                                    decoration: BoxDecoration(
-                                      border: Border.all(color: Colors.black12),
-                                      borderRadius: BorderRadius.circular(5.w),
-                                    ),
-                                    child: Text(data.variationName ?? ""),
                                   ),
                               ],
                             ),

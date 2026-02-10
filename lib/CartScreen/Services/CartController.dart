@@ -135,15 +135,15 @@ class CartController extends GetxController {
     cart.refresh();
 
     try {
-      final response = await http.patch(
-        Uri.parse("$baseUrl/cart/remove-from-cart/$cartItemId"),
+      final response = await http.delete(
+        Uri.parse("$baseUrl/cart/delete-cart/$cartItemId"),
         headers: {
           "Authorization": "Bearer $accessToken",
           "Content-Type": "application/json",
         },
         body: jsonEncode({"quantity": quantity}),
       );
-
+      print(response.body);
       if (response.statusCode != 200) {
         cart.value!.data.insert(index, removedItem);
         cart.refresh();

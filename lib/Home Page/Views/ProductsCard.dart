@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
-import 'package:new_project/Home%20Page/ProducrDetailPage.dart';
 import 'package:new_project/CartScreen/Services/CartController.dart';
 import 'package:new_project/ProductDetailScreen/ProductDetailScreen.dart';
 

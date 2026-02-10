@@ -152,7 +152,14 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
                 "isDefault": isDefault,
               };
         
-              final success = await controller.addAddress(data);
+              final success = await controller.addAddress(   name: nameController.text.trim(),
+                address: addressController.text.trim(),
+                city: cityController.text.trim(),
+                state: stateController.text.trim(),
+                postalCode: postalCodeController.text.trim(),
+                country: countryController.text.trim(),
+                phone: phoneController.text.trim(),
+                isDefault: isDefault,);
         
               if (success && mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(

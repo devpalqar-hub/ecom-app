@@ -10,13 +10,13 @@ class OrderCard extends StatelessWidget {
   final String orderId;
   final String date;
   final String productName;
-  final String? productImage; 
+  final String? productImage;
   final int quantity;
   final double price;
   final String status;
   final String estimatedDelivery;
   final bool showTrackButton;
-  final OrderDetailModel? order; 
+  final OrderDetailModel? order;
 
   const OrderCard({
     Key? key,
@@ -30,7 +30,7 @@ class OrderCard extends StatelessWidget {
     this.estimatedDelivery = '',
     this.showTrackButton = false,
     this.onTap,
-    this.order, 
+    this.order,
   }) : super(key: key);
 
   Color getStatusColor() {
@@ -41,63 +41,124 @@ class OrderCard extends StatelessWidget {
     return Colors.grey.shade200;
   }
 
+  Color _getStatusBackgroundColor() {
+    switch (status.toLowerCase()) {
+      case 'delivered':
+        return Colors.green.shade50;
+      case 'shipped':
+        return Colors.blue.shade50;
+      case 'processing':
+        return Colors.orange.shade50;
+      case 'confirmed':
+        return Colors.purple.shade50;
+      case 'cancelled':
+        return Colors.red.shade50;
+      default:
+        return Colors.grey.shade100;
+    }
+  }
+
+  Color _getStatusTextColor() {
+    switch (status.toLowerCase()) {
+      case 'delivered':
+        return Colors.green.shade700;
+      case 'shipped':
+        return Colors.blue.shade700;
+      case 'processing':
+        return Colors.orange.shade700;
+      case 'confirmed':
+        return Colors.purple.shade700;
+      case 'cancelled':
+        return Colors.red.shade700;
+      default:
+        return Colors.grey.shade700;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
         width: double.infinity,
-        padding: EdgeInsets.all(16.w),
-        margin: EdgeInsets.symmetric(vertical: 8.h, horizontal: 16.w),
+        padding: EdgeInsets.all(12.w),
+        margin: EdgeInsets.only(bottom: 12.h, left: 6.w, right: 6.w),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(12.r),
-          boxShadow: const [
+          border: Border.all(color: Colors.grey.shade200, width: 1),
+          boxShadow: [
             BoxShadow(
-              color: Colors.black12,
+              color: Colors.black.withOpacity(0.02),
               blurRadius: 8,
-              offset: Offset(0, 4),
-            )
+              offset: Offset(0, 2),
+            ),
           ],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-          
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  orderId,
-                  style: GoogleFonts.poppins(
-                      fontSize: 16.sp, fontWeight: FontWeight.w600),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        orderId,
+                        style: GoogleFonts.poppins(
+                          fontSize: 13.sp,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      SizedBox(height: 4.h),
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.calendar_today_outlined,
+                            size: 11.sp,
+                            color: Colors.grey.shade500,
+                          ),
+                          SizedBox(width: 4.w),
+                          Text(
+                            date,
+                            style: GoogleFonts.poppins(
+                              fontSize: 11.sp,
+                              color: Colors.grey.shade600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
                 Container(
-                  padding:
-                      EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 10.w,
+                    vertical: 5.h,
+                  ),
                   decoration: BoxDecoration(
-                    color: getStatusColor(),
-                    borderRadius: BorderRadius.circular(12.r),
+                    color: _getStatusBackgroundColor(),
+                    borderRadius: BorderRadius.circular(16.r),
                   ),
                   child: Text(
                     status,
                     style: GoogleFonts.poppins(
-                        fontSize: 12.sp,
-                        color: Colors.green.shade800,
-                        fontWeight: FontWeight.w500),
+                      fontSize: 10.sp,
+                      color: _getStatusTextColor(),
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
               ],
             ),
-            SizedBox(height: 4.h),
-            Text(
-              date,
-              style:
-                  GoogleFonts.poppins(fontSize: 12.sp, color: Colors.grey),
-            ),
             SizedBox(height: 12.h),
 
-           
+            Divider(height: 1, color: Colors.grey.shade200),
+            SizedBox(height: 12.h),
+
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -113,7 +174,7 @@ class OrderCard extends StatelessWidget {
                         )
                       : _placeholderImage(),
                 ),
-                SizedBox(width: 12.w),
+                SizedBox(width: 10.w),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -121,22 +182,44 @@ class OrderCard extends StatelessWidget {
                       Text(
                         productName,
                         style: GoogleFonts.poppins(
-                            fontSize: 14.sp, fontWeight: FontWeight.w500),
+                          fontSize: 12.sp,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.black87,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                      SizedBox(height: 4.h),
-                      Text(
-                        'Qty: $quantity',
-                        style: GoogleFonts.poppins(
-                            fontSize: 12.sp, color: Colors.grey),
+                      SizedBox(height: 6.h),
+                      Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 8.w,
+                          vertical: 3.h,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade100,
+                          borderRadius: BorderRadius.circular(5.r),
+                        ),
+                        child: Text(
+                          'Qty: $quantity',
+                          style: GoogleFonts.poppins(
+                            fontSize: 10.sp,
+                            color: Colors.grey.shade700,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
                       ),
                     ],
                   ),
                 ),
+                SizedBox(width: 8.w),
                 Text(
-                  'QA$price',
+                  'QAR $price',
                   style: GoogleFonts.poppins(
-                      fontSize: 14.sp, fontWeight: FontWeight.w600),
-                )
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFFAE933F),
+                  ),
+                ),
               ],
             ),
 
@@ -144,56 +227,60 @@ class OrderCard extends StatelessWidget {
 
             if (status.toLowerCase() == 'delivered')
               Container(
-                padding: EdgeInsets.all(8.w),
+                padding: EdgeInsets.all(10.w),
                 decoration: BoxDecoration(
                   color: Colors.green.shade50,
                   borderRadius: BorderRadius.circular(8.r),
+                  border: Border.all(color: Colors.green.shade200),
                 ),
                 child: Row(
                   children: [
-                    Icon(Icons.check_circle,
-                        size: 16.sp, color: Colors.green),
-                    SizedBox(width: 4.w),
+                    Icon(
+                      Icons.check_circle,
+                      size: 16.sp,
+                      color: Colors.green.shade700,
+                    ),
+                    SizedBox(width: 6.w),
                     Text(
                       'Delivered successfully',
                       style: GoogleFonts.poppins(
-                          fontSize: 12.sp, color: Colors.green.shade800),
+                        fontSize: 11.sp,
+                        color: Colors.green.shade800,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ],
                 ),
               ),
 
-            SizedBox(height: 12.h),
+            if (status.toLowerCase() == 'delivered') SizedBox(height: 12.h),
 
-          
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Total Amount\nQAR$price',
-                  style: GoogleFonts.poppins(
-                      fontSize: 14.sp, fontWeight: FontWeight.w600),
+            if (showTrackButton && order != null)
+              SizedBox(
+                width: double.infinity,
+                height: 40.h,
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    Get.to(() => OrderDetailScreen(order: order!));
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Color(0xFFAE933F),
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10.r),
+                    ),
+                  ),
+                  icon: Icon(Icons.local_shipping_outlined, size: 16.sp),
+                  label: Text(
+                    'Track Order',
+                    style: GoogleFonts.poppins(
+                      fontSize: 13.sp,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                 ),
-                if (showTrackButton && order != null)
-  ElevatedButton.icon(
-    onPressed: () {
-      Get.to(() => OrderDetailScreen(order: order!));
-    },
-    style: ElevatedButton.styleFrom(
-      backgroundColor: const Color(0xffC17D4A),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(30.r),
-      ),
-    ),
-    icon: const Icon(Icons.local_shipping, size: 16, color: Colors.white),
-    label: Text(
-      'Track Order',
-      style: GoogleFonts.poppins(fontSize: 12.sp, color: Colors.white),
-    ),
-  ),
-
-              ],
-            )
+              ),
           ],
         ),
       ),
@@ -204,10 +291,14 @@ class OrderCard extends StatelessWidget {
     return Container(
       width: 60.w,
       height: 60.w,
-      color: Colors.grey.shade200,
-      child: const Icon(
-        Icons.image_not_supported,
-        color: Colors.grey,
+      decoration: BoxDecoration(
+        color: Colors.grey.shade100,
+        borderRadius: BorderRadius.circular(8.r),
+      ),
+      child: Icon(
+        Icons.image_outlined,
+        color: Colors.grey.shade400,
+        size: 28.sp,
       ),
     );
   }

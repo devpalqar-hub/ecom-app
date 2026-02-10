@@ -1,15 +1,20 @@
+import 'dart:convert';
+
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:new_project/CartScreen/CheckoutScreen.dart';
+import 'package:http/http.dart';
+import 'package:new_project/CartScreen/CartScreen.dart';
 import 'package:new_project/Home%20Page/HomePage.dart';
 import 'package:new_project/MyOrder/MyOrderScreen.dart';
 import 'package:new_project/ProfileScreen/ProfileScreen.dart';
 import 'package:new_project/Wishlist/WishlistScreen.dart';
+import 'package:new_project/main.dart';
 
-void main() {
-  runApp(const MaterialApp(home: DashBoard()));
-}
+// void main() {
+//   runApp(const MaterialApp(home: DashBoard()));
+// }
 
 class DashBoard extends StatefulWidget {
   const DashBoard({super.key});
@@ -24,8 +29,8 @@ class _DashBoardState extends State<DashBoard> {
   final List<Widget> _pages = [
     HomePage(),
     WishlistScreen(),
-    CheckoutScreen(),
-    MyOrderScreen(),
+    CartScreen(),
+    MyOrderScreen(showback: false),
     ProfileScreen(),
   ];
 
@@ -36,74 +41,117 @@ class _DashBoardState extends State<DashBoard> {
   }
 
   @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    setFcm();
+  }
+
+  setFcm() async {
+    try {
+      String? token = await FirebaseMessaging.instance.getToken();
+
+      final response = await post(
+        Uri.parse(baseUrl + "/users/fcm-token/users/"),
+        headers: {
+          "Authorization": "Bearer $accessToken",
+          "Content-Type": "application/json",
+        },
+        body: json.encode({"token": token}),
+      );
+
+      print('FCM Token Response Status: ${response.statusCode}');
+      print('FCM Token Response Body: ${response.body}');
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        print('FCM token sent successfully');
+      } else {
+        print('Failed to send FCM token to backend');
+      }
+    } catch (e) {
+      print('Error sending FCM token to backend: $e');
+    }
+  }
+
   @override
-Widget build(BuildContext context) {
-  return Scaffold(
-    body: SafeArea(child: _pages[_selectedIndex]),
-    bottomNavigationBar: SafeArea(
-      child: Container(
-        height: 70.h,
-        decoration:  BoxDecoration(
-          color: Colors.white,
-          boxShadow: [
-            BoxShadow(color: Colors.black12, blurRadius: 4.r),
-          ],
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: SafeArea(child: _pages[_selectedIndex]),
+      bottomNavigationBar: SafeArea(
+        child: Container(
+          height: 65.h,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 10.r,
+                offset: Offset(0, -2),
+              ),
+            ],
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              _navItem(
+                icon: Icons.storefront_outlined,
+                label: 'Home',
+                index: 0,
+              ),
+              _navItem(
+                icon: Icons.favorite_outline,
+                label: 'Wishlist',
+                index: 1,
+              ),
+              _navItem(
+                icon: Icons.shopping_bag_outlined,
+                label: 'Cart',
+                index: 2,
+              ),
+              _navItem(
+                icon: Icons.receipt_long_outlined,
+                label: 'Orders',
+                index: 3,
+              ),
+              _navItem(icon: Icons.person_outline, label: 'Profile', index: 4),
+            ],
+          ),
         ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
+      ),
+    );
+  }
+
+  Widget _navItem({
+    required IconData icon,
+    required String label,
+    required int index,
+  }) {
+    final bool isSelected = _selectedIndex == index;
+
+    return GestureDetector(
+      onTap: () => _onItemTapped(index),
+      child: Container(
+        padding: EdgeInsets.symmetric(vertical: 8.h),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            _navIcon(icon: Icons.home_outlined, selectedIcon: Icons.home, index: 0),
-            _navIcon(icon: Icons.favorite_border, selectedIcon: Icons.favorite, index: 1),
-            _navIcon(icon: Icons.local_shipping, selectedIcon: Icons.local_shipping, index: 2),
-            _navIcon(icon: Icons.card_giftcard, selectedIcon: Icons.card_giftcard, index: 3),
-            _navIcon(icon: Icons.person_outline, selectedIcon: Icons.person, index: 4),
+            Icon(
+              icon,
+              size: 24.sp,
+              color: isSelected ? Color(0xFFAE933F) : Color(0xFF9E9E9E),
+            ),
+            SizedBox(height: 4.h),
+            Text(
+              label,
+              style: GoogleFonts.poppins(
+                fontSize: 10.sp,
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                color: isSelected ? Color(0xFFAE933F) : Color(0xFF9E9E9E),
+              ),
+            ),
           ],
         ),
       ),
-    ),
-  );
-}
-
-
-  Widget _navIcon({
-  required IconData icon,
-  required IconData selectedIcon,
-  required int index,
-}) {
-  final bool isSelected = _selectedIndex == index;
-
-  return GestureDetector(
-    onTap: () => _onItemTapped(index),
-    child: SizedBox(
-      width: 32.w,
-      height: 32.h,
-      child: isSelected
-          ? Stack(
-              alignment: Alignment.center,
-              children: [
-               
-                Icon(
-                  icon,
-                  size: 30.sp,
-                  color: const Color(0xffC17D4A), 
-                ),
-
-               
-                Icon(
-                  selectedIcon,
-                  size: 26.sp, 
-                  color: const Color(0xffF7D8C0),
-                ),
-              ],
-            )
-          : Icon(
-              icon,
-              size: 30.sp,
-              color: const Color(0xff9E9E9E), 
-            ),
-    ),
-  );
-}
-
-
+    );
+  }
 }

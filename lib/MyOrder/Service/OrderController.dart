@@ -183,6 +183,8 @@ class OrderController extends GetxController {
         body: body,
       );
 
+      print(response.body);
+
       if (response.statusCode == 200 || response.statusCode == 201) {
         reviewedProducts[productId] = rating;
         reviewedProducts.refresh();
