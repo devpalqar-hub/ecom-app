@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:new_project/CartScreen/AddressFormScreen.dart';
 import 'package:new_project/CartScreen/Services/CheckoutController.dart';
+
 class AddressListScreen extends StatefulWidget {
   const AddressListScreen({super.key});
 
@@ -31,20 +32,23 @@ class _AddressListScreenState extends State<AddressListScreen> {
         appBar: AppBar(
           backgroundColor: Colors.white,
           elevation: 0,
-          leading: const BackButton(color: Colors.black),
-          title: const Text(
+          //leading: const BackButton(color: Colors.black),
+          title: Text(
             ' Delivery Address',
-            style: TextStyle(color: Colors.black, fontWeight: FontWeight.w600),
+            style: TextStyle(
+              color: Colors.black,
+              fontSize: 20.sp,
+              fontWeight: FontWeight.w600,
+              fontFamily: "Inter",
+            ),
           ),
-          centerTitle: true,
+          // centerTitle: true,
         ),
         body: Obx(() {
-
           if (controller.isLoading.value) {
             return const Center(child: CircularProgressIndicator());
           }
 
-      
           if (controller.error.value != null) {
             return Center(
               child: Text(
@@ -53,7 +57,6 @@ class _AddressListScreenState extends State<AddressListScreen> {
               ),
             );
           }
-
 
           if (controller.addresses.isEmpty) {
             return Center(
@@ -76,7 +79,9 @@ class _AddressListScreenState extends State<AddressListScreen> {
                         ),
                       ),
                       onPressed: () async {
-                        final added = await Get.to(() => const AddressFormScreen());
+                        final added = await Get.to(
+                          () => const AddressFormScreen(),
+                        );
                         if (added == true) {
                           controller.fetchAddresses();
                         }
@@ -105,7 +110,7 @@ class _AddressListScreenState extends State<AddressListScreen> {
               return Container(
                 margin: EdgeInsets.only(bottom: 12.h),
                 decoration: BoxDecoration(
-                     color: const Color.fromARGB(255, 248, 238, 229),
+                  color: const Color.fromARGB(255, 248, 238, 229),
                   borderRadius: BorderRadius.circular(16.r),
                   boxShadow: [
                     BoxShadow(
@@ -117,10 +122,16 @@ class _AddressListScreenState extends State<AddressListScreen> {
                   border: Border.all(color: Color(0xffC47C47)),
                 ),
                 child: ListTile(
-                  contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+                  contentPadding: EdgeInsets.symmetric(
+                    horizontal: 16.w,
+                    vertical: 12.h,
+                  ),
                   title: Text(
                     address.name,
-                    style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14.sp),
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 14.sp,
+                    ),
                   ),
                   subtitle: Text(
                     '${address.address}, ${address.city}, ${address.state} - ${address.postalCode}',
@@ -130,13 +141,21 @@ class _AddressListScreenState extends State<AddressListScreen> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       if (address.isDefault)
-                        Icon(Icons.check_circle, color: Colors.green, size: 20.sp),
+                        Icon(
+                          Icons.check_circle,
+                          color: Colors.green,
+                          size: 20.sp,
+                        ),
 
                       IconButton(
-                        icon: Icon(Icons.edit, color: Color(0xffC47C47), size: 20.sp),
+                        icon: Icon(
+                          Icons.edit,
+                          color: Color(0xffC47C47),
+                          size: 20.sp,
+                        ),
                         onPressed: () async {
                           final updated = await Get.to(
-                                () => AddressFormScreen(
+                            () => AddressFormScreen(
                               initialData: {
                                 "id": address.id,
                                 "name": address.name,

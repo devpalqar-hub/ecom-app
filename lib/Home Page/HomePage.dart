@@ -64,7 +64,7 @@ class _HomePageState extends State<HomePage> {
       backgroundColor: Colors.white,
 
       appBar: AppBar(
-        // backgroundColor: Color(0xFFAE933F),
+        backgroundColor: Colors.white,
         centerTitle: false,
         elevation: 0,
 
@@ -178,7 +178,9 @@ class _HomePageState extends State<HomePage> {
                   Spacer(),
                   TextButton(
                     onPressed: () {
-                      Get.to(() => SearchProductScreen()); // navigate to all products
+                      Get.to(
+                        () => SearchProductScreen(),
+                      ); // navigate to all products
                     },
                     child: Text(
                       "View All",
@@ -189,7 +191,6 @@ class _HomePageState extends State<HomePage> {
                       ),
                     ),
                   ),
-
                 ],
               ),
             ),
@@ -292,64 +293,68 @@ class _HomePageState extends State<HomePage> {
                   final products =
                       productController.featuredProductsMap[category.id] ?? [];
 
-
-                  return Padding(
-                    padding: EdgeInsets.only(bottom: 0.h),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // SizedBox(height: 10.h),
-                        Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 10.w),
-                          child: Row(
+                  return (products.isEmpty)
+                      ? Container()
+                      : Padding(
+                          padding: EdgeInsets.only(bottom: 0.h),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
-                                category.name,
-                                style: TextStyle(
-                                  fontSize: 21.sp,
-                                  fontWeight: FontWeight.w600,
+                              // SizedBox(height: 10.h),
+                              Padding(
+                                padding: EdgeInsets.symmetric(horizontal: 10.w),
+                                child: Row(
+                                  children: [
+                                    Text(
+                                      category.name,
+                                      style: TextStyle(
+                                        fontSize: 21.sp,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                    Spacer(),
+                                  ],
                                 ),
                               ),
-                              Spacer(),
+                              SizedBox(height: 20.h),
+
+                              GridView.builder(
+                                itemCount: products.length,
+                                shrinkWrap: true,
+                                physics: const NeverScrollableScrollPhysics(),
+                                padding: EdgeInsets.symmetric(horizontal: 20.w),
+                                gridDelegate:
+                                    SliverGridDelegateWithFixedCrossAxisCount(
+                                      crossAxisCount: 2,
+                                      mainAxisSpacing: 12.h,
+                                      crossAxisSpacing: 12.w,
+                                      childAspectRatio: 0.66,
+                                    ),
+                                itemBuilder: (context, index) {
+                                  final product = products[index];
+                                  return ProductCard(
+                                    productId: product.id,
+                                    title: product.name,
+                                    category: product.subCategory.name,
+                                    imageUrl: product.images.isNotEmpty
+                                        ? product.images.first.url
+                                        : "",
+                                    price:
+                                        double.tryParse(
+                                          product.discountedPrice,
+                                        ) ??
+                                        0.0,
+                                    fullPrice:
+                                        product.actualPrice !=
+                                            product.discountedPrice
+                                        ? product.actualPrice
+                                        : null,
+                                  );
+                                },
+                              ),
                             ],
                           ),
-                        ),
-                        SizedBox(height: 20.h),
-
-                        GridView.builder(
-                          itemCount: products.length,
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          padding: EdgeInsets.symmetric(horizontal: 20.w),
-                          gridDelegate:
-                              SliverGridDelegateWithFixedCrossAxisCount(
-                                crossAxisCount: 2,
-                                mainAxisSpacing: 12.h,
-                                crossAxisSpacing: 12.w,
-                                childAspectRatio: 0.66,
-                              ),
-                          itemBuilder: (context, index) {
-                            final product = products[index];
-                            return ProductCard(
-                              productId: product.id,
-                              title: product.name,
-                              category: product.subCategory.name,
-                              imageUrl: product.images.isNotEmpty
-                                  ? product.images.first.url
-                                  : "",
-                              price:
-                                  double.tryParse(product.discountedPrice) ??
-                                  0.0,
-                              fullPrice:
-                                  product.actualPrice != product.discountedPrice
-                                  ? product.actualPrice
-                                  : null,
-                            );
-                          },
-                        ),
-                      ],
-                    ),
-                  );
+                        );
                 }).toList(),
               );
             }),

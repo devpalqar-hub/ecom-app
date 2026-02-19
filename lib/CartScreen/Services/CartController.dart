@@ -1,10 +1,7 @@
 import 'dart:convert';
-import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
-
 import 'package:new_project/CartScreen/Model/CartModel.dart';
-import 'package:new_project/LoginScreen/Service/AuthenticationController.dart';
 import 'package:new_project/main.dart';
 
 class CartController extends GetxController {

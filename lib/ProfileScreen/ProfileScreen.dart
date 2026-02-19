@@ -11,6 +11,7 @@ import 'package:new_project/ProfileScreen/Service/ProfileController.dart';
 import 'package:new_project/Wishlist/WishlistScreen.dart';
 import 'package:new_project/main.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ProfileScreen extends StatelessWidget {
   ProfileScreen({super.key});
@@ -21,26 +22,28 @@ class ProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        backgroundColor: Color(0xFFF8F9FA),
+      backgroundColor: Color(0xFFF8F9FA),
 
-        appBar: AppBar(
-          backgroundColor: Colors.white,
-          elevation: 0,
-          centerTitle: true,
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back_ios, color: Colors.black),
-            onPressed: () => Get.back(),
-          ),
-          title: const Text(
-            'Profile',
-            style: TextStyle(
-              color: Colors.black,
-              fontWeight: FontWeight.w600,
-            ),
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        // centerTitle: true,
+        // leading: IconButton(
+        //   icon: const Icon(Icons.arrow_back_ios, color: Colors.black),
+        //   onPressed: () => Get.back(),
+        // ),
+        title: const Text(
+          'Profile',
+          style: TextStyle(
+            color: Colors.black,
+            fontSize: 20,
+            fontWeight: FontWeight.w600,
+            fontFamily: "Inter",
           ),
         ),
+      ),
 
-        body: SafeArea(
+      body: SafeArea(
         child: Obx(() {
           final profile = controller.profile.value;
           final customer = profile?.data.customerProfile;
@@ -65,7 +68,7 @@ class ProfileScreen extends StatelessWidget {
                               ),
                             ),
                             child: CircleAvatar(
-                              radius: 38.r,
+                              radius: 30.r,
                               backgroundColor: Color(0xFFFFF4E6),
                               backgroundImage: customer?.profilePicture != null
                                   ? NetworkImage(customer!.profilePicture!)
@@ -93,7 +96,7 @@ class ProfileScreen extends StatelessWidget {
                                 Text(
                                   customer?.name ?? "Guest User",
                                   style: TextStyle(
-                                    fontSize: 18.sp,
+                                    fontSize: 20.sp,
                                     fontWeight: FontWeight.w700,
                                     color: Colors.black87,
                                   ),
@@ -192,12 +195,8 @@ class ProfileScreen extends StatelessWidget {
                           onTap: () async {
                             // URL: https://raheeb.qa/privacy-policy
                             // You can use url_launcher package or open in webview
-                            Get.snackbar(
-                              'Opening',
-                              'Privacy Policy',
-                              snackPosition: SnackPosition.BOTTOM,
-                              backgroundColor: Color(0xFFFFF4E6),
-                              colorText: Color(0xFFAE933F),
+                            launchUrl(
+                              Uri.parse("https://raheeb.qa/privacy-policy"),
                             );
                           },
                         ),
@@ -207,12 +206,10 @@ class ProfileScreen extends StatelessWidget {
                           onTap: () async {
                             // URL: https://maps.app.goo.gl/ffNzAvLFmeQ4WDMu9
                             // You can use url_launcher package
-                            Get.snackbar(
-                              'Opening',
-                              'Store Location on Maps',
-                              snackPosition: SnackPosition.BOTTOM,
-                              backgroundColor: Color(0xFFFFF4E6),
-                              colorText: Color(0xFFAE933F),
+                            launchUrl(
+                              Uri.parse(
+                                "https://maps.app.goo.gl/ffNzAvLFmeQ4WDMu9",
+                              ),
                             );
                           },
                         ),
@@ -230,12 +227,10 @@ class ProfileScreen extends StatelessWidget {
                           title: 'Facebook',
                           onTap: () async {
                             // URL: https://www.facebook.com/share/1FmbzSst33/
-                            Get.snackbar(
-                              'Opening',
-                              'Facebook Page',
-                              snackPosition: SnackPosition.BOTTOM,
-                              backgroundColor: Color(0xFFFFF4E6),
-                              colorText: Color(0xFFAE933F),
+                            launchUrl(
+                              Uri.parse(
+                                "https://www.facebook.com/share/1FmbzSst33/",
+                              ),
                             );
                           },
                         ),
@@ -244,12 +239,10 @@ class ProfileScreen extends StatelessWidget {
                           title: 'Instagram',
                           onTap: () async {
                             // URL: https://www.instagram.com/raheeb.qa_?igsh=dXRuMHhwY2Q1eWQ=
-                            Get.snackbar(
-                              'Opening',
-                              'Instagram Profile',
-                              snackPosition: SnackPosition.BOTTOM,
-                              backgroundColor: Color(0xFFFFF4E6),
-                              colorText: Color(0xFFAE933F),
+                            launchUrl(
+                              Uri.parse(
+                                "https://www.instagram.com/raheeb.qa_?igsh=dXRuMHhwY2Q1eWQ=",
+                              ),
                             );
                           },
                         ),

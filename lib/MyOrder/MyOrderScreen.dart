@@ -25,17 +25,19 @@ class MyOrderScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    controller.fetchOrders();
+
     return ScreenUtilInit(
       designSize: const Size(375, 812),
       builder: (_, child) => Scaffold(
         appBar: AppBar(
           backgroundColor: Colors.white,
           elevation: 0,
-          centerTitle: true,
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back_ios, color: Colors.black),
-            onPressed: () => Get.back(),
-          ),
+          //centerTitle: true,
+          // leading: IconButton(
+          //   icon: const Icon(Icons.arrow_back_ios, color: Colors.black),
+          //   onPressed: () => Get.back(),
+          // ),
           title: Text(
             'My Orders',
             style: TextStyle(
@@ -110,14 +112,14 @@ class MyOrderScreen extends StatelessWidget {
                       return const Center(child: CircularProgressIndicator());
                     }
 
-                    if (controller.error.value != null) {
-                      return Center(
-                        child: Text(
-                          controller.error.value!,
-                          style: const TextStyle(color: Colors.red),
-                        ),
-                      );
-                    }
+                    // if (controller.error.value != null) {
+                    //   return Center(
+                    //     child: Text(
+                    //       controller.error.value!,
+                    //       style: const TextStyle(color: Colors.red),
+                    //     ),
+                    //   );
+                    // }
 
                     if (controller.orders.isEmpty) {
                       return _emptyOrdersView();
@@ -125,7 +127,7 @@ class MyOrderScreen extends StatelessWidget {
 
                     return ListView.builder(
                       itemCount: controller.orders.length,
-                      
+
                       itemBuilder: (context, index) {
                         final order = controller.orders[index];
                         final firstItem = order.items.first;
@@ -148,20 +150,14 @@ class MyOrderScreen extends StatelessWidget {
                               order.status.toLowerCase() == 'pending' ||
                               order.status.toLowerCase() == 'shipped',
                           onTap: () async {
-                            await controller.getOrderById(order.id);
-                            if (controller.selectedOrder.value != null) {
-                              Get.to(
-                                () => OrderDetailScreen(
-                                  order: controller.selectedOrder.value!,
-                                ),
-                              );
-                            } else {
-                              Get.snackbar(
-                                "Error",
-                                "Order details not found",
-                                snackPosition: SnackPosition.BOTTOM,
-                              );
-                            }
+                            Get.to(() => OrderDetailScreen(orderID: order.id));
+
+                            // } else {
+                            //   Get.snackbar(
+                            //     "Error",
+                            //     "Order details not found",
+                            //     snackPosition: SnackPosition.BOTTOM,
+                            //   );
                           },
                         );
                       },

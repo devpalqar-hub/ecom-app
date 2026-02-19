@@ -4,24 +4,39 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
 import 'package:new_project/MyOrder/Model/OrderDetailModel.dart';
+import 'package:new_project/MyOrder/ReturnOrderScreen.dart';
 import 'package:new_project/MyOrder/Service/OrderController.dart';
 import 'package:new_project/ProductDetailScreen/ProductDetailScreen.dart';
 
 class OrderDetailScreen extends StatefulWidget {
-  final OrderDetailModel order;
-  const OrderDetailScreen({super.key, required this.order});
+  final String orderID;
+  OrderDetailScreen({super.key, required this.orderID});
 
   @override
   State<OrderDetailScreen> createState() => _OrderDetailScreenState();
 }
 
 class _OrderDetailScreenState extends State<OrderDetailScreen> {
-  final OrderController controller = Get.find<OrderController>();
+  final OrderController controller = Get.put(OrderController());
   final RxBool isTimelineExpanded = false.obs;
+
+  // Derive the lists once so we don't recompute in every build.
+
+  @override
+  void initState() {
+    super.initState();
+    //_splitItems(widget.order);
+    controller.selectedOrder = null;
+    controller.getOrderById(widget.orderID);
+  }
+
+  bool showReturn(List<OrderItem> items) {
+    return items.where((it) => it.isReturn).length != items.length;
+  }
 
   @override
   Widget build(BuildContext context) {
-    final order = widget.order;
+    // final order  = controller.se//= widget.order;
 
     return ScreenUtilInit(
       designSize: const Size(375, 812),
@@ -44,30 +59,123 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
           ),
           centerTitle: true,
         ),
-        body: SingleChildScrollView(
-          padding: EdgeInsets.all(16.w),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _orderSummaryCard(order),
-              SizedBox(height: 20.h),
-              _trackingUpdates(order),
-              SizedBox(height: 20.h),
-              _deliveryAddress(order),
-              SizedBox(height: 20.h),
-              _orderItems(order),
-              SizedBox(height: 20.h),
-              _pricingSummary(order),
-              SizedBox(height: 20.h),
-            ],
+        // ── Return button in bottom bar ──
+        bottomNavigationBar: SafeArea(
+          child: GetBuilder<OrderController>(
+            builder: (ctx) =>
+                (ctx.selectedOrder != null &&
+                    showReturn(ctx.selectedOrder!.items!))
+                ? _buildReturnBottomBar(ctx.selectedOrder!)
+                : Container(height: 0, width: 0),
+          ),
+        ),
+        body: SafeArea(
+          child: GetBuilder<OrderController>(
+            builder: (ctx) {
+              return (ctx.selectedOrder == null)
+                  ? Center(child: CircularProgressIndicator())
+                  : SingleChildScrollView(
+                      padding: EdgeInsets.all(16.w),
+
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _orderSummaryCard(ctx.selectedOrder!),
+                          SizedBox(height: 20.h),
+                          _trackingUpdates(ctx.selectedOrder!),
+                          SizedBox(height: 20.h),
+                          _deliveryAddress(ctx.selectedOrder!),
+                          SizedBox(height: 20.h),
+
+                          // ── Active / Delivered items ──
+                          if (ctx.selectedOrder!.items
+                              .where((it) => !it.isReturn)
+                              .isNotEmpty)
+                            _orderItems(ctx.selectedOrder!, [
+                              for (var data in ctx.selectedOrder!.items)
+                                if (!data.isReturn) data,
+                            ], isReturned: false),
+
+                          // ── Returned items section ──
+                          if (ctx.selectedOrder!.items
+                              .where((it) => it.isReturn)
+                              .isNotEmpty) ...[
+                            SizedBox(height: 20.h),
+                            _orderItems(ctx.selectedOrder!, [
+                              for (var data in ctx.selectedOrder!.items)
+                                if (data.isReturn) data,
+                            ], isReturned: true),
+                          ],
+
+                          SizedBox(height: 20.h),
+                          _pricingSummary(ctx.selectedOrder!),
+                          SizedBox(height: 20.h),
+                        ],
+                      ),
+                    );
+            },
           ),
         ),
       ),
     );
   }
 
-  // order summary
+  // ── Bottom return bar ──
+  Widget _buildReturnBottomBar(OrderDetailModel order) {
+    return Container(
+      padding: EdgeInsets.fromLTRB(16.w, 12.h, 16.w, 30.h),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.06),
+            blurRadius: 10,
+            offset: const Offset(0, -3),
+          ),
+        ],
+      ),
+      child: SizedBox(
+        width: double.infinity,
+        height: 50.h,
+        child: ElevatedButton.icon(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFFAE933F),
+            elevation: 0,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(14.r),
+            ),
+          ),
+          icon: Icon(
+            Icons.assignment_return_outlined,
+            color: Colors.white,
+            size: 20.sp,
+          ),
+          onPressed: () => Get.to(
+            () => ReturnOrderScreen(order: order),
+            transition: Transition.rightToLeft,
+          ),
+          label: Text(
+            "Return Order",
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 14.sp,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ── Order Summary Card ──
   Widget _orderSummaryCard(OrderDetailModel order) {
+    // Override display status when fully returned
+    int count = order.items.where((it) => it.isReturn).length;
+
+    final displayStatus = count == order.items.length
+        ? 'returned'
+        : order.status;
+
     return Container(
       padding: EdgeInsets.all(14.w),
       decoration: BoxDecoration(
@@ -114,13 +222,13 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
               Container(
                 padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 5.h),
                 decoration: BoxDecoration(
-                  color: _getStatusColor(order.status),
+                  color: _getStatusColor(displayStatus),
                   borderRadius: BorderRadius.circular(16.r),
                 ),
                 child: Text(
-                  order.status.capitalizeFirst!,
+                  displayStatus.capitalizeFirst!,
                   style: TextStyle(
-                    color: _getStatusTextColor(order.status),
+                    color: _getStatusTextColor(displayStatus),
                     fontSize: 10.sp,
                     fontWeight: FontWeight.w600,
                   ),
@@ -147,7 +255,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                   fontWeight: FontWeight.w500,
                 ),
               ),
-              Spacer(),
+              const Spacer(),
               Text(
                 "QAR ${order.totalAmount}",
                 style: TextStyle(
@@ -167,6 +275,8 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     switch (status.toLowerCase()) {
       case 'delivered':
         return Colors.green.shade50;
+      case 'returned':
+        return Colors.purple.shade50;
       case 'shipped':
       case 'out_for_delivery':
         return Colors.blue.shade50;
@@ -184,6 +294,8 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     switch (status.toLowerCase()) {
       case 'delivered':
         return Colors.green.shade700;
+      case 'returned':
+        return Colors.purple.shade700;
       case 'shipped':
       case 'out_for_delivery':
         return Colors.blue.shade700;
@@ -197,46 +309,74 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     }
   }
 
-  // order items
-  Widget _orderItems(OrderDetailModel order) {
+  // ── Order Items list (used for both active and returned sections) ──
+  Widget _orderItems(
+    OrderDetailModel order,
+    List<OrderItem> items, {
+    required bool isReturned,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          "Order Items",
-          style: TextStyle(
-            fontWeight: FontWeight.w700,
-            fontSize: 16.sp,
-            color: Colors.black87,
-          ),
+        // Section header
+        Row(
+          children: [
+            Text(
+              isReturned ? "Returned Items" : "Order Items",
+              style: TextStyle(
+                fontWeight: FontWeight.w700,
+                fontSize: 16.sp,
+                color: Colors.black87,
+              ),
+            ),
+            SizedBox(width: 8.w),
+            if (isReturned)
+              Container(
+                padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 3.h),
+                decoration: BoxDecoration(
+                  color: Colors.purple.shade50,
+                  borderRadius: BorderRadius.circular(10.r),
+                ),
+                child: Text(
+                  "${items.length}",
+                  style: TextStyle(
+                    fontSize: 11.sp,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.purple.shade700,
+                  ),
+                ),
+              ),
+          ],
         ),
         SizedBox(height: 12.h),
 
-        ...order.items.map((item) {
+        ...items.map((item) {
           final imageUrl = item.product.images.isNotEmpty
               ? item.product.images.first.url
               : null;
 
-          // Check if product already has a review OR was just reviewed in this session
-          final bool alreadyReviewed = item.review != null;
-
           return GestureDetector(
-            onTap: () {
-              // Navigate to product detail screen
-              Get.to(() => ProductDetailScreen(productId: item.product.id));
-            },
+            onTap: () =>
+                Get.to(() => ProductDetailScreen(productId: item.product.id)),
             child: Container(
               margin: EdgeInsets.only(bottom: 12.h),
               padding: EdgeInsets.all(12.w),
               decoration: BoxDecoration(
-                color: Colors.white,
+                // Slightly tinted background for returned items
+                color: isReturned
+                    ? Colors.purple.shade50.withOpacity(0.4)
+                    : Colors.white,
                 borderRadius: BorderRadius.circular(12.r),
-                border: Border.all(color: Colors.grey.shade200),
+                border: Border.all(
+                  color: isReturned
+                      ? Colors.purple.shade100
+                      : Colors.grey.shade200,
+                ),
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withOpacity(0.02),
                     blurRadius: 6,
-                    offset: Offset(0, 2),
+                    offset: const Offset(0, 2),
                   ),
                 ],
               ),
@@ -244,6 +384,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                 children: [
                   Row(
                     children: [
+                      // product image
                       ClipRRect(
                         borderRadius: BorderRadius.circular(8.r),
                         child: imageUrl != null
@@ -280,18 +421,45 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                           ],
                         ),
                       ),
-                      Text(
-                        "₹${item.product.discountedPrice}",
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 13.sp,
-                        ),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text(
+                            "QAR ${item.product.discountedPrice}",
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 13.sp,
+                            ),
+                          ),
+                          // "Returned" badge on item level
+                          if (isReturned) ...[
+                            SizedBox(height: 4.h),
+                            Container(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: 6.w,
+                                vertical: 2.h,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.purple.shade100,
+                                borderRadius: BorderRadius.circular(8.r),
+                              ),
+                              child: Text(
+                                "Returned",
+                                style: TextStyle(
+                                  fontSize: 9.sp,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.purple.shade700,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ],
                       ),
                     ],
                   ),
 
-                  //review
-                  if (order.status.toLowerCase() == "delivered" &&
+                  // Review CTA — only for delivered, non-returned items with no review yet
+                  if (order.status.toLowerCase() == 'delivered' &&
                       item.review == null)
                     GestureDetector(
                       onTap: () => _openReviewBottomSheet(
@@ -321,7 +489,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     );
   }
 
-  // review bottom sheet
+  // ── Review Bottom Sheet ──
   void _openReviewBottomSheet({
     required OrderDetailModel order,
     required String productId,
@@ -330,125 +498,123 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     final TextEditingController commentController = TextEditingController();
 
     Get.bottomSheet(
-      Container(
-        padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 24.h),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              "Rate & Review",
-              style: TextStyle(
-                fontSize: 18.sp,
-                fontWeight: FontWeight.w700,
-                color: Colors.black87,
+      isScrollControlled: true,
+      SafeArea(
+        child: Container(
+          padding: EdgeInsets.only(
+            left: 20.w,
+            right: 20.w,
+            top: 24.h,
+            // Avoid keyboard overlap
+            bottom: MediaQuery.of(context).viewInsets.bottom + 24.h,
+          ),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                "Rate & Review",
+                style: TextStyle(
+                  fontSize: 18.sp,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.black87,
+                ),
               ),
-            ),
-            SizedBox(height: 16.h),
-            Obx(
-              () => Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: List.generate(
-                  5,
-                  (i) => IconButton(
-                    iconSize: 32.sp,
-                    padding: EdgeInsets.symmetric(horizontal: 4.w),
-                    icon: Icon(
-                      i < rating.value ? Icons.star : Icons.star_border,
-                      color: const Color(0xFFAE933F),
+              SizedBox(height: 16.h),
+              Obx(
+                () => Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: List.generate(
+                    5,
+                    (i) => IconButton(
+                      iconSize: 32.sp,
+                      padding: EdgeInsets.symmetric(horizontal: 4.w),
+                      icon: Icon(
+                        i < rating.value ? Icons.star : Icons.star_border,
+                        color: const Color(0xFFAE933F),
+                      ),
+                      onPressed: () => rating.value = i + 1,
                     ),
-                    onPressed: () => rating.value = i + 1,
                   ),
                 ),
               ),
-            ),
-            SizedBox(height: 16.h),
-            TextField(
-              controller: commentController,
-              maxLines: 4,
-              style: TextStyle(fontSize: 13.sp),
-              decoration: InputDecoration(
-                hintText: "Write your review here...",
-                hintStyle: TextStyle(
-                  fontSize: 13.sp,
-                  color: Colors.grey.shade400,
-                ),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10.r),
-                  borderSide: BorderSide(color: Colors.grey.shade300),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10.r),
-                  borderSide: BorderSide(color: Colors.grey.shade300),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10.r),
-                  borderSide: BorderSide(color: Color(0xFFAE933F)),
-                ),
-                contentPadding: EdgeInsets.symmetric(
-                  horizontal: 14.w,
-                  vertical: 12.h,
-                ),
-              ),
-            ),
-            SizedBox(height: 20.h),
-            SizedBox(
-              width: double.infinity,
-              height: 46.h,
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFAE933F),
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(
+              SizedBox(height: 16.h),
+              TextField(
+                controller: commentController,
+                maxLines: 4,
+                style: TextStyle(fontSize: 13.sp),
+                decoration: InputDecoration(
+                  hintText: "Write your review here...",
+                  hintStyle: TextStyle(
+                    fontSize: 13.sp,
+                    color: Colors.grey.shade400,
+                  ),
+                  border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10.r),
+                    borderSide: BorderSide(color: Colors.grey.shade300),
                   ),
-                ),
-                onPressed: () async {
-                  if (rating.value == 0) {
-                    Get.snackbar(
-                      'Rating Required',
-                      'Please select a rating before submitting',
-                      backgroundColor: Colors.red.shade50,
-                      colorText: Colors.red.shade800,
-                    );
-                    return;
-                  }
-
-                  await controller.submitReview(
-                    productId: productId,
-                    orderId: order.id,
-                    rating: rating.value,
-                    comment: commentController.text.trim(),
-                  );
-
-                  // Mark product as reviewed
-                  controller.reviewedProducts[productId] = rating.value;
-
-                  // Close the bottom sheet
-
-                  // Refresh the UI to hide the "Write a review" button
-
-                  // Show success message
-                  Fluttertoast.showToast(msg: "Rating Added successfully");
-                },
-                child: Text(
-                  "Submit Review",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 14.sp,
-                    fontWeight: FontWeight.w600,
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10.r),
+                    borderSide: BorderSide(color: Colors.grey.shade300),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10.r),
+                    borderSide: const BorderSide(color: Color(0xFFAE933F)),
+                  ),
+                  contentPadding: EdgeInsets.symmetric(
+                    horizontal: 14.w,
+                    vertical: 12.h,
                   ),
                 ),
               ),
-            ),
-          ],
+              SizedBox(height: 20.h),
+              SizedBox(
+                width: double.infinity,
+                height: 46.h,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFFAE933F),
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10.r),
+                    ),
+                  ),
+                  onPressed: () async {
+                    if (rating.value == 0) {
+                      Get.snackbar(
+                        'Rating Required',
+                        'Please select a rating before submitting',
+                        backgroundColor: Colors.red.shade50,
+                        colorText: Colors.red.shade800,
+                      );
+                      return;
+                    }
+                    // submitReview now calls Get.back() internally on success
+                    await controller.submitReview(
+                      productId: productId,
+                      orderId: order.id,
+                      rating: rating.value,
+                      comment: commentController.text.trim(),
+                    );
+                  },
+                  child: Text(
+                    "Submit Review",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 14.sp,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
-      isScrollControlled: true,
     );
   }
 
@@ -462,7 +628,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     child: Icon(Icons.photo, color: Colors.grey.shade400, size: 24.sp),
   );
 
-  // delivery address
+  // ── Delivery Address ──
   Widget _deliveryAddress(OrderDetailModel order) {
     final a = order.shippingAddress;
     return Column(
@@ -487,7 +653,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
               BoxShadow(
                 color: Colors.black.withOpacity(0.02),
                 blurRadius: 8,
-                offset: Offset(0, 2),
+                offset: const Offset(0, 2),
               ),
             ],
           ),
@@ -497,12 +663,12 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
               Container(
                 padding: EdgeInsets.all(8.w),
                 decoration: BoxDecoration(
-                  color: Color(0xFFFFF4E6),
+                  color: const Color(0xFFFFF4E6),
                   borderRadius: BorderRadius.circular(10.r),
                 ),
                 child: Icon(
                   Icons.location_on,
-                  color: Color(0xFFAE933F),
+                  color: const Color(0xFFAE933F),
                   size: 24.sp,
                 ),
               ),
@@ -560,7 +726,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     );
   }
 
-  // tracking
+  // ── Tracking ──
   Widget _trackingUpdates(OrderDetailModel order) {
     final tracking = order.tracking;
 
@@ -625,14 +791,14 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                         ? Icons.keyboard_arrow_up
                         : Icons.keyboard_arrow_down,
                     size: 18.sp,
-                    color: Color(0xFFAE933F),
+                    color: const Color(0xFFAE933F),
                   ),
                   label: Text(
                     isTimelineExpanded.value ? 'Show Less' : 'Show All',
                     style: TextStyle(
                       fontSize: 12.sp,
                       fontWeight: FontWeight.w600,
-                      color: Color(0xFFAE933F),
+                      color: const Color(0xFFAE933F),
                     ),
                   ),
                 ),
@@ -650,12 +816,11 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
               BoxShadow(
                 color: Colors.black.withOpacity(0.02),
                 blurRadius: 8,
-                offset: Offset(0, 2),
+                offset: const Offset(0, 2),
               ),
             ],
           ),
           child: Obx(() {
-            // Show only first 2 items if collapsed, all if expanded
             final displayCount = isTimelineExpanded.value
                 ? statusHistory.length
                 : (statusHistory.length > 2 ? 2 : statusHistory.length);
@@ -698,18 +863,19 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Timeline indicator
           Column(
             children: [
               Container(
                 width: 28.w,
                 height: 28.w,
                 decoration: BoxDecoration(
-                  color: isCompleted ? Color(0xFFAE933F) : Colors.grey.shade200,
+                  color: isCompleted
+                      ? const Color(0xFFAE933F)
+                      : Colors.grey.shade200,
                   shape: BoxShape.circle,
                   border: Border.all(
                     color: isCompleted
-                        ? Color(0xFFAE933F)
+                        ? const Color(0xFFAE933F)
                         : Colors.grey.shade300,
                     width: 2,
                   ),
@@ -729,8 +895,8 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                         end: Alignment.bottomCenter,
                         colors: isCompleted
                             ? [
-                                Color(0xFFAE933F),
-                                Color(0xFFAE933F).withOpacity(0.3),
+                                const Color(0xFFAE933F),
+                                const Color(0xFFAE933F).withOpacity(0.3),
                               ]
                             : [Colors.grey.shade300, Colors.grey.shade200],
                       ),
@@ -740,7 +906,6 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             ],
           ),
           SizedBox(width: 16.w),
-          // Content
           Expanded(
             child: Padding(
               padding: EdgeInsets.only(bottom: isLast ? 0 : 20.h),
@@ -757,16 +922,6 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                           : Colors.grey.shade600,
                     ),
                   ),
-                  // SizedBox(height: 4.h),
-                  // Text(
-                  //   subtitle,
-                  //   style: TextStyle(
-                  //     color: isCompleted
-                  //         ? Colors.grey.shade700
-                  //         : Colors.grey.shade500,
-                  //     fontSize: 13.sp,
-                  //   ),
-                  // ),
                   SizedBox(height: 6.h),
                   Row(
                     children: [
@@ -838,7 +993,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     return months[month - 1];
   }
 
-  // Pricing Summary
+  // ── Pricing Summary ──
   Widget _pricingSummary(OrderDetailModel order) {
     final double subtotal = order.items.fold(
       0.0,
@@ -874,7 +1029,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
               BoxShadow(
                 color: Colors.black.withOpacity(0.02),
                 blurRadius: 8,
-                offset: Offset(0, 2),
+                offset: const Offset(0, 2),
               ),
             ],
           ),
@@ -928,7 +1083,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             fontSize: isTotal ? 16.sp : 13.sp,
             fontWeight: isTotal ? FontWeight.w700 : FontWeight.w600,
             color: isTotal
-                ? Color(0xFFAE933F)
+                ? const Color(0xFFAE933F)
                 : isDiscount
                 ? Colors.green.shade700
                 : Colors.black87,

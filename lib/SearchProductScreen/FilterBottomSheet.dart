@@ -41,10 +41,15 @@ class _SearchFilterBottomSheetState extends State<SearchFilterBottomSheet> {
             var splited = priceValue.split("-");
             ctrl.minPrice = splited[0];
             ctrl.maxPrice = splited[1];
+          } else {
+            ctrl.minPrice = "";
+            ctrl.maxPrice = "";
           }
 
           if (selectedSubCategory != null) {
             ctrl.selectedSubCategoryId = selectedSubCategory;
+          } else {
+            ctrl.selectedSubCategoryId = null;
           }
           ctrl.update();
           ctrl.products = [];
@@ -97,6 +102,30 @@ class _SearchFilterBottomSheetState extends State<SearchFilterBottomSheet> {
                         ),
                       ),
                       Spacer(),
+                      InkWell(
+                        onTap: () {
+                          priceValue = "";
+                          selectedSubCategory = null;
+                        },
+                        child: Container(
+                          padding: EdgeInsets.symmetric(
+                            vertical: 2,
+                            horizontal: 8,
+                          ),
+                          decoration: BoxDecoration(
+                            border: Border.all(color: Colors.black38),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Text(
+                            "Clear All",
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ),
+                      SizedBox(width: 15),
                       InkWell(
                         onTap: () {
                           Get.back();

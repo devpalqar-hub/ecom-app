@@ -72,12 +72,14 @@ class OrderItem {
   final String id;
   final int quantity;
   final Review? review;
+  final bool isReturn;
   final Product product;
 
   OrderItem({
     required this.id,
     required this.quantity,
     this.review,
+    required this.isReturn,
     required this.product,
   });
 
@@ -87,6 +89,7 @@ class OrderItem {
     return OrderItem(
       id: json['id']?.toString() ?? '',
       quantity: json['quantity'] ?? 0,
+      isReturn: json["isReturned"] ?? false,
       review: json['Review'] != null ? Review.fromJson(json['Review']) : null,
       product: Product.fromJson(json['product']),
     );

@@ -261,7 +261,7 @@ class OrderCard extends StatelessWidget {
                 height: 40.h,
                 child: ElevatedButton.icon(
                   onPressed: () {
-                    Get.to(() => OrderDetailScreen(order: order!));
+                    Get.to(() => OrderDetailScreen(orderID: order!.id));
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Color(0xFFAE933F),

@@ -104,7 +104,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
         tag: widget.productId,
         builder: (___) {
           return (___.product == null)
-              ? Container()
+              ? Container(width: 0, height: 0)
               : FadeInUp(
                   child: Container(
                     height: 70.h,

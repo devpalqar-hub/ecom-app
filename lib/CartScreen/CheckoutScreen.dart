@@ -585,7 +585,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           await cartController.fetchCart();
 
           // Navigate to order details
-          Get.off(() => OrderDetailScreen(order: order));
+          Get.off(() => OrderDetailScreen(orderID: order.id));
         }
       } catch (e) {
         debugPrint("Error navigating to order details: $e");

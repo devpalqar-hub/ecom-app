@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
-import 'package:new_project/LoginScreen/Service/AuthenticationController.dart';
 import 'package:new_project/MyOrder/Model/OrderDetailModel.dart';
 import 'package:new_project/MyOrder/Model/OrderModel.dart';
 import 'package:new_project/main.dart';
@@ -11,11 +10,14 @@ class OrderController extends GetxController {
   var orders = <OrderModel>[].obs;
   var isLoading = false.obs;
   var error = RxnString();
-  var selectedOrder = Rxn<OrderDetailModel>();
+  OrderDetailModel? selectedOrder; //= Rxn<OrderDetailModel>();
 
   int page = 1;
   final int limit = 10;
-  final RxMap<String, int> reviewedProducts = <String, int>{}.obs;
+  final Map<String, int> reviewedProducts = {};
+
+  // ── NEW: tracks return submission loading state ──
+  var isReturnLoading = false.obs;
 
   @override
   void onInit() {
@@ -47,14 +49,9 @@ class OrderController extends GetxController {
 
       if (response.statusCode == 200) {
         final decoded = jsonDecode(response.body);
-
         final List data = decoded['data']['data'];
-
         orders.assignAll(data.map((e) => OrderModel.fromJson(e)).toList());
-
-        if (data.isNotEmpty) {
-          debugPrint('First Order JSON: ${data.first}');
-        }
+        if (data.isNotEmpty) debugPrint('First Order JSON: ${data.first}');
       } else {
         error.value = response.body;
         debugPrint('Error Response: ${response.body}');
@@ -67,10 +64,11 @@ class OrderController extends GetxController {
     }
   }
 
+  String selectedOrderID = "";
   Future<void> getOrderById(String orderId) async {
     try {
-      isLoading.value = true;
-      error.value = null;
+      // isLoading.value = true;
+      // error.value = null;
 
       final response = await http.get(
         Uri.parse('$baseUrl/orders/$orderId'),
@@ -82,22 +80,23 @@ class OrderController extends GetxController {
 
       if (response.statusCode == 200) {
         final decoded = jsonDecode(response.body);
-        selectedOrder.value = OrderDetailModel.fromJson(decoded['data']);
+        selectedOrder = OrderDetailModel.fromJson(decoded['data']);
 
         reviewedProducts.clear();
-        for (var item in selectedOrder.value!.items) {
+        for (var item in selectedOrder!.items) {
           if (item.review != null) {
             reviewedProducts[item.product.id] = item.review!.rating;
           }
         }
-        reviewedProducts.refresh();
+        update();
       } else {
-        error.value = response.body;
+        //error.value = response.body;
       }
     } catch (e) {
-      error.value = e.toString();
+      // error.value = e.toString();
     } finally {
-      isLoading.value = false;
+      //  isLoading.value = false;
+      update();
     }
   }
 
@@ -107,16 +106,13 @@ class OrderController extends GetxController {
       error.value = null;
 
       final url = '$baseUrl/orders/$orderId/cancel';
-
       final headers = {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $accessToken',
       };
-
       final Map<String, dynamic> payload = {
         "reason": "User requested cancellation",
       };
-      print("Payload being sent: ${jsonEncode(payload)}");
 
       final response = await http.patch(
         Uri.parse(url),
@@ -124,27 +120,20 @@ class OrderController extends GetxController {
         body: jsonEncode(payload),
       );
 
-      print("Response Status Code: ${response.statusCode}");
-      print("Response Body: ${response.body}");
-
       if (response.statusCode == 200) {
         final decoded = jsonDecode(response.body);
         final orderJson = decoded['data']?['order'];
         if (orderJson == null) throw Exception('Order data missing');
 
-        final updatedOrder = OrderDetailModel.fromJson(orderJson);
-
-        selectedOrder.value = updatedOrder;
+        selectedOrder = OrderDetailModel.fromJson(orderJson);
 
         final index = orders.indexWhere((o) => o.id == orderId);
         if (index != -1) {
           orders[index] = OrderModel.fromJson(orderJson);
           orders.refresh();
         }
-
         return true;
       } else {
-        print("Failed to cancel order with status: ${response.statusCode}");
         return false;
       }
     } catch (e) {
@@ -162,32 +151,31 @@ class OrderController extends GetxController {
     String? comment,
   }) async {
     try {
-      isLoading.value = true;
-      error.value = null;
-
-      final url = '$baseUrl/reviews';
-
-      final body = jsonEncode({
-        "productId": productId,
-        "orderId": orderId,
-        "rating": rating,
-        "comment": comment?.trim() ?? "",
-      });
+      // isLoading.value = true;
+      // error.value = null;
 
       final response = await http.post(
-        Uri.parse(url),
+        Uri.parse('$baseUrl/reviews'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $accessToken',
         },
-        body: body,
+        body: jsonEncode({
+          "productId": productId,
+          "orderId": orderId,
+          "rating": rating,
+          "comment": comment?.trim() ?? "",
+        }),
       );
-
-      print(response.body);
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         reviewedProducts[productId] = rating;
-        reviewedProducts.refresh();
+        update();
+        getOrderById(orderId);
+        // ── BUG FIX: close the bottom sheet after successful review ──
+
+        Get.back();
+        //  getOrderById(selectedOrderID);
 
         Get.snackbar(
           'Thank you!',
@@ -195,7 +183,7 @@ class OrderController extends GetxController {
           snackPosition: SnackPosition.BOTTOM,
         );
       } else {
-        error.value = response.body;
+        // error.value = response.body;
         Get.snackbar(
           'Error',
           'Failed to submit review',
@@ -203,14 +191,58 @@ class OrderController extends GetxController {
         );
       }
     } catch (e) {
-      error.value = e.toString();
+      //  error.value = e.toString();
       Get.snackbar(
         'Error',
         'Something went wrong',
         snackPosition: SnackPosition.BOTTOM,
       );
     } finally {
-      isLoading.value = false;
+      //isLoading.value = false;
+    }
+  }
+
+  // ── NEW: submit return request ──
+  Future<bool> submitReturn({
+    required String orderId,
+    required String returnType, // "full" | "partial"
+    required String reason,
+    required List<Map<String, dynamic>> items,
+    // items: [{ "orderItemId": "...", "quantity": 1, "reason": "..." }]
+  }) async {
+    try {
+      isReturnLoading.value = true;
+      error.value = null;
+
+      final response = await http.post(
+        Uri.parse('$baseUrl/returns'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+        body: jsonEncode({
+          "orderId": orderId,
+          "returnType": returnType,
+          "reason": reason,
+          "items": items,
+        }),
+      );
+
+      print("Return response: ${response.statusCode} ${response.body}");
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        // Refresh order to reflect returned status
+        await getOrderById(orderId);
+        return true;
+      } else {
+        error.value = response.body;
+        return false;
+      }
+    } catch (e) {
+      error.value = e.toString();
+      return false;
+    } finally {
+      isReturnLoading.value = false;
     }
   }
 }

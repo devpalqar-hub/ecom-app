@@ -151,53 +151,81 @@ class SearchProductScreen extends StatelessWidget {
 
                 SizedBox(height: 10.h),
 
-                Container(
+                GridView.builder(
                   padding: EdgeInsets.symmetric(horizontal: 20.w),
-                  width: double.infinity,
-                  child: Wrap(
-                    runSpacing: 20.h,
-                    // spacing: 20.w,
-                    crossAxisAlignment: WrapCrossAlignment.center,
-                    runAlignment: WrapAlignment.spaceAround,
-                    alignment: (__.products.length == 1)
-                        ? WrapAlignment.start
-                        : WrapAlignment.spaceEvenly,
-                    children: [
-                      for (var data in __.products)
-                        ProductCard(
-                          productId: data.id,
-                          category: data.subCategory.name,
-                          title: data.name,
-                          imageUrl: data.images.first.url,
-                          price: data.discountedPrice,
-                        ),
-
-                      if (!__.isloading && __.products.isEmpty)
-                        Column(
-                          children: [
-                            LottieBuilder.asset(
-                              "assets/Lotties/NodataFound.json",
-                              width: 250.w,
-                            ),
-                            Text(
-                              "No Product Founds",
-                              style: GoogleFonts.poppins(
-                                fontSize: 16.sp,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                            Text(
-                              "Please get back later",
-                              style: GoogleFonts.poppins(
-                                fontSize: 12.sp,
-                                fontWeight: FontWeight.w400,
-                              ),
-                            ),
-                          ],
-                        ),
-                    ],
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: __.products.length,
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    mainAxisSpacing: 20.h,
+                    crossAxisSpacing: 12.w,
+                    childAspectRatio: 0.72,
                   ),
+                  itemBuilder: (context, index) {
+                    final data = __.products[index];
+
+                    return ProductCard(
+                      productId: data.id,
+                      category: data.subCategory.name,
+                      title: data.name,
+                      imageUrl: (data.images == null || data.images.isEmpty)
+                          ? ""
+                          : data.images.first.url ?? "",
+                      price: data.discountedPrice,
+                    );
+                  },
                 ),
+
+                // Container(
+                //   padding: EdgeInsets.symmetric(horizontal: 20.w),
+                //   width: double.infinity,
+                //   child: Wrap(
+                //     runSpacing: 20.h,
+                //     // spacing: 20.w,
+                //     crossAxisAlignment: WrapCrossAlignment.center,
+                //     runAlignment: WrapAlignment.spaceAround,
+                //     alignment: (__.products.length == 1)
+                //         ? WrapAlignment.start
+                //         : WrapAlignment.spaceEvenly,
+                //     children: [
+                //       for (var data in __.products)
+                //         ProductCard(
+                //           productId: data.id,
+                //           category: data.subCategory.name,
+                //           title: data.name,
+                //           imageUrl: (data.images == null || data.images.isEmpty)
+                //               ? ""
+                //               : data.images.first.url ?? "",
+                //           price: data.discountedPrice,
+                //         ),
+
+                //       if (!__.isloading && __.products.isEmpty)
+                //         Column(
+                //           children: [
+                //             LottieBuilder.asset(
+                //               "assets/Lotties/NodataFound.json",
+                //               width: 250.w,
+                //             ),
+                //             Text(
+                //               "No Product Founds",
+                //               style: GoogleFonts.poppins(
+                //                 fontSize: 16.sp,
+                //                 fontWeight: FontWeight.w500,
+                //               ),
+                //             ),
+                //             Text(
+                //               "Please get back later",
+                //               style: GoogleFonts.poppins(
+                //                 fontSize: 12.sp,
+                //                 fontWeight: FontWeight.w400,
+                //               ),
+                //             ),
+                //           ],
+                //         ),
+                //     ],
+                //   ),
+                // ),
               ],
             ),
           );
