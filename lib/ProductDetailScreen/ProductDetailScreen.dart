@@ -3,9 +3,7 @@ import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:get/get_instance/get_instance.dart';
-import 'package:get/route_manager.dart';
-import 'package:get/state_manager.dart';
+import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lottie/lottie.dart';
 import 'package:new_project/CartScreen/CartScreen.dart';
@@ -16,15 +14,14 @@ import 'package:new_project/ProductDetailScreen/Views/RatingBar.dart';
 import 'package:readmore/readmore.dart';
 
 class ProductDetailScreen extends StatefulWidget {
-  String productId;
+  final String productId;
   ProductDetailScreen({super.key, required this.productId});
 
   @override
   State<ProductDetailScreen> createState() => _ProductDetailScreenState();
 }
 
-class _ProductDetailScreenState extends State<ProductDetailScreen>
-    with RouteAware {
+class _ProductDetailScreenState extends State<ProductDetailScreen> {
   late Productcontroller ctrl;
 
   @override
@@ -36,21 +33,59 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // Subscribe to route changes
     final route = ModalRoute.of(context);
     if (route is PageRoute) {
-      // Refetch when coming back to this screen
       Future.delayed(Duration.zero, () {
-        if (mounted) {
-          ctrl.fetchProduct();
-        }
+        if (mounted) ctrl.fetchProduct();
       });
     }
   }
 
-  @override
-  void dispose() {
-    super.dispose();
+  void showImageOverlay(int initialIndex) {
+    if (ctrl.product!.images == null || ctrl.product!.images!.isEmpty) return;
+
+    showDialog(
+      context: context,
+      builder: (_) => Dialog(
+        backgroundColor: Colors.transparent,
+        insetPadding: EdgeInsets.all(0),
+        child: Stack(
+          children: [
+            Container(color: Colors.black.withOpacity(0.7)),
+            Center(
+              child: PageView.builder(
+                controller: PageController(initialPage: initialIndex),
+                itemCount: ctrl.product!.images!.length,
+                itemBuilder: (context, index) {
+                  final imgData = ctrl.product!.images![index];
+                  return InteractiveViewer(
+                    child: Image.network(
+                      imgData.url!,
+                      fit: BoxFit.contain,
+                    ),
+                  );
+                },
+              ),
+            ),
+            Positioned(
+              top: 40.h,
+              right: 20.w,
+              child: GestureDetector(
+                onTap: () => Navigator.pop(context),
+                child: Container(
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.black54,
+                  ),
+                  padding: EdgeInsets.all(8.w),
+                  child: Icon(Icons.close, color: Colors.white, size: 24.sp),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   @override
@@ -75,11 +110,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
             tag: widget.productId,
             builder: (___) {
               if (___.product == null) return SizedBox();
-
               return IconButton(
-                onPressed: () {
-                  ___.toggleWishlist();
-                },
+                onPressed: () => ___.toggleWishlist(),
                 icon: ___.isWishlistLoading
                     ? SizedBox(
                         width: 20.w,
@@ -103,205 +135,176 @@ class _ProductDetailScreenState extends State<ProductDetailScreen>
       bottomNavigationBar: GetBuilder<Productcontroller>(
         tag: widget.productId,
         builder: (___) {
-          return (___.product == null)
-              ? Container(width: 0, height: 0)
-              : FadeInUp(
-                  child: Container(
-                    height: 70.h,
-                    margin: EdgeInsets.only(bottom: 45.h),
-                    width: double.infinity,
-                    padding: EdgeInsets.symmetric(
-                      horizontal: 20.w,
-                      vertical: 10.h,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      boxShadow: [
-                        BoxShadow(
-                          offset: Offset(0, -.2),
-                          blurRadius: 2,
-                          spreadRadius: 1,
-                          color: Colors.black12.withOpacity(.1),
-                        ),
-                      ],
-                      borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(20.r),
-                        topRight: Radius.circular(20.r),
-                      ),
-                    ),
-                    child: Row(
-                      children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
+          if (___ .product == null) return SizedBox();
+          return FadeInUp(
+            child: Container(
+              height: 70.h,
+              margin: EdgeInsets.only(bottom: 45.h),
+              width: double.infinity,
+              padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                boxShadow: [
+                  BoxShadow(
+                    offset: Offset(0, -.2),
+                    blurRadius: 2,
+                    spreadRadius: 1,
+                    color: Colors.black12.withOpacity(.1),
+                  ),
+                ],
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(20.r),
+                  topRight: Radius.circular(20.r),
+                ),
+              ),
+              child: Row(
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text("Total Price",
+                          style: GoogleFonts.montserrat(
+                              fontSize: 12.sp,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.black87)),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            "${___.getCurrentPrice()} QAR  ",
+                            style: GoogleFonts.montserrat(
+                                fontSize: 14.sp,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.black87),
+                          ),
+                          if (___.getCurrentActualPrice() != null)
                             Text(
-                              "Total Price",
+                              "${___.getCurrentActualPrice()} QAR",
                               style: GoogleFonts.montserrat(
-                                fontSize: 12.sp,
-                                fontWeight: FontWeight.w500,
-                                color: Colors.black87,
-                              ),
+                                  decoration: TextDecoration.lineThrough,
+                                  fontSize: 10.sp,
+                                  fontWeight: FontWeight.w500,
+                                  color: Colors.black87),
                             ),
-                            Row(
+                        ],
+                      ),
+                    ],
+                  ),
+                  Spacer(),
+                  InkWell(
+                    onTap: () {
+                      if (!(___.product!.isStock ?? false)) {
+                        Fluttertoast.showToast(msg: "Product is out of stock");
+                        return;
+                      }
+                      if (___.product!.isInCart ?? false) {
+                        Get.to(() => CartScreen(),
+                            transition: Transition.rightToLeft);
+                      } else {
+                        ___.addToCart();
+                      }
+                    },
+                    child: Container(
+                      width: 180.w,
+                      height: 45.h,
+                      margin: EdgeInsets.symmetric(horizontal: 10.w),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(16.r),
+                        color: Color(0xFFAE933F),
+                      ),
+                      child: ___.isCartLoading
+                          ? Center(
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 2,
+                              ),
+                            )
+                          : Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Text(
-                                  "${___.getCurrentPrice()} QAR  ",
-                                  style: GoogleFonts.montserrat(
-                                    fontSize: 14.sp,
-                                    fontWeight: FontWeight.w600,
-                                    color: Colors.black87,
-                                  ),
+                                Icon(
+                                  ___.product!.isInCart ?? false
+                                      ? Icons.shopping_cart
+                                      : Icons.add_shopping_cart,
+                                  color: Colors.white,
+                                  size: 20.sp,
                                 ),
-                                if (___.getCurrentActualPrice() != null)
-                                  Text(
-                                    "${___.getCurrentActualPrice()} QAR",
-                                    style: GoogleFonts.montserrat(
-                                      decoration: TextDecoration.lineThrough,
-                                      fontSize: 10.sp,
-                                      fontWeight: FontWeight.w500,
-                                      color: Colors.black87,
-                                    ),
-                                  ),
+                                SizedBox(width: 8.w),
+                                Text(
+                                  (!(___.product!.isStock ?? false))
+                                      ? "Out of Stock"
+                                      : ___.product!.isInCart ?? false
+                                          ? "View Cart"
+                                          : "Add to Cart",
+                                  style: GoogleFonts.montserrat(
+                                      fontSize: 14.sp,
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.white),
+                                ),
                               ],
                             ),
-                          ],
-                        ),
-                        Spacer(),
-                        InkWell(
-                          onTap: () {
-                            if (!(___.product!.isStock ?? false)) {
-                              Fluttertoast.showToast(
-                                msg: "Product is out of stock",
-                              );
-                              return;
-                            }
-                            if (___.product!.isInCart ?? false) {
-                              // Navigate to cart page
-                              Get.to(
-                                () => CartScreen(),
-                                transition: Transition.rightToLeft,
-                              );
-                            } else {
-                              ___.addToCart();
-                            }
-                          },
-                          child: Container(
-                            width: 180.w,
-                            height: 45.h,
-                            margin: EdgeInsets.symmetric(horizontal: 10.w),
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(16.r),
-                              color: Color(0xFFAE933F),
-                            ),
-                            child: ___.isCartLoading
-                                ? Center(
-                                    child: CircularProgressIndicator(
-                                      color: Colors.white,
-                                      strokeWidth: 2,
-                                    ),
-                                  )
-                                : Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Icon(
-                                        ___.product!.isInCart ?? false
-                                            ? Icons.shopping_cart
-                                            : Icons.add_shopping_cart,
-                                        color: Colors.white,
-                                        size: 20.sp,
-                                      ),
-                                      SizedBox(width: 8.w),
-                                      Text(
-                                        (!(___.product!.isStock ?? false))
-                                            ? "Out of Stock"
-                                            : ___.product!.isInCart ?? false
-                                            ? "View Cart"
-                                            : "Add to Cart",
-                                        style: GoogleFonts.montserrat(
-                                          fontSize: 14.sp,
-                                          fontWeight: FontWeight.w600,
-                                          color: Colors.white,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                          ),
-                        ),
-                      ],
                     ),
                   ),
-                );
+                ],
+              ),
+            ),
+          );
         },
       ),
       body: SafeArea(
         child: GetBuilder<Productcontroller>(
           tag: widget.productId,
           builder: (___) {
-            return (ctrl.isLoading)
-                ? Center(
-                    child: CircularProgressIndicator(color: Color(0xFFAE933F)),
-                  )
-                : (ctrl.product == null)
-                ? Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      LottieBuilder.asset(
-                        "assets/Lotties/NodataFound.json",
-                        width: 250.w,
-                      ),
-                      Text(
-                        "No Product Founds",
-                        style: GoogleFonts.poppins(
-                          fontSize: 16.sp,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      Text(
-                        "Please get back later",
-                        style: GoogleFonts.poppins(
-                          fontSize: 12.sp,
-                          fontWeight: FontWeight.w400,
-                        ),
-                      ),
-                    ],
-                  )
-                : SingleChildScrollView(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        SizedBox(
-                          //  height: 300.h,
-                          width: double.infinity,
-                          child: CarouselSlider(
-                            items: [
-                              for (Images img in ctrl.product!.images ?? [])
-                                Padding(
-                                  padding: EdgeInsetsGeometry.symmetric(
-                                    horizontal: 5.w,
-                                  ),
-                                  child: ClipRRect(
-                                    borderRadius: BorderRadiusGeometry.circular(
-                                      10.r,
-                                    ),
-                                    child: Image.network(
-                                      img.url!!,
-                                      fit: BoxFit.cover,
-                                      width: double.infinity,
-                                    ),
-                                  ),
-                                ),
-                            ],
-                            options: CarouselOptions(
-                              autoPlay: true,
+            if (ctrl.isLoading)
+              return Center(
+                  child: CircularProgressIndicator(color: Color(0xFFAE933F)));
+            if (ctrl.product == null)
+              return Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  LottieBuilder.asset("assets/Lotties/NodataFound.json",
+                      width: 250.w),
+                  Text("No Product Found",
+                      style: GoogleFonts.poppins(
+                          fontSize: 16.sp, fontWeight: FontWeight.w500)),
+                  Text("Please get back later",
+                      style: GoogleFonts.poppins(
+                          fontSize: 12.sp, fontWeight: FontWeight.w400)),
+                ],
+              );
 
-                              // height: 20.h,
-                              viewportFraction: .9,
-                              // enlargeCenterPage: true,
+            return SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // ----- Carousel with clickable images -----
+                  CarouselSlider(
+                    items: [
+                      for (int i = 0;
+                          i < ctrl.product!.images!.length;
+                          i++)
+                        Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 5.w),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(10.r),
+                            child: GestureDetector(
+                              onTap: () => showImageOverlay(i),
+                              child: Image.network(
+                                ctrl.product!.images![i].url!,
+                                fit: BoxFit.cover,
+                                width: double.infinity,
+                              ),
                             ),
                           ),
                         ),
+                    ],
+                    options: CarouselOptions(
+                      autoPlay: true,
+                      viewportFraction: 0.9,
+                    ),
+                  ),
+
+                
                         SizedBox(height: 25.h),
                         Row(
                           children: [

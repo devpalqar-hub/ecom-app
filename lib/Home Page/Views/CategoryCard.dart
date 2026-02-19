@@ -17,83 +17,81 @@ class CategoryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final double cardSize = 60.w;
+    final double cardSize = 60.w; // Fixed circle size
+    final double cardWidth = 70.w; // Fixed width for the whole card
 
     return GestureDetector(
       onTap: onTap,
-      child: Column(
-        children: [
-          Container(
-            width: cardSize,
-            height: cardSize,
-            margin: EdgeInsets.only(right: 8.w),
-
-            // ✅ only removed borderRadius
-            decoration: BoxDecoration(
-              shape: BoxShape.circle, // ⭐ makes it circle
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black12,
-                  blurRadius: 2,
-                  offset: const Offset(0, 1),
-                ),
-              ],
-            ),
-
-            // ✅ only changed ClipRRect → ClipOval
-            child: imageUrl != null && imageUrl!.isNotEmpty
-                ? ClipRRect(
-                    borderRadius: BorderRadius.circular(100.r),
-                    child: Image.network(
-                      imageUrl!,
-                      fit: BoxFit.cover,
-                      loadingBuilder: (context, child, loadingProgress) {
-                        if (loadingProgress == null) return child;
-                        return Center(
-                          child: SizedBox(
-                            width: 15.w,
-                            height: 15.h,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              value: loadingProgress.expectedTotalBytes != null
-                                  ? loadingProgress.cumulativeBytesLoaded /
-                                        loadingProgress.expectedTotalBytes!
-                                  : null,
-                            ),
-                          ),
-                        );
-                      },
-                      errorBuilder: (context, error, stackTrace) {
-                        return _placeholder();
-                      },
+      child: SizedBox(
+        width: cardWidth, // fix the card width
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Circle Image
+            SizedBox(
+              width: cardSize,
+              height: cardSize,
+              child: Container(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black12,
+                      blurRadius: 2,
+                      offset: const Offset(0, 1),
                     ),
-                  )
-                : _placeholder(),
-          ),
-          SizedBox(height: 10.w),
-
-          Text(
-            title,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              color: Colors.black,
-              fontWeight: FontWeight.bold,
-              fontSize: 10.sp,
+                  ],
+                ),
+                child: ClipOval(
+                  child: imageUrl != null && imageUrl!.isNotEmpty
+                      ? Image.network(
+                          imageUrl!,
+                          fit: BoxFit.cover,
+                          loadingBuilder: (context, child, loadingProgress) {
+                            if (loadingProgress == null) return child;
+                            return Center(
+                              child: SizedBox(
+                                width: 15.w,
+                                height: 15.h,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  value: loadingProgress.expectedTotalBytes != null
+                                      ? loadingProgress.cumulativeBytesLoaded /
+                                          loadingProgress.expectedTotalBytes!
+                                      : null,
+                                ),
+                              ),
+                            );
+                          },
+                          errorBuilder: (context, error, stackTrace) => _placeholder(),
+                        )
+                      : _placeholder(),
+                ),
+              ),
             ),
-          ),
-        ],
+            SizedBox(height: 6.h),
+
+            // Category title - max 2 lines
+            Text(
+              title,
+              maxLines: 2, // allow 2 lines
+              overflow: TextOverflow.ellipsis, // ellipsis if too long
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: Colors.black,
+                fontWeight: FontWeight.bold,
+                fontSize: 11.sp,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
   Widget _placeholder() {
     return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(100),
-        color: Colors.grey.shade300,
-      ),
+      color: Colors.grey.shade300,
       child: Center(
         child: Icon(
           Icons.image_not_supported,
