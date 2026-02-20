@@ -133,6 +133,7 @@ class CheckoutController extends GetxController {
     required String phone,
     String landmark = '',
     bool isDefault = false,
+    String addressID = "",
   }) async {
     try {
       isLoading.value = true;
@@ -154,14 +155,23 @@ class CheckoutController extends GetxController {
         data["landmark"] = landmark;
       }
 
-      final response = await http.post(
-        Uri.parse("$baseUrl/addresses"),
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": "Bearer $accessToken",
-        },
-        body: jsonEncode(data),
-      );
+      final response = (addressID == "")
+          ? await http.post(
+              Uri.parse("$baseUrl/addresses"),
+              headers: {
+                "Content-Type": "application/json",
+                "Authorization": "Bearer $accessToken",
+              },
+              body: jsonEncode(data),
+            )
+          : await http.patch(
+              Uri.parse("$baseUrl/addresses/${addressID}"),
+              headers: {
+                "Content-Type": "application/json",
+                "Authorization": "Bearer $accessToken",
+              },
+              body: jsonEncode(data),
+            );
 
       debugPrint("Add Address Response: ${response.body}");
       debugPrint("Status Code: ${response.statusCode}");
@@ -359,6 +369,5 @@ class CheckoutController extends GetxController {
 
       return null;
     }
-
   }
 }

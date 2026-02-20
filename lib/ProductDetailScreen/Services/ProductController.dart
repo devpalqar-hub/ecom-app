@@ -1,5 +1,4 @@
 import 'dart:convert';
-
 import 'package:flutter/widgets.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
@@ -103,6 +102,15 @@ class Productcontroller extends GetxController {
       await removeFromWishlist();
     } else {
       await addToWishlist();
+    }
+  }
+
+  bool checkStock() {
+    if (selectedVariation != null) {
+      print(selectedVariation!.stockCount);
+      return (selectedVariation!.stockCount ?? 0) > 0;
+    } else {
+      return product!.isStock ?? true;
     }
   }
 

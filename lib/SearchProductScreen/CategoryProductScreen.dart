@@ -180,6 +180,34 @@ class SearchProductScreen extends StatelessWidget {
                     },
                   ),
 
+                  if (!__.isloading && __.products.isEmpty)
+                    Container(
+                      width: double.infinity,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          LottieBuilder.asset(
+                            "assets/Lotties/NodataFound.json",
+                            width: 250.w,
+                          ),
+                          Text(
+                            "No Product Founds",
+                            style: GoogleFonts.poppins(
+                              fontSize: 16.sp,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          Text(
+                            "Please get back later",
+                            style: GoogleFonts.poppins(
+                              fontSize: 12.sp,
+                              fontWeight: FontWeight.w400,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
                   // Container(
                   //   padding: EdgeInsets.symmetric(horizontal: 20.w),
                   //   width: double.infinity,
@@ -197,34 +225,11 @@ class SearchProductScreen extends StatelessWidget {
                   //           productId: data.id,
                   //           category: data.subCategory.name,
                   //           title: data.name,
-                  //           imageUrl: (data.images == null || data.images.isEmpty)
+                  //           imageUrl:
+                  //               (data.images == null || data.images.isEmpty)
                   //               ? ""
                   //               : data.images.first.url ?? "",
                   //           price: data.discountedPrice,
-                  //         ),
-
-                  //       if (!__.isloading && __.products.isEmpty)
-                  //         Column(
-                  //           children: [
-                  //             LottieBuilder.asset(
-                  //               "assets/Lotties/NodataFound.json",
-                  //               width: 250.w,
-                  //             ),
-                  //             Text(
-                  //               "No Product Founds",
-                  //               style: GoogleFonts.poppins(
-                  //                 fontSize: 16.sp,
-                  //                 fontWeight: FontWeight.w500,
-                  //               ),
-                  //             ),
-                  //             Text(
-                  //               "Please get back later",
-                  //               style: GoogleFonts.poppins(
-                  //                 fontSize: 12.sp,
-                  //                 fontWeight: FontWeight.w400,
-                  //               ),
-                  //             ),
-                  //           ],
                   //         ),
                   //     ],
                   //   ),

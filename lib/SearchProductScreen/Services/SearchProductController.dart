@@ -82,7 +82,7 @@ class Searchproductcontroller extends GetxController {
   }
 
   Future<void> fetchCategories() async {
-    final res = await get(Uri.parse('$baseUrl/categories'));
+    final res = await get(Uri.parse('$baseUrl/categories?isActive=true'));
     categories.clear();
     if (res.statusCode == 200) {
       final decoded = json.decode(res.body);
@@ -95,7 +95,7 @@ class Searchproductcontroller extends GetxController {
 
   Future<void> fetchSubCategories(String categoryId) async {
     final res = await get(
-      Uri.parse('$baseUrl/subcategories/category/$categoryId'),
+      Uri.parse('$baseUrl/subcategories/category/$categoryId?isActive=true'),
     );
 
     if (res.statusCode == 200) {
