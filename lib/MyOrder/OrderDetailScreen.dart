@@ -1,4 +1,6 @@
 // ================= ORDER DETAIL SCREEN =================
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -30,8 +32,25 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     controller.getOrderById(widget.orderID);
   }
 
-  bool showReturn(List<OrderItem> items) {
-    return items.where((it) => it.isReturn).length != items.length;
+  bool showReturn(List<OrderItem> items, OrderDetailModel order) {
+    bool isOver = false;
+    if (order.tracking != null) {
+      if (order.tracking!.statusHistory
+          .where((i) => i.status == "delivered")
+          .isNotEmpty) {
+        var date = order.tracking!.statusHistory
+            .where((i) => i.status == "delivered")
+            .first
+            .timestamp;
+        if (DateTime.now().difference(date).inDays < 3) {
+          isOver = true;
+        }
+      }
+    }
+
+    return items.where((it) => it.isReturn).length != items.length &&
+        order.status == "delivered" &&
+        isOver;
   }
 
   @override
@@ -64,7 +83,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
           child: GetBuilder<OrderController>(
             builder: (ctx) =>
                 (ctx.selectedOrder != null &&
-                    showReturn(ctx.selectedOrder!.items!))
+                    showReturn(ctx.selectedOrder!.items!, ctx.selectedOrder!))
                 ? _buildReturnBottomBar(ctx.selectedOrder!)
                 : Container(height: 0, width: 0),
           ),

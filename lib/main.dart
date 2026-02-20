@@ -13,7 +13,10 @@ import 'package:new_project/firebase_options.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 String? accessToken;
-String baseUrl = "https://api.ecom.palqar.cloud/v1";
+String baseUrl = (false)
+    ? "https://api.raheeb.qa/v1"
+    : "https://api.ecom.palqar.cloud/v1";
+String? login;
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -22,6 +25,7 @@ Future<void> main() async {
 
   final prefs = await SharedPreferences.getInstance();
   accessToken = prefs.getString('access_token');
+  login = prefs.getString('LOGIN');
 
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
@@ -43,12 +47,11 @@ Future<void> main() async {
 
   Widget initialScreen;
 
-  if (accessToken != null && !_isTokenExpired(accessToken!)) {
+  if (accessToken != null && !_isTokenExpired(accessToken!) && login == "IN") {
     initialScreen = DashBoard();
   } else {
     initialScreen = LoginScreen();
   }
-
   runApp(Raheeb(initialHome: initialScreen));
 }
 

@@ -77,6 +77,7 @@ class Authenticationcontroller extends GetxController {
           enableDrag: false,
         );
       } else {
+        preferences.setString("LOGIN", "IN");
         Get.offAll(() => DashBoard(), transition: Transition.rightToLeft);
       }
     } else {
@@ -188,6 +189,10 @@ class Authenticationcontroller extends GetxController {
     print(response.statusCode);
 
     if (response.statusCode == 200 || response.statusCode == 201) {
+      SharedPreferences preferences = await SharedPreferences.getInstance();
+
+      preferences.setString("LOGIN", "IN");
+      await _requestNotificationPermissionAndSendToken();
       Get.offAll(() => DashBoard(), transition: Transition.rightToLeft);
     } else {
       Fluttertoast.showToast(

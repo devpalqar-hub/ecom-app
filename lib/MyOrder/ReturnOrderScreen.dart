@@ -22,11 +22,13 @@ class _ReturnOrderScreenState extends State<ReturnOrderScreen> {
 
   // eligible items = not already returned
   late final List<OrderItem> _eligibleItems;
+  int totalItem = 0;
 
   @override
   void initState() {
     super.initState();
     _eligibleItems = widget.order.items.where((i) => !i.isReturn).toList();
+    totalItem = widget.order.items.length;
   }
 
   @override
@@ -39,7 +41,7 @@ class _ReturnOrderScreenState extends State<ReturnOrderScreen> {
       _eligibleItems.every((i) => _selectedItems.containsKey(i.id));
 
   String get _returnType =>
-      (_selectedItems.length == _eligibleItems.length) ? "full" : "partial";
+      (_selectedItems.length == totalItem) ? "full" : "partial";
 
   bool get _canSubmit =>
       _selectedItems.isNotEmpty && _reasonCtrl.text.trim().isNotEmpty;

@@ -40,19 +40,20 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyAqTtwXKkPaIrMjdU2czUBBlsOwl7_F7qk',
-    appId: '1:806325345760:android:f898d07f4beb4c37be5f85',
-    messagingSenderId: '806325345760',
-    projectId: 'doulas-41702',
-    storageBucket: 'doulas-41702.firebasestorage.app',
+    apiKey: 'AIzaSyBQHjlBPpRjRuzWRlHeL7WAiM4Q-iOIFro',
+    appId: '1:281378106480:android:3e65278118c5c9f6d018b5',
+    messagingSenderId: '281378106480',
+    projectId: 'raheeb-e2e54',
+    storageBucket: 'raheeb-e2e54.firebasestorage.app',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyBrJXbM1RtyN1qenRe6Y9R2cyiGebtHxCM',
-    appId: '1:806325345760:ios:aafe14cb10f0424cbe5f85',
-    messagingSenderId: '806325345760',
-    projectId: 'doulas-41702',
-    storageBucket: 'doulas-41702.firebasestorage.app',
+    apiKey: 'AIzaSyCIyASmHKkI2qdk9q7b736sTjC8KMipW9w',
+    appId: '1:281378106480:ios:d1b5738a6701d96ad018b5',
+    messagingSenderId: '281378106480',
+    projectId: 'raheeb-e2e54',
+    storageBucket: 'raheeb-e2e54.firebasestorage.app',
     iosBundleId: 'com.raheeb.app',
   );
+
 }

@@ -27,8 +27,8 @@ class ProductController extends GetxController {
   final featuredProducts = <FeaturedProduct>[].obs;
   final featuredByCategory = <FeaturedProductCategoryModel>[].obs;
   final isLoadingFeaturedByCategory = false.obs;
-  final featuredProductsMap = <String, List<FeaturedProductCategoryModel>>{}.obs;
-
+  final featuredProductsMap =
+      <String, List<FeaturedProductCategoryModel>>{}.obs;
 
   final isLoadingCategories = false.obs;
   final isLoadingSubCategories = false.obs;
@@ -36,37 +36,35 @@ class ProductController extends GetxController {
   final isLoadingFeaturedProducts = false.obs;
   final isUpdatingFeatured = false.obs;
 
-final cartController = Get.put(CartController());
+  final cartController = Get.put(CartController());
 
   final selectedSubCategoryId = "".obs;
-
 
   final page = 1.obs;
   final hasNext = true.obs;
 
-bool isProductInCart({
-  required String productId,
-  String? productVariationId,
-}) {
-  final cartItems = cartController.cart.value?.data ?? [];
+  bool isProductInCart({
+    required String productId,
+    String? productVariationId,
+  }) {
+    final cartItems = cartController.cart.value?.data ?? [];
 
-  return cartItems.any((e) {
-   
-    if (productVariationId != null && productVariationId.isNotEmpty) {
-      return e.productVariationId == productVariationId;
-    }
-    
-    return e.productId == productId;
-  });
-}
+    return cartItems.any((e) {
+      if (productVariationId != null && productVariationId.isNotEmpty) {
+        return e.productVariationId == productVariationId;
+      }
 
-
+      return e.productId == productId;
+    });
+  }
 
   Future<void> fetchCategories() async {
     try {
       isLoadingCategories.value = true;
 
-      final res = await http.get(Uri.parse('$baseUrl/categories'));
+      final res = await http.get(
+        Uri.parse('$baseUrl/categories?isActive=true'),
+      );
 
       if (res.statusCode == 200) {
         final decoded = json.decode(res.body);
@@ -76,7 +74,6 @@ bool isProductInCart({
         );
       } else {
         categories.clear();
-       
       }
     } catch (e) {
       debugPrint(' fetchCategories error: $e');
@@ -90,8 +87,9 @@ bool isProductInCart({
     try {
       isLoadingSubCategories.value = true;
 
-      final res =
-          await http.get(Uri.parse('$baseUrl/subcategories/category/$categoryId'));
+      final res = await http.get(
+        Uri.parse('$baseUrl/subcategories/category/$categoryId'),
+      );
 
       if (res.statusCode == 200) {
         final data = json.decode(res.body)['data'] as List;
@@ -103,7 +101,6 @@ bool isProductInCart({
       isLoadingSubCategories.value = false;
     }
   }
-
 
   Future<void> fetchProducts({
     String? categoryId,
@@ -128,7 +125,8 @@ bool isProductInCart({
       final query = <String, String>{
         'page': page.value.toString(),
         'limit': limit.toString(),
-        if (categoryId != null && categoryId.isNotEmpty) 'categoryId': categoryId,
+        if (categoryId != null && categoryId.isNotEmpty)
+          'categoryId': categoryId,
         if (subCategoryId != null && subCategoryId.isNotEmpty)
           'subCategoryId': subCategoryId,
         if (search != null && search.isNotEmpty) 'search': search,
@@ -136,7 +134,9 @@ bool isProductInCart({
         if (maxPrice != null) 'maxPrice': maxPrice.toString(),
       };
 
-      final uri = Uri.parse('$baseUrl/products').replace(queryParameters: query);
+      final uri = Uri.parse(
+        '$baseUrl/products',
+      ).replace(queryParameters: query);
       final res = await http.get(uri);
 
       if (res.statusCode == 200) {
@@ -155,7 +155,6 @@ bool isProductInCart({
       isLoadingProducts.value = false;
     }
   }
-
 
   Future<void> fetchProductDetail(String productId) async {
     try {
@@ -183,7 +182,6 @@ bool isProductInCart({
 
       final res = await http.get(Uri.parse('$baseUrl/products/featured'));
 
-      
       if (res.statusCode == 200) {
         final decoded = json.decode(res.body);
         final dataList = decoded['data']['data'] as List<dynamic>? ?? [];
@@ -194,20 +192,18 @@ bool isProductInCart({
         );
       }
     } catch (e, stack) {
-     
     } finally {
       isLoadingFeaturedProducts.value = false;
     }
   }
 
-
-
   Future<void> fetchFeaturedByCategory({required String categoryId}) async {
     try {
       isLoadingFeaturedByCategory.value = true;
 
-      final uri = Uri.parse('$baseUrl/products/featured')
-          .replace(queryParameters: {'categoryId': categoryId});
+      final uri = Uri.parse(
+        '$baseUrl/products/featured',
+      ).replace(queryParameters: {'categoryId': categoryId});
 
       final res = await http.get(uri);
 
@@ -220,15 +216,17 @@ bool isProductInCart({
 
         featuredByCategory.assignAll(
           list
-              .map((e) =>
-                  FeaturedProductCategoryModel.fromJson(e as Map<String, dynamic>))
+              .map(
+                (e) => FeaturedProductCategoryModel.fromJson(
+                  e as Map<String, dynamic>,
+                ),
+              )
               .toList(),
         );
       } else {
-          featuredByCategory.clear();
+        featuredByCategory.clear();
       }
     } catch (e) {
-      
       featuredByCategory.clear();
     } finally {
       isLoadingFeaturedByCategory.value = false;
@@ -248,7 +246,6 @@ bool isProductInCart({
     );
   }
 
-
   List<ProductModel> productsByCategoryName(String categoryName) {
     return products.where((p) {
       return p.subCategory?.category?.name == categoryName;
@@ -261,34 +258,34 @@ bool isProductInCart({
     }).toList();
   }
 
+  Future<List<ProductModel>> fetchRelatedProducts(
+    ProductDetailModel product,
+  ) async {
+    try {
+      final query = <String, String>{};
 
-  Future<List<ProductModel>> fetchRelatedProducts(ProductDetailModel product) async {
-  try {
+      if (product.subCategory.id.isNotEmpty) {
+        query['subCategoryId'] = product.subCategory.id;
+      } else {
+        query['categoryId'] = product.subCategory.categoryId;
+      }
 
-    final query = <String, String>{};
+      final uri = Uri.parse(
+        '$baseUrl/products',
+      ).replace(queryParameters: query);
+      final res = await http.get(uri);
 
-    if (product.subCategory.id.isNotEmpty) {
-      query['subCategoryId'] = product.subCategory.id;
-    } else {
-      query['categoryId'] = product.subCategory.categoryId;
-    }
+      if (res.statusCode == 200) {
+        final body = json.decode(res.body)['data'];
+        final list = body['data'] as List;
+        final productsList = list.map((e) => ProductModel.fromJson(e)).toList();
 
-    final uri = Uri.parse('$baseUrl/products').replace(queryParameters: query);
-    final res = await http.get(uri);
-
-    if (res.statusCode == 200) {
-      final body = json.decode(res.body)['data'];
-      final list = body['data'] as List;
-      final productsList = list.map((e) => ProductModel.fromJson(e)).toList();
-
-      return productsList.where((p) => p.id != product.id).toList();
-    } else {
-   
+        return productsList.where((p) => p.id != product.id).toList();
+      } else {
+        return [];
+      }
+    } catch (e) {
       return [];
     }
-  } catch (e) {
-  
-    return [];
   }
-}
 }

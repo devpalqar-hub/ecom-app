@@ -22,6 +22,7 @@ class Searchproductcontroller extends GetxController {
   SubCategoryModel? selectedSubCategoryId = null;
 
   loadInit({String categoryID = ""}) {
+    searchText.text = "";
     if (categoryID != "") {
       for (var data in categories)
         if (categoryID == data.id) {
@@ -68,7 +69,7 @@ class Searchproductcontroller extends GetxController {
     }
     print("$baseUrl/products?limit=30&page=${page}$parms");
     final response = await get(
-      Uri.parse('$baseUrl/products?&limit=30&page=${page}$parms'),
+      Uri.parse('$baseUrl/products?isActive=true&limit=30&page=${page}$parms'),
     );
     isloading = false;
     update();

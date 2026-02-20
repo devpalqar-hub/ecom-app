@@ -253,6 +253,8 @@ class ProfileScreen extends StatelessWidget {
 
                     // Logout Button
                     _buildLogoutButton(context),
+                    SizedBox(height: 24.h),
+                    _buildDeleteButton(context),
 
                     SizedBox(height: 24.h),
                   ]),
@@ -415,6 +417,173 @@ class ProfileScreen extends StatelessWidget {
               SizedBox(width: 16.w),
               Text(
                 'Log Out',
+                style: TextStyle(
+                  fontSize: 15.sp,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.red.shade600,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDeleteButton(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16.r),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 8,
+            offset: Offset(0, 2),
+          ),
+        ],
+      ),
+      child: InkWell(
+        onTap: () {
+          Get.dialog(
+            Dialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20.r),
+              ),
+              backgroundColor: Colors.white,
+              elevation: 5,
+              child: Padding(
+                padding: EdgeInsets.all(24.w),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // ── Warning Icon ──
+                    Container(
+                      padding: EdgeInsets.all(16.w),
+                      decoration: BoxDecoration(
+                        color: Colors.red.shade50,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        Icons.warning_amber_rounded,
+                        color: Colors.red.shade600,
+                        size: 32.sp,
+                      ),
+                    ),
+                    SizedBox(height: 20.h),
+
+                    // ── Title ──
+                    Text(
+                      "Delete Account?",
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.montserrat(
+                        fontSize: 18.sp,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.black87,
+                      ),
+                    ),
+                    SizedBox(height: 12.h),
+
+                    // ── Message ──
+                    Text(
+                      "Are you sure you want to delete your account? Your account will be permanently deleted in 30 days. You can cancel this process anytime within 30 days simply by logging back in.",
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.montserrat(
+                        fontSize: 13.sp,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.grey.shade600,
+                        height: 1.4,
+                      ),
+                    ),
+                    SizedBox(height: 28.h),
+
+                    // ── Action Buttons ──
+                    Row(
+                      children: [
+                        // Cancel Button
+                        Expanded(
+                          child: OutlinedButton(
+                            style: OutlinedButton.styleFrom(
+                              padding: EdgeInsets.symmetric(vertical: 14.h),
+                              side: BorderSide(color: Colors.grey.shade300),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12.r),
+                              ),
+                            ),
+                            onPressed: () => Get.back(), // Close dialog
+                            child: Text(
+                              "Cancel",
+                              style: GoogleFonts.montserrat(
+                                fontSize: 14.sp,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.black87,
+                              ),
+                            ),
+                          ),
+                        ),
+                        SizedBox(width: 12.w),
+
+                        // Delete Button
+                        Expanded(
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.red.shade600,
+                              elevation: 0,
+                              padding: EdgeInsets.symmetric(vertical: 14.h),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12.r),
+                              ),
+                            ),
+                            onPressed: () async {
+                              accessToken = null;
+
+                              var pref = await SharedPreferences.getInstance();
+                              pref.clear();
+
+                              Get.delete<UserProfileController>(force: true);
+
+                              Get.offAll(() => LoginScreen());
+                            },
+                            child: Text(
+                              "Delete",
+                              style: GoogleFonts.montserrat(
+                                fontSize: 14.sp,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            // Prevents dismissing by tapping outside if you want to force a button press
+            barrierDismissible: false,
+          );
+        },
+        borderRadius: BorderRadius.circular(16.r),
+        child: Padding(
+          padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
+          child: Row(
+            children: [
+              Container(
+                padding: EdgeInsets.all(10.w),
+                decoration: BoxDecoration(
+                  color: Colors.red.shade50,
+                  borderRadius: BorderRadius.circular(12.r),
+                ),
+                child: Icon(
+                  Icons.delete_outline,
+                  size: 22.sp,
+                  color: Colors.red.shade600,
+                ),
+              ),
+              SizedBox(width: 16.w),
+              Text(
+                'Delete Account',
                 style: TextStyle(
                   fontSize: 15.sp,
                   fontWeight: FontWeight.w600,

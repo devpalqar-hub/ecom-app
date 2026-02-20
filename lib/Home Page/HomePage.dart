@@ -71,31 +71,32 @@ class _HomePageState extends State<HomePage> {
         //    foregroundColor: Colors.white,
         title: Row(
           children: [
-            Icon(Icons.menu, size: 30.sp),
+            //  Icon(Icons.menu, size: 30.sp),
             SizedBox(width: 10.w),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  "Raheeb.qa",
-                  style: GoogleFonts.poppins(
-                    //letterSpacing: 1.5,
-                    fontSize: 16.sp,
+                // Text(
+                //   "Raheeb.qa",
+                //   style: GoogleFonts.poppins(
+                //     //letterSpacing: 1.5,
+                //     fontSize: 16.sp,
 
-                    fontWeight: FontWeight.w600,
-                    color: Color(0xFFAE933F),
-                  ),
-                ),
-                Text(
-                  "MODEST WEAR • NIGHT WEARS • HIJABS",
-                  style: GoogleFonts.poppins(
-                    //letterSpacing: 1.5,
-                    fontSize: 8.sp,
-                    fontWeight: FontWeight.w400,
-                    color: Colors.black87,
-                    //  color: Color(0xFFAE933F),
-                  ),
-                ),
+                //     fontWeight: FontWeight.w600,
+                //     color: Color(0xFFAE933F),
+                //   ),
+                // ),
+                // Text(
+                //   "MODEST WEAR • NIGHT WEARS • HIJABS",
+                //   style: GoogleFonts.poppins(
+                //     //letterSpacing: 1.5,
+                //     fontSize: 8.sp,
+                //     fontWeight: FontWeight.w400,
+                //     color: Colors.black87,
+                //     //  color: Color(0xFFAE933F),
+                //   ),
+                // ),
+                Image.asset("assets/logo_full.png", width: 100),
               ],
             ),
           ],
@@ -267,16 +268,21 @@ class _HomePageState extends State<HomePage> {
                   itemBuilder: (context, index) {
                     final category = productController.categories[index];
 
-                    return CategoryCard(
-                      imageUrl: category.image ?? '',
-                      title: category.name,
-                      description: category.description ?? 'No description',
-                      onTap: () {
-                        Get.to(
-                          () => SearchProductScreen(categoryId: category.id),
-                        );
-                      },
-                    );
+                    return (category.isActive == false)
+                        ? Container()
+                        : CategoryCard(
+                            imageUrl: category.image ?? '',
+                            title: category.name,
+                            description:
+                                category.description ?? 'No description',
+                            onTap: () {
+                              Get.to(
+                                () => SearchProductScreen(
+                                  categoryId: category.id,
+                                ),
+                              );
+                            },
+                          );
                   },
                 ),
               );
@@ -318,40 +324,54 @@ class _HomePageState extends State<HomePage> {
                               ),
                               SizedBox(height: 20.h),
 
-                              GridView.builder(
-                                itemCount: products.length,
-                                shrinkWrap: true,
-                                physics: const NeverScrollableScrollPhysics(),
-                                padding: EdgeInsets.symmetric(horizontal: 20.w),
-                                gridDelegate:
-                                    SliverGridDelegateWithFixedCrossAxisCount(
-                                      crossAxisCount: 2,
-                                      mainAxisSpacing: 12.h,
-                                      crossAxisSpacing: 12.w,
-                                      childAspectRatio: 0.66,
-                                    ),
-                                itemBuilder: (context, index) {
-                                  final product = products[index];
-                                  return ProductCard(
-                                    productId: product.id,
-                                    title: product.name,
-                                    category: product.subCategory.name,
-                                    imageUrl: product.images.isNotEmpty
-                                        ? product.images.first.url
-                                        : "",
-                                    price:
-                                        double.tryParse(
-                                          product.discountedPrice,
-                                        ) ??
-                                        0.0,
-                                    fullPrice:
-                                        product.actualPrice !=
-                                            product.discountedPrice
-                                        ? product.actualPrice
-                                        : null,
-                                  );
-                                },
+                              SingleChildScrollView(
+                                scrollDirection: Axis.horizontal,
+                                child: Row(
+                                  spacing: 10,
+                                  children: [
+                                    SizedBox(width: 16),
+                                    for (var product in products)
+                                      ProductCard(
+                                        productId: product.id,
+                                        title: product.name,
+                                        category: product.subCategory.name,
+                                        imageUrl: product.images.isNotEmpty
+                                            ? product.images.first.url
+                                            : "",
+                                        price:
+                                            double.tryParse(
+                                              product.discountedPrice,
+                                            ) ??
+                                            0.0,
+                                        fullPrice:
+                                            product.actualPrice !=
+                                                product.discountedPrice
+                                            ? product.actualPrice
+                                            : null,
+                                      ),
+                                  ],
+                                ),
                               ),
+
+                              SizedBox(height: 20),
+
+                              // GridView.builder(
+                              //   itemCount: products.length,
+                              //   shrinkWrap: true,
+                              //   physics: const NeverScrollableScrollPhysics(),
+                              //   padding: EdgeInsets.symmetric(horizontal: 20.w),
+                              //   gridDelegate:
+                              //       SliverGridDelegateWithFixedCrossAxisCount(
+                              //         crossAxisCount: 2,
+                              //         mainAxisSpacing: 12.h,
+                              //         crossAxisSpacing: 12.w,
+                              //         childAspectRatio: 0.66,
+                              //       ),
+                              //   itemBuilder: (context, index) {
+                              //     final product = products[index];
+                              //     return
+                              //   },
+                              // ),
                             ],
                           ),
                         );
