@@ -74,6 +74,7 @@ class OrderItem {
   final Review? review;
   final bool isReturn;
   final Product product;
+  final ProductVariation? productVariation; // ✅ NEW
 
   OrderItem({
     required this.id,
@@ -81,6 +82,7 @@ class OrderItem {
     this.review,
     required this.isReturn,
     required this.product,
+    this.productVariation, // ✅ NEW
   });
 
   factory OrderItem.fromJson(Map<String, dynamic>? json) {
@@ -90,12 +92,16 @@ class OrderItem {
       id: json['id']?.toString() ?? '',
       quantity: json['quantity'] ?? 0,
       isReturn: json["isReturned"] ?? false,
-      review: json['Review'] != null ? Review.fromJson(json['Review']) : null,
+      review: json['Review'] != null
+          ? Review.fromJson(json['Review'])
+          : null,
       product: Product.fromJson(json['product']),
+      productVariation: json['productVariation'] != null
+          ? ProductVariation.fromJson(json['productVariation'])
+          : null, // ✅ NEW
     );
   }
 }
-
 class Review {
   final String id;
   final int rating;
@@ -213,6 +219,51 @@ class ProductImage {
       altText: json['altText']?.toString() ?? '',
       isMain: json['isMain'] ?? false,
       sortOrder: json['sortOrder'] ?? 0,
+    );
+  }
+}
+
+class ProductVariation {
+  final String id;
+  final String productId;
+  final String variationName;
+  final String sku;
+  final String discountedPrice;
+  final String actualPrice;
+  final int stockCount;
+  final bool isAvailable;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+
+  ProductVariation({
+    required this.id,
+    required this.productId,
+    required this.variationName,
+    required this.sku,
+    required this.discountedPrice,
+    required this.actualPrice,
+    required this.stockCount,
+    required this.isAvailable,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+
+  factory ProductVariation.fromJson(Map<String, dynamic>? json) {
+    json ??= {};
+
+    return ProductVariation(
+      id: json['id']?.toString() ?? '',
+      productId: json['productId']?.toString() ?? '',
+      variationName: json['variationName']?.toString() ?? '',
+      sku: json['sku']?.toString() ?? '',
+      discountedPrice: json['discountedPrice']?.toString() ?? '0',
+      actualPrice: json['actualPrice']?.toString() ?? '0',
+      stockCount: json['stockCount'] ?? 0,
+      isAvailable: json['isAvailable'] ?? false,
+      createdAt:
+          DateTime.tryParse(json['createdAt'] ?? '') ?? DateTime.now(),
+      updatedAt:
+          DateTime.tryParse(json['updatedAt'] ?? '') ?? DateTime.now(),
     );
   }
 }

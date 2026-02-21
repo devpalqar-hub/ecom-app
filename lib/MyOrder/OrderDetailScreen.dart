@@ -421,14 +421,17 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              item.product.name,
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                fontWeight: FontWeight.w500,
-                                fontSize: 12.sp,
-                              ),
-                            ),
+  item.productVariation != null &&
+          item.productVariation!.variationName.isNotEmpty
+      ? "${item.product.name} (${item.productVariation!.variationName})"
+      : item.product.name,
+  maxLines: 2,
+  overflow: TextOverflow.ellipsis,
+  style: TextStyle(
+    fontWeight: FontWeight.w500,
+    fontSize: 12.sp,
+  ),
+),
                             SizedBox(height: 4.h),
                             Text(
                               "Qty: ${item.quantity}",

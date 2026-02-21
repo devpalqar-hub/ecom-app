@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import 'package:new_project/CartScreen/Services/CartController.dart';
 import 'package:new_project/ProductDetailScreen/ProductDetailScreen.dart';
 
+
 class ProductCard extends StatelessWidget {
   final String productId;
   final String category;
@@ -21,7 +22,7 @@ class ProductCard extends StatelessWidget {
     required this.imageUrl,
     required this.price,
     this.productVariationId,
-    this.fullPrice = "",
+  this.fullPrice,
   });
 
   @override
@@ -106,7 +107,7 @@ class ProductCard extends StatelessWidget {
                 ),
                 SizedBox(width: 5.w),
 
-                if (fullPrice != "")
+                if (fullPrice != null)
                   Text(
                     "QAR ${fullPrice}",
                     style: TextStyle(
