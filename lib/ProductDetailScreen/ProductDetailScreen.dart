@@ -11,6 +11,8 @@ import 'package:new_project/Home%20Page/Views/ProductsCard.dart';
 import 'package:new_project/ProductDetailScreen/Models/ProductDetailModel.dart';
 import 'package:new_project/ProductDetailScreen/Services/ProductController.dart';
 import 'package:new_project/ProductDetailScreen/Views/RatingBar.dart';
+import 'package:new_project/main.dart';
+import 'package:new_project/utils.dart';
 import 'package:readmore/readmore.dart';
 
 class ProductDetailScreen extends StatefulWidget {
@@ -195,6 +197,10 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   Spacer(),
                   InkWell(
                     onTap: () {
+                      if (login != "IN") {
+                        showLoginDialog();
+                        return;
+                      }
                       if (!(___.checkStock())) {
                         Fluttertoast.showToast(msg: "Product is out of stock");
                         return;

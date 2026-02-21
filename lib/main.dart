@@ -13,7 +13,7 @@ import 'package:new_project/firebase_options.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 String? accessToken;
-String baseUrl = (true)
+String baseUrl = (false)
     ? "https://api.raheeb.qa/v1"
     : "https://api.ecom.palqar.cloud/v1";
 String? login;
@@ -47,7 +47,10 @@ Future<void> main() async {
 
   Widget initialScreen;
 
-  if (accessToken != null && !_isTokenExpired(accessToken!) && login == "IN") {
+  if ((accessToken != null &&
+          !_isTokenExpired(accessToken!) &&
+          login == "IN") ||
+      login == "SKIP") {
     initialScreen = DashBoard();
   } else {
     initialScreen = LoginScreen();

@@ -6,6 +6,7 @@ import 'package:http/http.dart';
 import 'package:new_project/Home%20Page/Model/ProdutModel.dart';
 import 'package:new_project/ProductDetailScreen/Models/ProductDetailModel.dart';
 import 'package:new_project/main.dart';
+import 'package:new_project/utils.dart';
 
 class Productcontroller extends GetxController {
   final String productId;
@@ -95,6 +96,11 @@ class Productcontroller extends GetxController {
 
   Future<void> toggleWishlist() async {
     if (isWishlistLoading) return;
+
+    if (login != "IN") {
+      showLoginDialog();
+      return;
+    }
 
     bool currentStatus = product?.isWishlisted ?? false;
 
