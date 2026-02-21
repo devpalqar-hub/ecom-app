@@ -11,6 +11,8 @@ import 'package:new_project/Home%20Page/Views/ProductsCard.dart';
 import 'package:new_project/ProductDetailScreen/Models/ProductDetailModel.dart';
 import 'package:new_project/ProductDetailScreen/Services/ProductController.dart';
 import 'package:new_project/ProductDetailScreen/Views/RatingBar.dart';
+import 'package:new_project/main.dart';
+import 'package:new_project/utils.dart';
 import 'package:readmore/readmore.dart';
 
 class ProductDetailScreen extends StatefulWidget {
@@ -59,10 +61,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                 itemBuilder: (context, index) {
                   final imgData = ctrl.product!.images![index];
                   return InteractiveViewer(
-                    child: Image.network(
-                      imgData.url!,
-                      fit: BoxFit.contain,
-                    ),
+                    child: Image.network(imgData.url!, fit: BoxFit.contain),
                   );
                 },
               ),
@@ -135,7 +134,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       bottomNavigationBar: GetBuilder<Productcontroller>(
         tag: widget.productId,
         builder: (___) {
-          if (___ .product == null) return SizedBox();
+          if (___.product == null) return SizedBox();
           return FadeInUp(
             child: Container(
               height: 70.h,
@@ -162,29 +161,34 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text("Total Price",
-                          style: GoogleFonts.montserrat(
-                              fontSize: 12.sp,
-                              fontWeight: FontWeight.w500,
-                              color: Colors.black87)),
+                      Text(
+                        "Total Price",
+                        style: GoogleFonts.montserrat(
+                          fontSize: 12.sp,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.black87,
+                        ),
+                      ),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text(
                             "${___.getCurrentPrice()} QAR  ",
                             style: GoogleFonts.montserrat(
-                                fontSize: 14.sp,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.black87),
+                              fontSize: 14.sp,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.black87,
+                            ),
                           ),
                           if (___.getCurrentActualPrice() != null)
                             Text(
                               "${___.getCurrentActualPrice()} QAR",
                               style: GoogleFonts.montserrat(
-                                  decoration: TextDecoration.lineThrough,
-                                  fontSize: 10.sp,
-                                  fontWeight: FontWeight.w500,
-                                  color: Colors.black87),
+                                decoration: TextDecoration.lineThrough,
+                                fontSize: 10.sp,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.black87,
+                              ),
                             ),
                         ],
                       ),
@@ -193,13 +197,19 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   Spacer(),
                   InkWell(
                     onTap: () {
-                      if (!(___.product!.isStock ?? false)) {
+                      if (login != "IN") {
+                        showLoginDialog();
+                        return;
+                      }
+                      if (!(___.checkStock())) {
                         Fluttertoast.showToast(msg: "Product is out of stock");
                         return;
                       }
                       if (___.product!.isInCart ?? false) {
-                        Get.to(() => CartScreen(),
-                            transition: Transition.rightToLeft);
+                        Get.to(
+                          () => CartScreen(),
+                          transition: Transition.rightToLeft,
+                        );
                       } else {
                         ___.addToCart();
                       }
@@ -231,15 +241,16 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                 ),
                                 SizedBox(width: 8.w),
                                 Text(
-                                  (!(___.product!.isStock ?? false))
+                                  (!(___.checkStock()))
                                       ? "Out of Stock"
                                       : ___.product!.isInCart ?? false
-                                          ? "View Cart"
-                                          : "Add to Cart",
+                                      ? "View Cart"
+                                      : "Add to Cart",
                                   style: GoogleFonts.montserrat(
-                                      fontSize: 14.sp,
-                                      fontWeight: FontWeight.w600,
-                                      color: Colors.white),
+                                    fontSize: 14.sp,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.white,
+                                  ),
                                 ),
                               ],
                             ),
@@ -257,19 +268,30 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           builder: (___) {
             if (ctrl.isLoading)
               return Center(
-                  child: CircularProgressIndicator(color: Color(0xFFAE933F)));
+                child: CircularProgressIndicator(color: Color(0xFFAE933F)),
+              );
             if (ctrl.product == null)
               return Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  LottieBuilder.asset("assets/Lotties/NodataFound.json",
-                      width: 250.w),
-                  Text("No Product Found",
-                      style: GoogleFonts.poppins(
-                          fontSize: 16.sp, fontWeight: FontWeight.w500)),
-                  Text("Please get back later",
-                      style: GoogleFonts.poppins(
-                          fontSize: 12.sp, fontWeight: FontWeight.w400)),
+                  LottieBuilder.asset(
+                    "assets/Lotties/NodataFound.json",
+                    width: 250.w,
+                  ),
+                  Text(
+                    "No Product Found",
+                    style: GoogleFonts.poppins(
+                      fontSize: 16.sp,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  Text(
+                    "Please get back later",
+                    style: GoogleFonts.poppins(
+                      fontSize: 12.sp,
+                      fontWeight: FontWeight.w400,
+                    ),
+                  ),
                 ],
               );
 
@@ -280,9 +302,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   // ----- Carousel with clickable images -----
                   CarouselSlider(
                     items: [
-                      for (int i = 0;
-                          i < ctrl.product!.images!.length;
-                          i++)
+                      for (int i = 0; i < ctrl.product!.images!.length; i++)
                         Padding(
                           padding: EdgeInsets.symmetric(horizontal: 5.w),
                           child: ClipRRect(
@@ -304,430 +324,417 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                     ),
                   ),
 
-                
-                        SizedBox(height: 25.h),
-                        Row(
-                          children: [
-                            SizedBox(width: 16.w),
-                            Text(
-                              ctrl.product!.subCategory!.name,
-                              style: GoogleFonts.montserrat(
-                                fontSize: 13.sp,
-                                fontWeight: FontWeight.w500,
-                                color: Colors.black54,
-                              ),
-                            ),
-                            Spacer(),
-                            Icon(Icons.star_rounded, color: Colors.amber),
-                            Text(
-                              (ctrl.product!.reviewStats!.averageRating ?? 0)
-                                  .toStringAsFixed(1),
-                              style: GoogleFonts.montserrat(
-                                fontSize: 13.sp,
-                                fontWeight: FontWeight.w500,
-                                color: Colors.black54,
-                              ),
-                            ),
-                            SizedBox(width: 16.w),
-                          ],
+                  SizedBox(height: 25.h),
+                  Row(
+                    children: [
+                      SizedBox(width: 16.w),
+                      Text(
+                        ctrl.product!.subCategory!.name,
+                        style: GoogleFonts.montserrat(
+                          fontSize: 13.sp,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.black54,
                         ),
-                        SizedBox(height: 16.h),
-                        Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 16.w),
-                          child: Text(
-                            ctrl.product!.name ?? "",
-                            style: GoogleFonts.montserrat(
-                              fontSize: 16.sp,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.black,
-                            ),
-                          ),
+                      ),
+                      Spacer(),
+                      Icon(Icons.star_rounded, color: Colors.amber),
+                      Text(
+                        (ctrl.product!.reviewStats!.averageRating ?? 0)
+                            .toStringAsFixed(1),
+                        style: GoogleFonts.montserrat(
+                          fontSize: 13.sp,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.black54,
                         ),
-                        SizedBox(height: 10.h),
+                      ),
+                      SizedBox(width: 16.w),
+                    ],
+                  ),
+                  SizedBox(height: 16.h),
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16.w),
+                    child: Text(
+                      ctrl.product!.name ?? "",
+                      style: GoogleFonts.montserrat(
+                        fontSize: 16.sp,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black,
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 10.h),
 
-                        Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 16.w),
-                          child: Text(
-                            "Product Details",
-                            style: GoogleFonts.montserrat(
-                              fontSize: 13.sp,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.black,
-                            ),
-                          ),
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16.w),
+                    child: Text(
+                      "Product Details",
+                      style: GoogleFonts.montserrat(
+                        fontSize: 13.sp,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black,
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 5.h),
+
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16.w),
+                    child: ReadMoreText(
+                      ctrl.product!.description ?? "",
+                      trimLength: 140,
+                      moreStyle: GoogleFonts.montserrat(
+                        fontSize: 14.sp,
+                        fontWeight: FontWeight.w500,
+                        color: Color(0xFFAE933F),
+                      ),
+                      lessStyle: GoogleFonts.montserrat(
+                        fontSize: 14.sp,
+                        fontWeight: FontWeight.w500,
+                        color: Color(0xFFAE933F),
+                      ),
+                      textAlign: TextAlign.justify,
+                      style: GoogleFonts.montserrat(
+                        fontSize: 14.sp,
+
+                        fontWeight: FontWeight.w500,
+                        color: Colors.black,
+                      ),
+                    ),
+                  ),
+
+                  if (___.product!.variations!.isNotEmpty) ...[
+                    SizedBox(height: 10.h),
+
+                    Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 16.w),
+                      child: Text(
+                        "Select ${___.product!.variationTitle ?? "Size"}",
+                        style: GoogleFonts.montserrat(
+                          fontSize: 13.sp,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.black,
                         ),
-                        SizedBox(height: 5.h),
-
-                        Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 16.w),
-                          child: ReadMoreText(
-                            ctrl.product!.description ?? "",
-                            trimLength: 140,
-                            moreStyle: GoogleFonts.montserrat(
-                              fontSize: 14.sp,
-                              fontWeight: FontWeight.w500,
-                              color: Color(0xFFAE933F),
-                            ),
-                            lessStyle: GoogleFonts.montserrat(
-                              fontSize: 14.sp,
-                              fontWeight: FontWeight.w500,
-                              color: Color(0xFFAE933F),
-                            ),
-                            textAlign: TextAlign.justify,
-                            style: GoogleFonts.montserrat(
-                              fontSize: 14.sp,
-
-                              fontWeight: FontWeight.w500,
-                              color: Colors.black,
-                            ),
-                          ),
-                        ),
-
-                        if (___.product!.variations!.isNotEmpty) ...[
-                          SizedBox(height: 10.h),
-
-                          Padding(
-                            padding: EdgeInsets.symmetric(horizontal: 16.w),
-                            child: Text(
-                              "Select ${___.product!.variationTitle ?? "Size"}",
-                              style: GoogleFonts.montserrat(
-                                fontSize: 13.sp,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.black,
-                              ),
-                            ),
-                          ),
-                          SizedBox(height: 5.h),
-                          SingleChildScrollView(
-                            scrollDirection: Axis.horizontal,
-                            child: Row(
-                              children: [
-                                SizedBox(width: 16.w),
-                                for (
-                                  int i = 0;
-                                  i < (ctrl.product!.variations ?? []).length;
-                                  i++
-                                )
-                                  GestureDetector(
-                                    onTap: () {
-                                      ctrl.selectVariation(i);
-                                    },
-                                    child: Container(
-                                      padding: EdgeInsets.symmetric(
-                                        horizontal: 15.w,
-                                        vertical: 8.h,
-                                      ),
-                                      margin: EdgeInsets.only(right: 10.w),
-                                      decoration: BoxDecoration(
-                                        color: ctrl.selectedVariationIndex == i
-                                            ? Color(0xFFAE933F)
-                                            : Colors.white,
-                                        border: Border.all(
-                                          color:
-                                              ctrl.selectedVariationIndex == i
-                                              ? Color(0xFFAE933F)
-                                              : Colors.black12,
-                                        ),
-                                        borderRadius: BorderRadius.circular(
-                                          8.r,
-                                        ),
-                                      ),
-                                      child: Text(
-                                        ctrl
-                                                .product!
-                                                .variations![i]
-                                                .variationName ??
-                                            "",
-                                        style: GoogleFonts.montserrat(
-                                          fontSize: 13.sp,
-                                          fontWeight: FontWeight.w500,
-                                          color:
-                                              ctrl.selectedVariationIndex == i
-                                              ? Colors.white
-                                              : Colors.black87,
-                                        ),
-                                      ),
-                                    ),
+                      ),
+                    ),
+                    SizedBox(height: 5.h),
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: [
+                          SizedBox(width: 16.w),
+                          for (
+                            int i = 0;
+                            i < (ctrl.product!.variations ?? []).length;
+                            i++
+                          )
+                            GestureDetector(
+                              onTap: () {
+                                ctrl.selectVariation(i);
+                              },
+                              child: Container(
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: 15.w,
+                                  vertical: 8.h,
+                                ),
+                                margin: EdgeInsets.only(right: 10.w),
+                                decoration: BoxDecoration(
+                                  color: ctrl.selectedVariationIndex == i
+                                      ? Color(0xFFAE933F)
+                                      : Colors.white,
+                                  border: Border.all(
+                                    color: ctrl.selectedVariationIndex == i
+                                        ? Color(0xFFAE933F)
+                                        : Colors.black12,
                                   ),
-                              ],
-                            ),
-                          ),
-
-                          SizedBox(height: 20.h),
-
-                          if (___.releatedProducts.isNotEmpty) ...[
-                            Padding(
-                              padding: EdgeInsets.symmetric(horizontal: 16.w),
-                              child: Text(
-                                "Product From ${ctrl.product!.subCategory!.category.name}",
-                                style: GoogleFonts.montserrat(
-                                  fontSize: 13.sp,
-                                  fontWeight: FontWeight.w600,
-                                  color: Colors.black,
+                                  borderRadius: BorderRadius.circular(8.r),
+                                ),
+                                child: Text(
+                                  ctrl.product!.variations![i].variationName ??
+                                      "",
+                                  style: GoogleFonts.montserrat(
+                                    fontSize: 13.sp,
+                                    fontWeight: FontWeight.w500,
+                                    color: ctrl.selectedVariationIndex == i
+                                        ? Colors.white
+                                        : Colors.black87,
+                                  ),
                                 ),
                               ),
                             ),
-                            SizedBox(height: 20.h),
-
-                            Padding(
-                              padding: EdgeInsets.symmetric(horizontal: 16.w),
-                              child: GridView.builder(
-                                shrinkWrap: true,
-                                physics:
-                                    NeverScrollableScrollPhysics(), // Important inside scroll views
-                                itemCount: ___.releatedProducts.length,
-                                gridDelegate:
-                                    SliverGridDelegateWithFixedCrossAxisCount(
-                                      crossAxisCount: 2, // 2 products per row
-                                      crossAxisSpacing: 16.w,
-                                      mainAxisSpacing: 16.h,
-                                      childAspectRatio:
-                                          0.7, // Adjust based on your ProductCard height
-                                    ),
-                                itemBuilder: (context, index) {
-                                  final data = ___.releatedProducts[index];
-
-                                  return ProductCard(
-                                    productId: data.id,
-                                    category: data.subCategory.name,
-                                    title: data.name,
-                                    imageUrl: data.images.first.url,
-                                    price:
-                                        double.tryParse(
-                                          data.discountedPrice.toString(),
-                                        ) ??
-                                        0.0,
-                                    fullPrice:
-                                        data.actualPrice != data.discountedPrice
-                                        ? (data.actualPrice).toString()
-                                        : null,
-                                  );
-                                },
-                              ),
-                            ),
-                          ],
                         ],
+                      ),
+                    ),
 
-                        if (ctrl.product?.reviews != null) ...[
-                          SizedBox(height: 24.h),
+                    SizedBox(height: 20.h),
 
-                          /// TITLE
-                          Padding(
-                            padding: EdgeInsets.symmetric(horizontal: 16.w),
-                            child: Text(
-                              "Ratings & Reviews",
-                              style: GoogleFonts.montserrat(
-                                fontSize: 14.sp,
-                                fontWeight: FontWeight.w700,
-                                color: Colors.black,
-                              ),
-                            ),
+                    if (___.releatedProducts.isNotEmpty) ...[
+                      Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 16.w),
+                        child: Text(
+                          "Product From ${ctrl.product!.subCategory!.category.name}",
+                          style: GoogleFonts.montserrat(
+                            fontSize: 13.sp,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.black,
                           ),
+                        ),
+                      ),
+                      SizedBox(height: 20.h),
 
-                          SizedBox(height: 16.h),
+                      Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 16.w),
+                        child: GridView.builder(
+                          shrinkWrap: true,
+                          physics:
+                              NeverScrollableScrollPhysics(), // Important inside scroll views
+                          itemCount: ___.releatedProducts.length,
+                          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 2, // 2 products per row
+                            crossAxisSpacing: 16.w,
+                            mainAxisSpacing: 16.h,
+                            childAspectRatio:
+                                0.7, // Adjust based on your ProductCard height
+                          ),
+                          itemBuilder: (context, index) {
+                            final data = ___.releatedProducts[index];
 
-                          /// SUMMARY CARD
-                          Padding(
-                            padding: EdgeInsets.symmetric(horizontal: 16.w),
-                            child: Container(
-                              padding: EdgeInsets.all(16.w),
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(12.r),
-                                color: Colors.grey.shade100,
-                              ),
-                              child: Row(
-                                children: [
-                                  /// AVG RATING
-                                  Column(
-                                    children: [
-                                      Text(
-                                        "${ctrl.product!.reviewStats!.averageRating ?? 0}",
-                                        style: GoogleFonts.montserrat(
-                                          fontSize: 26.sp,
-                                          fontWeight: FontWeight.w700,
-                                        ),
-                                      ),
+                            return ProductCard(
+                              productId: data.id,
+                              category: data.subCategory.name,
+                              title: data.name,
+                              imageUrl: data.images.first.url,
+                              price:
+                                  double.tryParse(
+                                    data.discountedPrice.toString(),
+                                  ) ??
+                                  0.0,
+                              fullPrice:
+                                  data.actualPrice != data.discountedPrice
+                                  ? (data.actualPrice).toString()
+                                  : null,
+                            );
+                          },
+                        ),
+                      ),
+                    ],
+                  ],
 
-                                      SizedBox(height: 6.h),
+                  if (ctrl.product?.reviews != null) ...[
+                    SizedBox(height: 24.h),
 
-                                      Row(
-                                        children: List.generate(5, (index) {
-                                          return Icon(
-                                            index <
-                                                    (ctrl
-                                                            .product!
-                                                            .reviewStats!
-                                                            .averageRating ??
-                                                        0)
-                                                ? Icons.star
-                                                : Icons.star_border,
-                                            color: Colors.amber,
-                                            size: 18.sp,
-                                          );
-                                        }),
-                                      ),
+                    /// TITLE
+                    Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 16.w),
+                      child: Text(
+                        "Ratings & Reviews",
+                        style: GoogleFonts.montserrat(
+                          fontSize: 14.sp,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.black,
+                        ),
+                      ),
+                    ),
 
-                                      SizedBox(height: 4.h),
+                    SizedBox(height: 16.h),
 
-                                      Text(
-                                        "${ctrl.product!.reviewStats!.totalReviews ?? 0} reviews",
-                                        style: GoogleFonts.montserrat(
-                                          fontSize: 11.sp,
-                                          color: Colors.grey,
-                                        ),
-                                      ),
-                                    ],
+                    /// SUMMARY CARD
+                    Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 16.w),
+                      child: Container(
+                        padding: EdgeInsets.all(16.w),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(12.r),
+                          color: Colors.grey.shade100,
+                        ),
+                        child: Row(
+                          children: [
+                            /// AVG RATING
+                            Column(
+                              children: [
+                                Text(
+                                  "${ctrl.product!.reviewStats!.averageRating ?? 0}",
+                                  style: GoogleFonts.montserrat(
+                                    fontSize: 26.sp,
+                                    fontWeight: FontWeight.w700,
                                   ),
+                                ),
 
-                                  SizedBox(width: 24.w),
+                                SizedBox(height: 6.h),
 
-                                  /// DISTRIBUTION
-                                  Expanded(
-                                    child: Column(
-                                      children: [
-                                        buildRatingBar(
-                                          5,
-                                          ctrl
-                                                  .product!
-                                                  .reviewStats!
-                                                  .ratingDistribution
-                                                  ?.i5 ??
-                                              0,
-                                          ctrl,
-                                        ),
-                                        buildRatingBar(
-                                          4,
-                                          ctrl
-                                                  .product!
-                                                  .reviewStats!
-                                                  .ratingDistribution
-                                                  ?.i4 ??
-                                              0,
-                                          ctrl,
-                                        ),
-                                        buildRatingBar(
-                                          3,
-                                          ctrl
-                                                  .product!
-                                                  .reviewStats!
-                                                  .ratingDistribution
-                                                  ?.i3 ??
-                                              0,
-                                          ctrl,
-                                        ),
-                                        buildRatingBar(
-                                          2,
-                                          ctrl
-                                                  .product!
-                                                  .reviewStats!
-                                                  .ratingDistribution
-                                                  ?.i2 ??
-                                              0,
-                                          ctrl,
-                                        ),
-                                        buildRatingBar(
-                                          1,
-                                          ctrl
-                                                  .product!
-                                                  .reviewStats!
-                                                  .ratingDistribution
-                                                  ?.i1 ??
-                                              0,
-                                          ctrl,
-                                        ),
-                                      ],
-                                    ),
+                                Row(
+                                  children: List.generate(5, (index) {
+                                    return Icon(
+                                      index <
+                                              (ctrl
+                                                      .product!
+                                                      .reviewStats!
+                                                      .averageRating ??
+                                                  0)
+                                          ? Icons.star
+                                          : Icons.star_border,
+                                      color: Colors.amber,
+                                      size: 18.sp,
+                                    );
+                                  }),
+                                ),
+
+                                SizedBox(height: 4.h),
+
+                                Text(
+                                  "${ctrl.product!.reviewStats!.totalReviews ?? 0} reviews",
+                                  style: GoogleFonts.montserrat(
+                                    fontSize: 11.sp,
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                              ],
+                            ),
+
+                            SizedBox(width: 24.w),
+
+                            /// DISTRIBUTION
+                            Expanded(
+                              child: Column(
+                                children: [
+                                  buildRatingBar(
+                                    5,
+                                    ctrl
+                                            .product!
+                                            .reviewStats!
+                                            .ratingDistribution
+                                            ?.i5 ??
+                                        0,
+                                    ctrl,
+                                  ),
+                                  buildRatingBar(
+                                    4,
+                                    ctrl
+                                            .product!
+                                            .reviewStats!
+                                            .ratingDistribution
+                                            ?.i4 ??
+                                        0,
+                                    ctrl,
+                                  ),
+                                  buildRatingBar(
+                                    3,
+                                    ctrl
+                                            .product!
+                                            .reviewStats!
+                                            .ratingDistribution
+                                            ?.i3 ??
+                                        0,
+                                    ctrl,
+                                  ),
+                                  buildRatingBar(
+                                    2,
+                                    ctrl
+                                            .product!
+                                            .reviewStats!
+                                            .ratingDistribution
+                                            ?.i2 ??
+                                        0,
+                                    ctrl,
+                                  ),
+                                  buildRatingBar(
+                                    1,
+                                    ctrl
+                                            .product!
+                                            .reviewStats!
+                                            .ratingDistribution
+                                            ?.i1 ??
+                                        0,
+                                    ctrl,
                                   ),
                                 ],
                               ),
                             ),
-                          ),
+                          ],
+                        ),
+                      ),
+                    ),
 
-                          SizedBox(height: 20.h),
+                    SizedBox(height: 20.h),
 
-                          /// REVIEW LIST
-                          ListView.separated(
-                            shrinkWrap: true,
-                            physics: NeverScrollableScrollPhysics(),
-                            itemCount: ctrl.product!.reviews?.length ?? 0,
-                            separatorBuilder: (_, __) => SizedBox(height: 12.h),
-                            itemBuilder: (context, index) {
-                              final review = ctrl.product!.reviews![index];
+                    /// REVIEW LIST
+                    ListView.separated(
+                      shrinkWrap: true,
+                      physics: NeverScrollableScrollPhysics(),
+                      itemCount: ctrl.product!.reviews?.length ?? 0,
+                      separatorBuilder: (_, __) => SizedBox(height: 12.h),
+                      itemBuilder: (context, index) {
+                        final review = ctrl.product!.reviews![index];
 
-                              return Padding(
-                                padding: EdgeInsets.symmetric(horizontal: 16.w),
-                                child: Container(
-                                  padding: EdgeInsets.all(14.w),
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(12.r),
-                                    border: Border.all(
-                                      color: Colors.grey.shade200,
+                        return Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 16.w),
+                          child: Container(
+                            padding: EdgeInsets.all(14.w),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(12.r),
+                              border: Border.all(color: Colors.grey.shade200),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                /// NAME + STARS
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        review.customerProfile?.name ?? "User",
+                                        style: GoogleFonts.montserrat(
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 12.sp,
+                                        ),
+                                      ),
+                                    ),
+
+                                    Row(
+                                      children: List.generate(5, (star) {
+                                        return Icon(
+                                          star < (review.rating ?? 0)
+                                              ? Icons.star
+                                              : Icons.star_border,
+                                          size: 16.sp,
+                                          color: Colors.amber,
+                                        );
+                                      }),
+                                    ),
+                                  ],
+                                ),
+
+                                SizedBox(height: 8.h),
+
+                                /// COMMENT
+                                if (review.comment != null)
+                                  Text(
+                                    review.comment!,
+                                    style: GoogleFonts.montserrat(
+                                      fontSize: 12.sp,
+                                      color: Colors.black87,
                                     ),
                                   ),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      /// NAME + STARS
-                                      Row(
-                                        children: [
-                                          Expanded(
-                                            child: Text(
-                                              review.customerProfile?.name ??
-                                                  "User",
-                                              style: GoogleFonts.montserrat(
-                                                fontWeight: FontWeight.w600,
-                                                fontSize: 12.sp,
-                                              ),
-                                            ),
-                                          ),
 
-                                          Row(
-                                            children: List.generate(5, (star) {
-                                              return Icon(
-                                                star < (review.rating ?? 0)
-                                                    ? Icons.star
-                                                    : Icons.star_border,
-                                                size: 16.sp,
-                                                color: Colors.amber,
-                                              );
-                                            }),
-                                          ),
-                                        ],
-                                      ),
+                                SizedBox(height: 6.h),
 
-                                      SizedBox(height: 8.h),
-
-                                      /// COMMENT
-                                      if (review.comment != null)
-                                        Text(
-                                          review.comment!,
-                                          style: GoogleFonts.montserrat(
-                                            fontSize: 12.sp,
-                                            color: Colors.black87,
-                                          ),
-                                        ),
-
-                                      SizedBox(height: 6.h),
-
-                                      /// DATE
-                                      Text(
-                                        review.createdAt ?? "",
-                                        style: GoogleFonts.montserrat(
-                                          fontSize: 10.sp,
-                                          color: Colors.grey,
-                                        ),
-                                      ),
-                                    ],
+                                /// DATE
+                                Text(
+                                  review.createdAt ?? "",
+                                  style: GoogleFonts.montserrat(
+                                    fontSize: 10.sp,
+                                    color: Colors.grey,
                                   ),
                                 ),
-                              );
-                            },
+                              ],
+                            ),
                           ),
-                        ],
-                      ],
+                        );
+                      },
                     ),
-                  );
+                  ],
+                ],
+              ),
+            );
           },
         ),
       ),

@@ -11,6 +11,7 @@ import 'package:new_project/MyOrder/MyOrderScreen.dart';
 import 'package:new_project/ProfileScreen/ProfileScreen.dart';
 import 'package:new_project/Wishlist/WishlistScreen.dart';
 import 'package:new_project/main.dart';
+import 'package:new_project/utils.dart';
 
 // void main() {
 //   runApp(const MaterialApp(home: DashBoard()));
@@ -35,9 +36,16 @@ class _DashBoardState extends State<DashBoard> {
   ];
 
   void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
+    print(login != "IN");
+    print(index);
+    print(login);
+    if (login != "IN" && index != 0) {
+      showLoginDialog();
+    } else {
+      setState(() {
+        _selectedIndex = index;
+      });
+    }
   }
 
   @override

@@ -19,6 +19,13 @@ class Authenticationcontroller extends GetxController {
   bool isLoading = false;
   bool isNew = false;
 
+  skipLogin() async {
+    login = "SKIP";
+    SharedPreferences preferences = await SharedPreferences.getInstance();
+    Get.deleteAll();
+    preferences.setString("LOGIN", "SKIP");
+  }
+
   sendOtp() async {
     if (emailController.text.isEmpty) {
       Fluttertoast.showToast(msg: "Please enter the email ID");
@@ -77,7 +84,9 @@ class Authenticationcontroller extends GetxController {
           enableDrag: false,
         );
       } else {
+        login = "IN";
         preferences.setString("LOGIN", "IN");
+        Get.deleteAll();
         Get.offAll(() => DashBoard(), transition: Transition.rightToLeft);
       }
     } else {
@@ -190,9 +199,10 @@ class Authenticationcontroller extends GetxController {
 
     if (response.statusCode == 200 || response.statusCode == 201) {
       SharedPreferences preferences = await SharedPreferences.getInstance();
-
+      login = "IN";
       preferences.setString("LOGIN", "IN");
       await _requestNotificationPermissionAndSendToken();
+      Get.deleteAll();
       Get.offAll(() => DashBoard(), transition: Transition.rightToLeft);
     } else {
       Fluttertoast.showToast(

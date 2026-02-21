@@ -168,36 +168,36 @@ class WishlistProductCard extends StatelessWidget {
                               decoration: TextDecoration.lineThrough,
                             ),
                           ),
-                          Spacer(),
-                          SizedBox(
-                            height: 32.h,
-                            child: ElevatedButton.icon(
-                              onPressed: isOutOfStock ? null : onMoveToBag,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Color(0xFFAE933F),
-                                foregroundColor: Colors.white,
-                                disabledBackgroundColor: Colors.grey.shade300,
-                                disabledForegroundColor: Colors.grey.shade600,
-                                elevation: 0,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8.r),
-                                ),
-                                padding: EdgeInsets.symmetric(horizontal: 12.w),
+                        ],
+                        Spacer(),
+                        SizedBox(
+                          height: 32.h,
+                          child: ElevatedButton.icon(
+                            onPressed: isOutOfStock ? null : onMoveToBag,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Color(0xFFAE933F),
+                              foregroundColor: Colors.white,
+                              disabledBackgroundColor: Colors.grey.shade300,
+                              disabledForegroundColor: Colors.grey.shade600,
+                              elevation: 0,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8.r),
                               ),
-                              // icon: Icon(
-                              //   Icons.shopping_bag_outlined,
-                              //   size: 14.sp,
-                              // ),
-                              label: Text(
-                                "Move to Cart",
-                                style: GoogleFonts.poppins(
-                                  fontSize: 9.5.sp,
-                                  fontWeight: FontWeight.w600,
-                                ),
+                              padding: EdgeInsets.symmetric(horizontal: 12.w),
+                            ),
+                            // icon: Icon(
+                            //   Icons.shopping_bag_outlined,
+                            //   size: 14.sp,
+                            // ),
+                            label: Text(
+                              "Move to Cart",
+                              style: GoogleFonts.poppins(
+                                fontSize: 9.5.sp,
+                                fontWeight: FontWeight.w600,
                               ),
                             ),
                           ),
-                        ],
+                        ),
                       ],
                     ),
 

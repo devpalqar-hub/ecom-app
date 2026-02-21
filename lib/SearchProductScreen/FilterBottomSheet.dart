@@ -106,6 +106,7 @@ class _SearchFilterBottomSheetState extends State<SearchFilterBottomSheet> {
                         onTap: () {
                           priceValue = "";
                           selectedSubCategory = null;
+                          setState(() {});
                         },
                         child: Container(
                           padding: EdgeInsets.symmetric(

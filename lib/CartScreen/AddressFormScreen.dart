@@ -30,7 +30,6 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
     super.initState();
     controller = Get.find<CheckoutController>();
 
-
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!_hasFetched && controller.addresses.isEmpty) {
         _hasFetched = true;
@@ -38,13 +37,27 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
       }
     });
 
-    nameController = TextEditingController(text: widget.initialData?['name'] ?? '');
-    addressController = TextEditingController(text: widget.initialData?['address'] ?? '');
-    cityController = TextEditingController(text: widget.initialData?['city'] ?? '');
-    stateController = TextEditingController(text: widget.initialData?['state'] ?? '');
-    postalCodeController = TextEditingController(text: widget.initialData?['postalCode'] ?? '');
-    countryController = TextEditingController(text: widget.initialData?['country'] ?? '');
-    phoneController = TextEditingController(text: widget.initialData?['phone'] ?? '');
+    nameController = TextEditingController(
+      text: widget.initialData?['name'] ?? '',
+    );
+    addressController = TextEditingController(
+      text: widget.initialData?['address'] ?? '',
+    );
+    cityController = TextEditingController(
+      text: widget.initialData?['city'] ?? '',
+    );
+    stateController = TextEditingController(
+      text: widget.initialData?['state'] ?? '',
+    );
+    postalCodeController = TextEditingController(
+      text: widget.initialData?['postalCode'] ?? '',
+    );
+    countryController = TextEditingController(
+      text: widget.initialData?['country'] ?? '',
+    );
+    phoneController = TextEditingController(
+      text: widget.initialData?['phone'] ?? '',
+    );
     isDefault = widget.initialData?['isDefault'] ?? true;
   }
 
@@ -85,16 +98,39 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
                   key: _formKey,
                   child: Column(
                     children: [
-                      buildTextField('Full Name', nameController, capitalization: TextCapitalization.words),
+                      buildTextField(
+                        'Full Name',
+                        nameController,
+                        capitalization: TextCapitalization.words,
+                      ),
                       buildTextField('Address', addressController, maxLines: 2),
-                      buildTextField('City', cityController, capitalization: TextCapitalization.words),
-                      buildTextField('State', stateController, capitalization: TextCapitalization.words),
-                      buildTextField('Postal Code', postalCodeController, keyboardType: TextInputType.number),
-                      buildTextField('Country', countryController, capitalization: TextCapitalization.words),
-                      buildTextField('Phone', phoneController, keyboardType: TextInputType.phone),
+                      buildTextField(
+                        'City',
+                        cityController,
+                        capitalization: TextCapitalization.words,
+                      ),
+                      buildTextField(
+                        'State',
+                        stateController,
+                        capitalization: TextCapitalization.words,
+                      ),
+                      buildTextField(
+                        'Postal Code',
+                        postalCodeController,
+                        keyboardType: TextInputType.number,
+                      ),
+                      buildTextField(
+                        'Country',
+                        countryController,
+                        capitalization: TextCapitalization.words,
+                      ),
+                      buildTextField(
+                        'Phone',
+                        phoneController,
+                        keyboardType: TextInputType.phone,
+                      ),
                       const SizedBox(height: 12),
-        
-                     
+
                       SwitchListTile(
                         title: const Text('Set as default address'),
                         value: isDefault,
@@ -106,89 +142,96 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
                           setState(() => isDefault = val);
                         },
                       ),
-        
-                  
-        const SizedBox(height: 20),
-        
-        ElevatedButton.icon(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xffC17D4A),
-            minimumSize: const Size(double.infinity, 50),
-            shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(10),
-            ),
-          ),
-          icon: controller.isLoading.value
-        ? const SizedBox.shrink() 
-        : const Icon(
-            Icons.add,
-            color: Colors.white, 
-          ),
-          label: controller.isLoading.value
-        ? const CircularProgressIndicator(
-            color: Colors.white,
-            strokeWidth: 2,
-          )
-        : Text(
-            isEditing ? 'Update Address' : 'Save Address',
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: Colors.white, 
-            ),
-          ),
-          onPressed: controller.isLoading.value
-        ? null
-        : () async {
-            if (_formKey.currentState!.validate()) {
-              final data = {
-                "name": nameController.text.trim(),
-                "address": addressController.text.trim(),
-                "city": cityController.text.trim(),
-                "state": stateController.text.trim(),
-                "postalCode": postalCodeController.text.trim(),
-                "country": countryController.text.trim(),
-                "phone": phoneController.text.trim(),
-                "isDefault": isDefault,
-              };
-        
-              final success = await controller.addAddress(   name: nameController.text.trim(),
-                address: addressController.text.trim(),
-                city: cityController.text.trim(),
-                state: stateController.text.trim(),
-                postalCode: postalCodeController.text.trim(),
-                country: countryController.text.trim(),
-                phone: phoneController.text.trim(),
-                isDefault: isDefault,);
-        
-              if (success && mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text("Address saved successfully!"),
-                    backgroundColor: Colors.green,
-                  ),
-                );
-                Navigator.pop(context, true);
-              } else if (mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(controller.error.value ?? "Failed to save address"),
-                    backgroundColor: const Color(0xffC17D4A),
-                  ),
-                );
-              }
-            }
-          },
-        ),
-        
-        
-                     
+
+                      const SizedBox(height: 20),
+
+                      ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xffC17D4A),
+                          minimumSize: const Size(double.infinity, 50),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                        icon: controller.isLoading.value
+                            ? const SizedBox.shrink()
+                            : const Icon(Icons.add, color: Colors.white),
+                        label: controller.isLoading.value
+                            ? const CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 2,
+                              )
+                            : Text(
+                                isEditing ? 'Update Address' : 'Save Address',
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                        onPressed: controller.isLoading.value
+                            ? null
+                            : () async {
+                                if (_formKey.currentState!.validate()) {
+                                  final data = {
+                                    "name": nameController.text.trim(),
+                                    "address": addressController.text.trim(),
+                                    "city": cityController.text.trim(),
+                                    "state": stateController.text.trim(),
+                                    "postalCode": postalCodeController.text
+                                        .trim(),
+                                    "country": countryController.text.trim(),
+                                    "phone": phoneController.text.trim(),
+                                    "isDefault": isDefault,
+                                  };
+
+                                  final success = await controller.addAddress(
+                                    name: nameController.text.trim(),
+                                    address: addressController.text.trim(),
+                                    city: cityController.text.trim(),
+                                    state: stateController.text.trim(),
+                                    postalCode: postalCodeController.text
+                                        .trim(),
+                                    country: countryController.text.trim(),
+                                    phone: phoneController.text.trim(),
+                                    isDefault: isDefault,
+
+                                    addressID: widget.initialData != null
+                                        ? widget.initialData!["id"]
+                                        : "",
+                                  );
+
+                                  if (success && mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text(
+                                          "Address saved successfully!",
+                                        ),
+                                        backgroundColor: Colors.green,
+                                      ),
+                                    );
+                                    Navigator.pop(context, true);
+                                  } else if (mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                          controller.error.value ??
+                                              "Failed to save address",
+                                        ),
+                                        backgroundColor: const Color(
+                                          0xffC17D4A,
+                                        ),
+                                      ),
+                                    );
+                                  }
+                                }
+                              },
+                      ),
                     ],
                   ),
                 ),
               ),
-        
-             
+
               if (controller.isLoading.value)
                 Container(
                   color: Colors.black.withOpacity(0.2),
@@ -203,7 +246,6 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
     );
   }
 
- 
   Widget buildTextField(
     String label,
     TextEditingController controller, {
@@ -218,14 +260,16 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
         keyboardType: keyboardType,
         textCapitalization: capitalization,
         maxLines: maxLines,
-        validator: (val) => val == null || val.trim().isEmpty ? '$label required' : null,
+        validator: (val) =>
+            val == null || val.trim().isEmpty ? '$label required' : null,
         decoration: InputDecoration(
           labelText: label,
           floatingLabelBehavior: FloatingLabelBehavior.auto,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 14,
+            vertical: 14,
           ),
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(10),
             borderSide: BorderSide(color: Colors.grey.shade400),
