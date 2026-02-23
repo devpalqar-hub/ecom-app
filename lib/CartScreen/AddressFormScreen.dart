@@ -53,8 +53,8 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
       text: widget.initialData?['postalCode'] ?? '',
     );
     countryController = TextEditingController(
-      text: widget.initialData?['country'] ?? '',
-    );
+  text: widget.initialData?['country'] ?? 'Qatar',
+);
     phoneController = TextEditingController(
       text: widget.initialData?['phone'] ?? '',
     );
@@ -103,27 +103,28 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
                         nameController,
                         capitalization: TextCapitalization.words,
                       ),
-                      buildTextField('Address', addressController, maxLines: 2),
+                      buildTextField('Building no/Name', addressController, maxLines: 2),
                       buildTextField(
-                        'City',
+                        'Streer Name/no',
                         cityController,
                         capitalization: TextCapitalization.words,
                       ),
                       buildTextField(
-                        'State',
+                        'Muncipality / Residency',
                         stateController,
                         capitalization: TextCapitalization.words,
                       ),
                       buildTextField(
-                        'Postal Code',
+                        'Zone Number',
                         postalCodeController,
                         keyboardType: TextInputType.number,
                       ),
-                      buildTextField(
-                        'Country',
-                        countryController,
-                        capitalization: TextCapitalization.words,
-                      ),
+                     buildTextField(
+  'Country',
+  countryController,
+  capitalization: TextCapitalization.words,
+  enabled: false,
+),
                       buildTextField(
                         'Phone',
                         phoneController,
@@ -252,11 +253,17 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
     int maxLines = 1,
     TextInputType keyboardType = TextInputType.text,
     TextCapitalization capitalization = TextCapitalization.none,
+    bool enabled = true,
   }) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: TextFormField(
         controller: controller,
+         enabled: enabled, 
+          style: TextStyle(
+    color: enabled ? Colors.black : Colors.black, // force dark color
+    fontWeight: enabled ? FontWeight.normal : FontWeight.w600, // bold when disabled
+  ),
         keyboardType: keyboardType,
         textCapitalization: capitalization,
         maxLines: maxLines,
