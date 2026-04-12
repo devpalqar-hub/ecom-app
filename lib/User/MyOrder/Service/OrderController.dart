@@ -179,9 +179,7 @@ class OrderController extends GetxController {
         Get.back();
         //  getOrderById(selectedOrderID);
 
-        Fluttertoast.showToast(
-          msg: 'Thank you! Review submitted successfully.',
-        );
+        Fluttertoast.showToast(msg: 'Thank you! Review submitted successfully.');
       } else {
         // error.value = response.body;
         Fluttertoast.showToast(

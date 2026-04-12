@@ -54,8 +54,8 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
       text: widget.initialData?['postalCode'] ?? '',
     );
     countryController = TextEditingController(
-      text: widget.initialData?['country'] ?? 'Qatar',
-    );
+  text: widget.initialData?['country'] ?? 'Qatar',
+);
     phoneController = TextEditingController(
       text: widget.initialData?['phone'] ?? '',
     );
@@ -104,11 +104,7 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
                         nameController,
                         capitalization: TextCapitalization.words,
                       ),
-                      buildTextField(
-                        'Building no/Name',
-                        addressController,
-                        maxLines: 2,
-                      ),
+                      buildTextField('Building no/Name', addressController, maxLines: 2),
                       buildTextField(
                         'Streer Name/no',
                         cityController,
@@ -124,12 +120,12 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
                         postalCodeController,
                         keyboardType: TextInputType.number,
                       ),
-                      buildTextField(
-                        'Country',
-                        countryController,
-                        capitalization: TextCapitalization.words,
-                        enabled: false,
-                      ),
+                     buildTextField(
+  'Country',
+  countryController,
+  capitalization: TextCapitalization.words,
+  enabled: false,
+),
                       buildTextField(
                         'Phone',
                         phoneController,
@@ -253,13 +249,11 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: TextFormField(
         controller: controller,
-        enabled: enabled,
-        style: TextStyle(
-          color: enabled ? Colors.black : Colors.black, // force dark color
-          fontWeight: enabled
-              ? FontWeight.normal
-              : FontWeight.w600, // bold when disabled
-        ),
+         enabled: enabled, 
+          style: TextStyle(
+    color: enabled ? Colors.black : Colors.black, // force dark color
+    fontWeight: enabled ? FontWeight.normal : FontWeight.w600, // bold when disabled
+  ),
         keyboardType: keyboardType,
         textCapitalization: capitalization,
         maxLines: maxLines,

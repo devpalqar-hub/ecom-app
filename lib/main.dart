@@ -6,7 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
-import 'package:new_project/Home%20Page/DashBoard.dart';
+import 'package:new_project/User/Home%20Page/DashBoard.dart';
 import 'package:new_project/LoginScreen/LoginScreen.dart';
 import 'package:new_project/LoginScreen/Service/AuthenticationController.dart';
 import 'package:new_project/firebase_options.dart';

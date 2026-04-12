@@ -4,7 +4,7 @@ import 'package:flutter/widgets.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart';
-import 'package:new_project/Home%20Page/DashBoard.dart';
+import 'package:new_project/User/Home%20Page/DashBoard.dart';
 import 'package:new_project/LoginScreen/CompletePorfileBottomSheet.dart';
 import 'package:new_project/LoginScreen/OtpVerificationScreen.dart';
 import 'package:new_project/main.dart';
@@ -82,6 +82,7 @@ class Authenticationcontroller extends GetxController {
           CompleteProfileBottomSheet(),
           isDismissible: false,
           enableDrag: false,
+          isScrollControlled: true,
         );
       } else {
         login = "IN";
