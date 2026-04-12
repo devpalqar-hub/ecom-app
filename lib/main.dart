@@ -6,6 +6,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
+import 'package:new_project/Admin/AdminWebviewScreen.dart';
+import 'package:new_project/Admin/HomeScreen/home_screen.dart';
 import 'package:new_project/User/Home%20Page/DashBoard.dart';
 import 'package:new_project/LoginScreen/LoginScreen.dart';
 import 'package:new_project/LoginScreen/Service/AuthenticationController.dart';
@@ -13,10 +15,11 @@ import 'package:new_project/firebase_options.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 String? accessToken;
-String baseUrl = (false)
+String baseUrl = (true)
     ? "https://api.raheeb.qa/v1"
     : "https://api.ecom.palqar.cloud/v1";
 String? login;
+String? role;
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -26,6 +29,7 @@ Future<void> main() async {
   final prefs = await SharedPreferences.getInstance();
   accessToken = prefs.getString('access_token');
   login = prefs.getString('LOGIN');
+  role = prefs.getString("ROLE") ?? "";
 
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
@@ -51,7 +55,11 @@ Future<void> main() async {
           !_isTokenExpired(accessToken!) &&
           login == "IN") ||
       login == "SKIP") {
-    initialScreen = DashBoard();
+    initialScreen = (role == "ADMIN")
+        ? AdminWebViewScreen(accessToken: accessToken ?? "")
+        : (role == "DELIVERY")
+        ? DeliveryHomeScreen()
+        : DashBoard();
   } else {
     initialScreen = LoginScreen();
   }

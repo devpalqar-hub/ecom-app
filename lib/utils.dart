@@ -1,8 +1,39 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:new_project/LoginScreen/LoginScreen.dart';
+
+enum AppNotificationType { success, error, info }
+
+void showAppNotification(
+  String message, {
+  AppNotificationType type = AppNotificationType.info,
+}) {
+  Color backgroundColor;
+
+  switch (type) {
+    case AppNotificationType.success:
+      backgroundColor = const Color(0xFF1B8F3A);
+      break;
+    case AppNotificationType.error:
+      backgroundColor = const Color(0xFFC62828);
+      break;
+    case AppNotificationType.info:
+      backgroundColor = const Color(0xFF374151);
+      break;
+  }
+
+  Fluttertoast.showToast(
+    msg: message,
+    toastLength: Toast.LENGTH_SHORT,
+    gravity: ToastGravity.BOTTOM,
+    backgroundColor: backgroundColor,
+    textColor: Colors.white,
+    fontSize: 14,
+  );
+}
 
 void showLoginDialog() {
   Get.dialog(

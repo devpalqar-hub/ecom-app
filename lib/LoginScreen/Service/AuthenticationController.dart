@@ -4,6 +4,8 @@ import 'package:flutter/widgets.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart';
+import 'package:new_project/Admin/AdminWebviewScreen.dart';
+import 'package:new_project/Admin/HomeScreen/home_screen.dart';
 import 'package:new_project/User/Home%20Page/DashBoard.dart';
 import 'package:new_project/LoginScreen/CompletePorfileBottomSheet.dart';
 import 'package:new_project/LoginScreen/OtpVerificationScreen.dart';
@@ -87,8 +89,23 @@ class Authenticationcontroller extends GetxController {
       } else {
         login = "IN";
         preferences.setString("LOGIN", "IN");
+        preferences.setString("name", data["data"]["name"] ?? "USER");
+        preferences.setString("ROLE", data["data"]["role"]);
         Get.deleteAll();
-        Get.offAll(() => DashBoard(), transition: Transition.rightToLeft);
+        String role = data["data"]["role"];
+        if (role == "ADMIN") {
+          Get.offAll(
+            () => AdminWebViewScreen(accessToken: accessToken ?? ""),
+            transition: Transition.rightToLeft,
+          );
+        } else if (role == "DELIVERY") {
+          Get.offAll(
+            () => DeliveryHomeScreen(),
+            transition: Transition.rightToLeft,
+          );
+        } else {
+          Get.offAll(() => DashBoard(), transition: Transition.rightToLeft);
+        }
       }
     } else {
       var data = json.decode(response.body);

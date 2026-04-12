@@ -58,12 +58,14 @@ class ProductModel {
       actualPrice: _toDouble(json['actualPrice']),
       isStock: json['isStock'] ?? false,
       stockCount: _toInt(json['stockCount']),
-      images: (json['images'] as List?)
+      images:
+          (json['images'] as List?)
               ?.map((e) => ProductImage.fromJson(e))
               .toList() ??
           [],
       subCategory: SubCategory.fromJson(json['subCategory']),
-      variations: (json['variations'] as List?)
+      variations:
+          (json['variations'] as List?)
               ?.map((e) => Variation.fromJson(e))
               .toList() ??
           [],
@@ -152,4 +154,3 @@ class Variation {
 /* =========================================================
    SUB CATEGORY
 ========================================================= */
-

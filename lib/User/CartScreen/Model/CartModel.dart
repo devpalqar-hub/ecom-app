@@ -8,14 +8,11 @@ class CartModel {
     final dataMap = json['data'];
     final items = dataMap != null && dataMap['items'] != null
         ? (dataMap['items'] as List<dynamic>)
-            .map((e) => CartItem.fromJson(e))
-            .whereType<CartItem>() 
-            .toList()
+              .map((e) => CartItem.fromJson(e))
+              .whereType<CartItem>()
+              .toList()
         : <CartItem>[];
-    return CartModel(
-      success: json['success'] ?? false,
-      data: items,
-    );
+    return CartModel(success: json['success'] ?? false, data: items);
   }
 
   factory CartModel.empty() => CartModel(success: false, data: []);
@@ -36,20 +33,29 @@ class CartItem {
     required this.product,
   });
 
- 
   factory CartItem.fromJson(Map<String, dynamic> json) {
     final variation = json['productVariation'];
 
-    
+    String toTitleCase(String input) {
+      if (input.trim().isEmpty) return '';
+      return input
+          .trim()
+          .split(RegExp(r'\s+'))
+          .map((word) {
+            if (word.isEmpty) return word;
+            return '${word[0].toUpperCase()}${word.substring(1).toLowerCase()}';
+          })
+          .join(' ');
+    }
+
     Map<String, dynamic> productJson;
     if (json['product'] != null) {
       productJson = json['product'] as Map<String, dynamic>;
     } else if (variation != null && variation['product'] != null) {
       productJson = variation['product'] as Map<String, dynamic>;
     } else {
-      
       productJson = {
-        'id': '', 
+        'id': '',
         'name': '',
         'categoryName': '',
         'discountedPrice': 0,
@@ -63,16 +69,30 @@ class CartItem {
       };
     }
 
+    final String variationValue =
+        (variation != null ? variation['variationName'] : '')
+            .toString()
+            .trim();
+
+    final String variationLabel;
+    if (variationValue.isEmpty) {
+      variationLabel = '';
+    } else {
+      variationLabel = '(${toTitleCase(variationValue)})';
+    }
+
+    productJson = Map<String, dynamic>.from(productJson)
+      ..['variationName'] = variationLabel;
+
     return CartItem(
       id: json['id'] ?? '',
       productId: json['productId'],
       productVariationId: json['productVariationId'],
       quantity: json['quantity'] ?? 1,
-      product: Product.fromJson(productJson), 
+      product: Product.fromJson(productJson),
     );
   }
 
-  
   String get cartKey => productVariationId ?? productId ?? id;
 
   int get qty => quantity;
@@ -92,7 +112,6 @@ class CartItem {
   }
 }
 
-
 class Product {
   final String id;
   final String name;
@@ -102,6 +121,7 @@ class Product {
   final String description;
   final int stockCount;
   final bool isStock;
+  final String variationName;
   final DateTime createdAt;
   final DateTime updatedAt;
   final List<ProductImage> images;
@@ -118,6 +138,7 @@ class Product {
     required this.createdAt,
     required this.updatedAt,
     required this.images,
+    required this.variationName,
   });
 
   factory Product.fromJson(Map<String, dynamic> json) {
@@ -127,8 +148,7 @@ class Product {
       categoryName: json['categoryName'] ?? '',
       discountedPrice:
           double.tryParse(json['discountedPrice']?.toString() ?? '0') ?? 0,
-      actualPrice:
-          double.tryParse(json['actualPrice']?.toString() ?? '0') ?? 0,
+      actualPrice: double.tryParse(json['actualPrice']?.toString() ?? '0') ?? 0,
       description: json['description'] ?? '',
       stockCount: json['stockCount'] ?? 0,
       isStock: json['isStock'] ?? false,
@@ -138,15 +158,18 @@ class Product {
       updatedAt: json['updatedAt'] != null
           ? DateTime.tryParse(json['updatedAt']) ?? DateTime.now()
           : DateTime.now(),
-      images: (json['images'] as List<dynamic>?)
+      images:
+          (json['images'] as List<dynamic>?)
               ?.map((e) => ProductImage.fromJson(e))
               .toList() ??
           [],
+        variationName: (json['variationName'] ?? '').toString(),
     );
   }
 
   /// Use discounted price if available, otherwise fallback to actual price
-  double get effectivePrice => discountedPrice > 0 ? discountedPrice : actualPrice;
+  double get effectivePrice =>
+      discountedPrice > 0 ? discountedPrice : actualPrice;
 }
 
 class ProductImage {

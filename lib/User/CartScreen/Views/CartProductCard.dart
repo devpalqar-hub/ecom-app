@@ -96,7 +96,8 @@ class CartProductCard extends StatelessWidget {
                           children: [
                             Expanded(
                               child: Text(
-                                product.name,
+                                '${product.name} ${product.variationName}'
+                                    .trim(),
                                 style: GoogleFonts.poppins(
                                   fontSize: 13.sp,
                                   fontWeight: FontWeight.w600,

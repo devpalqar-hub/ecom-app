@@ -73,5 +73,17 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+
+		<key>NSCameraUsageDescription</key>
+    <string>Required to upload photos</string>
+
+    <key>NSPhotoLibraryUsageDescription</key>
+    <string>Required to upload photos from gallery</string>
+
+    <key>NSMicrophoneUsageDescription</key>
+    <string>Required for video recording</string>
+
+<key>NSLocationWhenInUseUsageDescription</key>
+<string>Required for location features</string>
 </dict>
 </plist>
