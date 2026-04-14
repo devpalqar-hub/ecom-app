@@ -57,10 +57,6 @@ class _ReturnOrderScreenState extends State<ReturnOrderScreen> {
     });
   }
 
-  void _setQty(String itemId, int qty) {
-    setState(() => _selectedItems[itemId] = qty);
-  }
-
   Future<void> _submit() async {
     if (!_canSubmit) {
       Fluttertoast.showToast(
@@ -143,7 +139,7 @@ class _ReturnOrderScreenState extends State<ReturnOrderScreen> {
                           SizedBox(width: 8.w),
                           Expanded(
                             child: Text(
-                              "Select the items you want to return. Selecting all items will create a full return. A return charge will be deducted from the item refund amount.",
+                              "Select the items you want to return. Selecting all items will create a full return. A return charge of QAR ${widget.order.actualReturnFee} will be deducted from the item refund amount.",
                               style: GoogleFonts.montserrat(
                                 fontSize: 11.sp,
                                 color: Color(0xFFAE933F),
@@ -281,7 +277,9 @@ class _ReturnOrderScreenState extends State<ReturnOrderScreen> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      item.product.name,
+                                      item.displayVariationName.isNotEmpty
+                                          ? "${item.product.name} (${item.displayVariationName})"
+                                          : item.product.name,
                                       maxLines: 2,
                                       overflow: TextOverflow.ellipsis,
                                       style: GoogleFonts.montserrat(
@@ -345,7 +343,7 @@ class _ReturnOrderScreenState extends State<ReturnOrderScreen> {
                                 ),
                               ),
                               Text(
-                                "QAR ${item.product.discountedPrice}",
+                                "QAR ${item.unitDiscountedPrice}",
                                 style: GoogleFonts.montserrat(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 12.sp,
@@ -511,21 +509,6 @@ class _ReturnOrderScreenState extends State<ReturnOrderScreen> {
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _qtyButton({required IconData icon, required VoidCallback onTap}) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: 24.w,
-        height: 24.w,
-        decoration: BoxDecoration(
-          color: const Color(0xFFAE933F).withOpacity(0.1),
-          borderRadius: BorderRadius.circular(6.r),
-        ),
-        child: Icon(icon, size: 14.sp, color: const Color(0xFFAE933F)),
       ),
     );
   }

@@ -45,9 +45,7 @@ class _CartScreenState extends State<CartScreen> {
         ),
       ),
       body: Obx(() {
-        final cart = cartController.cart.value;
-        final validItems =
-            cart?.data.where((item) => item.isValid).toList() ?? [];
+        final cart = cartController.cartItem;
 
         if (cartController.isLoading.value) {
           return Center(
@@ -55,7 +53,7 @@ class _CartScreenState extends State<CartScreen> {
           );
         }
 
-        if (validItems.isEmpty) {
+        if (cart.isEmpty) {
           return _emptyCartView();
         }
 
@@ -75,7 +73,7 @@ class _CartScreenState extends State<CartScreen> {
                       ),
                     ),
                     SizedBox(height: 12.h),
-                    ...validItems.map(
+                    ...cart.map(
                       (item) => Padding(
                         padding: EdgeInsets.only(bottom: 12.h),
                         child: CartProductCard(cartItem: item),
@@ -85,7 +83,7 @@ class _CartScreenState extends State<CartScreen> {
                 ),
               ),
             ),
-            _buildBottomBar(validItems),
+            _buildBottomBar(cart),
           ],
         );
       }),

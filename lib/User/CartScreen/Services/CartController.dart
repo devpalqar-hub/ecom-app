@@ -7,9 +7,9 @@ import 'package:new_project/main.dart';
 
 class CartController extends GetxController {
   final isLoading = false.obs;
-  final cart = Rxn<CartModel>();
+  // final cart = Rxn<CartModel>();
   final error = RxnString();
-
+  RxList<CartItemModel> cartItem = <CartItemModel>[].obs;
   final couponLoading = false.obs;
   final appliedCoupon = RxnString();
   final discountAmount = 0.0.obs;
@@ -18,6 +18,7 @@ class CartController extends GetxController {
   Future<void> fetchCart() async {
     try {
       isLoading.value = true;
+      cartItem.clear();
 
       final response = await http.get(
         Uri.parse("$baseUrl/cart"),
@@ -25,20 +26,24 @@ class CartController extends GetxController {
       );
       if (response.statusCode == 200) {
         final body = jsonDecode(response.body);
-        cart.value = CartModel.fromJson(body);
-      } else {
-        cart.value = CartModel.empty();
-      }
+
+        for (var data in body["data"]["items"]) {
+          cartItem.add(CartItemModel.fromJson(data));
+        }
+        cartItem.refresh();
+      } else {}
     } catch (e) {
-      cart.value = CartModel.empty();
     } finally {
       isLoading.value = false;
     }
   }
 
   double getTotalPrice() {
-    final items = cart.value?.data ?? const <CartItem>[];
-    return items.fold<double>(0, (sum, item) => sum + item.lineTotal);
+    double subTotal = 0;
+    for (var item in cartItem) {
+      subTotal = subTotal + item.getEffectivePrice() * (item.quantity ?? 1);
+    }
+    return subTotal;
   }
 
   double getPayableTotal() {
@@ -126,13 +131,12 @@ class CartController extends GetxController {
   Future<void> removeFromCart(String cartItemId, int quantity) async {
     clearCoupon();
 
-    final index = cart.value?.data.indexWhere((i) => i.id == cartItemId);
-    if (index == null || index == -1) return;
+    final index = cartItem.indexWhere((i) => i.id == cartItemId);
+    if (index == -1) return;
 
-    final removedItem = cart.value!.data[index];
-
-    cart.value!.data.removeAt(index);
-    cart.refresh();
+    final removedItem = cartItem[index];
+    cartItem.removeAt(index);
+    cartItem.refresh();
 
     try {
       final response = await http.delete(
@@ -145,35 +149,44 @@ class CartController extends GetxController {
       );
       print(response.body);
       if (response.statusCode != 200) {
-        cart.value!.data.insert(index, removedItem);
-        cart.refresh();
+        cartItem.insert(index, removedItem);
+        cartItem.refresh();
       }
     } catch (_) {
-      cart.value!.data.insert(index, removedItem);
-      cart.refresh();
+      cartItem.insert(index, removedItem);
+      cartItem.refresh();
     }
   }
 
-  Future<void> addToIncrement(String cartKey, int delta) async {
-    final items = cart.value?.data;
-    if (items == null) return;
+  Future<void> addToIncrement(String cartItemId, int delta) async {
+    final items = cartItem;
 
-    final index = items.indexWhere((i) => i.cartKey == cartKey);
+    final index = items.indexWhere((i) => i.id == cartItemId);
     if (index == -1) return;
 
     final item = items[index];
-    final oldQty = item.quantity;
+    final oldQty = item.quantity ?? 1;
     final newQty = oldQty + delta;
 
     if (newQty <= 0) {
-      await removeFromCart(item.id, item.quantity);
+      if (item.id != null) {
+        await removeFromCart(item.id!, oldQty);
+      }
+      return;
+    }
+
+    final stockCount = item.getStockCount();
+    if (newQty > stockCount) {
+      Fluttertoast.showToast(
+        msg: "Only $stockCount item(s) available in stock",
+      );
       return;
     }
 
     clearCoupon();
 
-    items[index] = item.copyWith(quantity: newQty);
-    cart.refresh();
+    items[index].quantity = newQty;
+    cartItem.refresh();
 
     try {
       final payload = {
@@ -195,12 +208,14 @@ class CartController extends GetxController {
       );
 
       if (response.statusCode != 200) {
-        items[index] = item.copyWith(quantity: oldQty);
-        cart.refresh();
+        items[index].quantity = oldQty;
+        cartItem.refresh();
+        Fluttertoast.showToast(msg: "Failed to update cart");
       }
     } catch (_) {
-      items[index] = item.copyWith(quantity: oldQty);
-      cart.refresh();
+      items[index].quantity = oldQty;
+      cartItem.refresh();
+      Fluttertoast.showToast(msg: "Failed to update cart");
     }
   }
 }

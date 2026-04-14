@@ -1,4 +1,3 @@
-
 class OrderModel {
   final String id;
   final String orderNumber;
@@ -54,10 +53,10 @@ class OrderModel {
       customerProfileId: json['customerProfileId'] ?? '',
       createdAt: DateTime.parse(json['createdAt']),
       updatedAt: DateTime.parse(json['updatedAt']),
-      shippingAddress:
-          ShippingAddress.fromJson(json['shippingAddress'] ?? {}),
+      shippingAddress: ShippingAddress.fromJson(json['shippingAddress'] ?? {}),
       tracking: Tracking.fromJson(json['tracking'] ?? {}),
-      items: (json['items'] as List?)
+      items:
+          (json['items'] as List?)
               ?.map((e) => OrderItem.fromJson(e))
               .toList() ??
           [],
@@ -65,16 +64,28 @@ class OrderModel {
   }
 }
 
-
 class OrderItem {
   final String id;
   final int quantity;
   final Product product;
+  final ProductVariation? productVariation;
+
+  String get displayVariationName =>
+      (productVariation?.variationName ?? '').trim();
+
+  String get unitDiscountedPrice {
+    final variationPrice = (productVariation?.discountedPrice ?? '').trim();
+    return variationPrice.isNotEmpty ? variationPrice : product.discountedPrice;
+  }
+
+  double get unitDiscountedPriceValue =>
+      double.tryParse(unitDiscountedPrice) ?? 0.0;
 
   OrderItem({
     required this.id,
     required this.quantity,
     required this.product,
+    this.productVariation,
   });
 
   factory OrderItem.fromJson(Map<String, dynamic> json) {
@@ -82,10 +93,57 @@ class OrderItem {
       id: json['id'] ?? '',
       quantity: json['quantity'] ?? 0,
       product: Product.fromJson(json['product'] ?? {}),
+      productVariation: json['productVariation'] != null
+          ? ProductVariation.fromJson(json['productVariation'])
+          : null,
     );
   }
 }
 
+class ProductVariation {
+  final String id;
+  final String productId;
+  final String variationName;
+  final String sku;
+  final String discountedPrice;
+  final String actualPrice;
+  final int stockCount;
+  final bool isAvailable;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+
+  ProductVariation({
+    required this.id,
+    required this.productId,
+    required this.variationName,
+    required this.sku,
+    required this.discountedPrice,
+    required this.actualPrice,
+    required this.stockCount,
+    required this.isAvailable,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+
+  factory ProductVariation.fromJson(Map<String, dynamic> json) {
+    return ProductVariation(
+      id: json['id'] ?? '',
+      productId: json['productId'] ?? '',
+      variationName: json['variationName'] ?? '',
+      sku: json['sku'] ?? '',
+      discountedPrice: json['discountedPrice'] ?? '0',
+      actualPrice: json['actualPrice'] ?? '0',
+      stockCount: json['stockCount'] ?? 0,
+      isAvailable: json['isAvailable'] ?? false,
+      createdAt: DateTime.parse(
+        json['createdAt'] ?? DateTime.now().toIso8601String(),
+      ),
+      updatedAt: DateTime.parse(
+        json['updatedAt'] ?? DateTime.now().toIso8601String(),
+      ),
+    );
+  }
+}
 
 class Product {
   final String id;
@@ -128,17 +186,19 @@ class Product {
       isStock: json['isStock'] ?? false,
       isFeatured: json['isFeatured'] ?? false,
       createdAt: DateTime.parse(
-          json['createdAt'] ?? DateTime.now().toIso8601String()),
+        json['createdAt'] ?? DateTime.now().toIso8601String(),
+      ),
       updatedAt: DateTime.parse(
-          json['updatedAt'] ?? DateTime.now().toIso8601String()),
-      images: (json['images'] as List?)
+        json['updatedAt'] ?? DateTime.now().toIso8601String(),
+      ),
+      images:
+          (json['images'] as List?)
               ?.map((e) => ProductImage.fromJson(e))
               .toList() ??
           [],
     );
   }
 }
-
 
 class ProductImage {
   final String id;
@@ -211,9 +271,11 @@ class ShippingAddress {
       phone: json['phone'] ?? '',
       isDefault: json['isDefault'] ?? false,
       createdAt: DateTime.parse(
-          json['createdAt'] ?? DateTime.now().toIso8601String()),
+        json['createdAt'] ?? DateTime.now().toIso8601String(),
+      ),
       updatedAt: DateTime.parse(
-          json['updatedAt'] ?? DateTime.now().toIso8601String()),
+        json['updatedAt'] ?? DateTime.now().toIso8601String(),
+      ),
     );
   }
 }
@@ -247,16 +309,17 @@ class Tracking {
       trackingNumber: json['trackingNumber'] ?? '',
       trackingUrl: json['trackingUrl'],
       status: json['status'] ?? '',
-      statusHistory: (json['statusHistory'] as List?)
+      statusHistory:
+          (json['statusHistory'] as List?)
               ?.map((e) => TrackingStatusHistory.fromJson(e))
               .toList() ??
           [],
       lastUpdatedAt: DateTime.parse(
-          json['lastUpdatedAt'] ?? DateTime.now().toIso8601String()),
+        json['lastUpdatedAt'] ?? DateTime.now().toIso8601String(),
+      ),
     );
   }
 }
-
 
 class TrackingStatusHistory {
   final String notes;
@@ -274,7 +337,8 @@ class TrackingStatusHistory {
       notes: json['notes'] ?? '',
       status: json['status'] ?? '',
       timestamp: DateTime.parse(
-          json['timestamp'] ?? DateTime.now().toIso8601String()),
+        json['timestamp'] ?? DateTime.now().toIso8601String(),
+      ),
     );
   }
 }

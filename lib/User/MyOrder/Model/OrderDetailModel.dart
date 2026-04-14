@@ -6,6 +6,7 @@ class OrderDetailModel {
   final String paymentMethod;
   final String totalAmount;
   final String shippingCost;
+  final String? actualReturnFee;
   final String taxAmount;
   final String discountAmount;
   final String notes;
@@ -35,6 +36,7 @@ class OrderDetailModel {
     required this.shippingAddress,
     required this.tracking,
     required this.items,
+    required this.actualReturnFee,
   });
 
   factory OrderDetailModel.fromJson(Map<String, dynamic>? json) {
@@ -49,6 +51,7 @@ class OrderDetailModel {
       totalAmount: json['totalAmount']?.toString() ?? '0',
       shippingCost: json['shippingCost']?.toString() ?? '0',
       taxAmount: json['taxAmount']?.toString() ?? '0',
+      actualReturnFee: json["actualDeliveryFee"],
       discountAmount: json['discountAmount']?.toString() ?? '0',
       notes: json['notes']?.toString() ?? '',
       razorpayId: json['razorpay_id']?.toString() ?? '',
@@ -73,8 +76,31 @@ class OrderItem {
   final int quantity;
   final Review? review;
   final bool isReturn;
+  final String? returnStatus;
   final Product product;
   final ProductVariation? productVariation; // ✅ NEW
+
+  String get displayVariationName =>
+      (productVariation?.variationName ?? '').trim();
+
+  String get unitDiscountedPrice {
+    final variationPrice = (productVariation?.discountedPrice ?? '').trim();
+    return variationPrice.isNotEmpty ? variationPrice : product.discountedPrice;
+  }
+
+  String get unitActualPrice {
+    final variationPrice = (productVariation?.actualPrice ?? '').trim();
+    return variationPrice.isNotEmpty ? variationPrice : product.actualPrice;
+  }
+
+  double get unitDiscountedPriceValue =>
+      double.tryParse(unitDiscountedPrice) ?? 0.0;
+
+  double get unitActualPriceValue =>
+      double.tryParse(unitActualPrice) ?? unitDiscountedPriceValue;
+
+  bool get hasActualStrikePrice =>
+      unitActualPriceValue > unitDiscountedPriceValue;
 
   OrderItem({
     required this.id,
@@ -83,6 +109,7 @@ class OrderItem {
     required this.isReturn,
     required this.product,
     this.productVariation, // ✅ NEW
+    this.returnStatus,
   });
 
   factory OrderItem.fromJson(Map<String, dynamic>? json) {
@@ -92,16 +119,16 @@ class OrderItem {
       id: json['id']?.toString() ?? '',
       quantity: json['quantity'] ?? 0,
       isReturn: json["isReturned"] ?? false,
-      review: json['Review'] != null
-          ? Review.fromJson(json['Review'])
-          : null,
+      review: json['Review'] != null ? Review.fromJson(json['Review']) : null,
       product: Product.fromJson(json['product']),
       productVariation: json['productVariation'] != null
           ? ProductVariation.fromJson(json['productVariation'])
           : null, // ✅ NEW
+      returnStatus: json["returnStatus"],
     );
   }
 }
+
 class Review {
   final String id;
   final int rating;
@@ -260,10 +287,8 @@ class ProductVariation {
       actualPrice: json['actualPrice']?.toString() ?? '0',
       stockCount: json['stockCount'] ?? 0,
       isAvailable: json['isAvailable'] ?? false,
-      createdAt:
-          DateTime.tryParse(json['createdAt'] ?? '') ?? DateTime.now(),
-      updatedAt:
-          DateTime.tryParse(json['updatedAt'] ?? '') ?? DateTime.now(),
+      createdAt: DateTime.tryParse(json['createdAt'] ?? '') ?? DateTime.now(),
+      updatedAt: DateTime.tryParse(json['updatedAt'] ?? '') ?? DateTime.now(),
     );
   }
 }

@@ -47,7 +47,7 @@ class ProductController extends GetxController {
     required String productId,
     String? productVariationId,
   }) {
-    final cartItems = cartController.cart.value?.data ?? [];
+    final cartItems = cartController.cartItem;
 
     return cartItems.any((e) {
       if (productVariationId != null && productVariationId.isNotEmpty) {

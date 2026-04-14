@@ -1,5 +1,4 @@
 // ================= ORDER DETAIL SCREEN =================
-import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -21,6 +20,60 @@ class OrderDetailScreen extends StatefulWidget {
 class _OrderDetailScreenState extends State<OrderDetailScreen> {
   final OrderController controller = Get.put(OrderController());
   final RxBool isTimelineExpanded = false.obs;
+
+  String _normalizedReturnStatus(OrderItem item) {
+    return (item.returnStatus ?? '').trim().toLowerCase();
+  }
+
+  bool _isReturnSectionItem(OrderItem item) {
+    final returnStatus = _normalizedReturnStatus(item);
+    return item.isReturn ||
+        returnStatus == 'pending' ||
+        returnStatus == 'rejected' ||
+        returnStatus == 'refunded';
+  }
+
+  String _returnStatusLabel(OrderItem item) {
+    final status = _normalizedReturnStatus(item);
+    switch (status) {
+      case 'pending':
+        return 'Pending';
+      case 'rejected':
+        return 'Rejected';
+      case 'refunded':
+        return 'Refunded';
+      default:
+        return 'Returned';
+    }
+  }
+
+  Color _returnStatusBgColor(OrderItem item) {
+    final status = _normalizedReturnStatus(item);
+    switch (status) {
+      case 'pending':
+        return Colors.orange.shade100;
+      case 'rejected':
+        return Colors.red.shade100;
+      case 'refunded':
+        return Colors.green.shade100;
+      default:
+        return Colors.purple.shade100;
+    }
+  }
+
+  Color _returnStatusTextColor(OrderItem item) {
+    final status = _normalizedReturnStatus(item);
+    switch (status) {
+      case 'pending':
+        return Colors.orange.shade800;
+      case 'rejected':
+        return Colors.red.shade800;
+      case 'refunded':
+        return Colors.green.shade800;
+      default:
+        return Colors.purple.shade700;
+    }
+  }
 
   // Derive the lists once so we don't recompute in every build.
 
@@ -83,7 +136,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
           child: GetBuilder<OrderController>(
             builder: (ctx) =>
                 (ctx.selectedOrder != null &&
-                    showReturn(ctx.selectedOrder!.items!, ctx.selectedOrder!))
+                    showReturn(ctx.selectedOrder!.items, ctx.selectedOrder!))
                 ? _buildReturnBottomBar(ctx.selectedOrder!)
                 : Container(height: 0, width: 0),
           ),
@@ -108,21 +161,21 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
 
                           // ── Active / Delivered items ──
                           if (ctx.selectedOrder!.items
-                              .where((it) => !it.isReturn)
+                              .where((it) => !_isReturnSectionItem(it))
                               .isNotEmpty)
                             _orderItems(ctx.selectedOrder!, [
                               for (var data in ctx.selectedOrder!.items)
-                                if (!data.isReturn) data,
+                                if (!_isReturnSectionItem(data)) data,
                             ], isReturned: false),
 
                           // ── Returned items section ──
                           if (ctx.selectedOrder!.items
-                              .where((it) => it.isReturn)
+                              .where((it) => _isReturnSectionItem(it))
                               .isNotEmpty) ...[
                             SizedBox(height: 20.h),
                             _orderItems(ctx.selectedOrder!, [
                               for (var data in ctx.selectedOrder!.items)
-                                if (data.isReturn) data,
+                                if (_isReturnSectionItem(data)) data,
                             ], isReturned: true),
                           ],
 
@@ -421,12 +474,8 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              item.productVariation != null &&
-                                      item
-                                          .productVariation!
-                                          .variationName
-                                          .isNotEmpty
-                                  ? "${item.product.name} (${item.productVariation!.variationName})"
+                              item.displayVariationName.isNotEmpty
+                                  ? "${item.product.name} (${item.displayVariationName})"
                                   : item.product.name,
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
@@ -450,12 +499,21 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
                           Text(
-                            "QAR ${item.product.discountedPrice}",
+                            "QAR ${item.unitDiscountedPrice}",
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 13.sp,
                             ),
                           ),
+                          if (item.hasActualStrikePrice)
+                            Text(
+                              "QAR ${item.unitActualPrice}",
+                              style: TextStyle(
+                                fontSize: 11.sp,
+                                color: Colors.grey.shade600,
+                                decoration: TextDecoration.lineThrough,
+                              ),
+                            ),
                           // "Returned" badge on item level
                           if (isReturned) ...[
                             SizedBox(height: 4.h),
@@ -465,15 +523,15 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                                 vertical: 2.h,
                               ),
                               decoration: BoxDecoration(
-                                color: Colors.purple.shade100,
+                                color: _returnStatusBgColor(item),
                                 borderRadius: BorderRadius.circular(8.r),
                               ),
                               child: Text(
-                                "Returned",
+                                _returnStatusLabel(item),
                                 style: TextStyle(
                                   fontSize: 9.sp,
                                   fontWeight: FontWeight.w600,
-                                  color: Colors.purple.shade700,
+                                  color: _returnStatusTextColor(item),
                                 ),
                               ),
                             ),
@@ -1019,10 +1077,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   Widget _pricingSummary(OrderDetailModel order) {
     final double subtotal = order.items.fold(
       0.0,
-      (sum, item) =>
-          sum +
-          (double.tryParse(item.product.discountedPrice) ?? 0.0) *
-              item.quantity,
+      (sum, item) => sum + item.unitDiscountedPriceValue * item.quantity,
     );
     final double discount = double.tryParse(order.discountAmount) ?? 0.0;
     final double shippingCost = double.tryParse(order.shippingCost) ?? 0.0;

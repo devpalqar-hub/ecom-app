@@ -7,7 +7,7 @@ import 'package:new_project/User/MyOrder/OrderDetailScreen.dart';
 import 'package:new_project/User/MyOrder/Service/OrderController.dart';
 
 class MyOrderScreen extends StatelessWidget {
-  bool showback = true;
+  final bool showback;
   MyOrderScreen({super.key, this.showback = true});
 
   final OrderController controller = Get.put(OrderController());
@@ -131,16 +131,21 @@ class MyOrderScreen extends StatelessWidget {
                       itemBuilder: (context, index) {
                         final order = controller.orders[index];
                         final firstItem = order.items.first;
+                        final firstItemLineAmount =
+                            firstItem.unitDiscountedPriceValue *
+                            firstItem.quantity;
 
                         return OrderCard(
                           orderId: order.orderNumber,
                           date: _formatDate(order.createdAt),
-                          productName: firstItem.product.name,
+                          productName: firstItem.displayVariationName.isNotEmpty
+                              ? "${firstItem.product.name} (${firstItem.displayVariationName})"
+                              : firstItem.product.name,
                           productImage: firstItem.product.images.isNotEmpty
                               ? firstItem.product.images.first.url
                               : '',
                           quantity: firstItem.quantity,
-                          price: double.parse(order.totalAmount),
+                          price: firstItemLineAmount,
                           status: order.status.capitalizeFirst!,
                           estimatedDelivery:
                               order.status.toLowerCase() == 'pending'

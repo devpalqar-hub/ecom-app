@@ -494,18 +494,20 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     '-QAR ${discount.toStringAsFixed(2)}',
                     color: Colors.green,
                   ),
-                if (deliveryCharge > 0)
-                  _summaryRow(
-                    'Delivery Charge',
-                    'QAR ${deliveryCharge.toStringAsFixed(2)}',
-                    color: Color(0xFFAE933F),
-                  )
-                else
-                  _summaryRow(
-                    'Delivery Charge',
-                    'Free Delivery Applied',
-                    color: Colors.green,
-                  ),
+                if (controller.selectedAddress.value != null) ...[
+                  if (deliveryCharge > 0)
+                    _summaryRow(
+                      'Delivery Charge',
+                      'QAR ${deliveryCharge.toStringAsFixed(2)}',
+                      color: Color(0xFFAE933F),
+                    )
+                  else
+                    _summaryRow(
+                      'Delivery Charge',
+                      'Free Delivery Applied',
+                      color: Colors.green,
+                    ),
+                ],
                 Divider(height: 24.h),
                 _summaryRow(
                   'Payable Amount',
@@ -523,15 +525,14 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   Widget _buildPlaceOrderButton() {
     return Obx(() {
       final hasAddress = controller.selectedAddress.value != null;
-      final cart = cartController.cart.value;
+      final cart = cartController.cartItem;
       final isProcessing = controller.isLoading.value;
 
       return SizedBox(
         width: double.infinity,
         height: 46.h,
         child: ElevatedButton(
-          onPressed:
-              !hasAddress || cart == null || cart.data.isEmpty || isProcessing
+          onPressed: !hasAddress || cart.isEmpty || isProcessing
               ? null
               : () => _handlePlaceOrder(),
           style: ElevatedButton.styleFrom(

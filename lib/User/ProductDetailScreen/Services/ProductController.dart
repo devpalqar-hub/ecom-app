@@ -11,7 +11,7 @@ import 'package:new_project/utils.dart';
 class Productcontroller extends GetxController {
   final String productId;
 
-  Productcontroller(this.productId); // ✅ FIXED
+  Productcontroller(this.productId);
 
   ProductDetailModel? product;
   List<ProductModel> releatedProducts = [];
@@ -21,48 +21,104 @@ class Productcontroller extends GetxController {
   bool isWishlistLoading = false;
   bool isCartLoading = false;
 
+  // Tracks which variation/product keys are currently in cart
+  Set<String> cartedKeys = {};
+
+  // ── Cart key helpers ──────────────────────────────────────────────────────
+
+  /// Key for the currently selected variation (or base product if no variation)
+  String get _currentCartKey => selectedVariation?.id ?? productId;
+
+  /// Is the currently selected variation (or base product) in the cart?
+  bool get isCurrentInCart => cartedKeys.contains(_currentCartKey);
+
+  // ── Fetch ─────────────────────────────────────────────────────────────────
+
   Future<void> fetchProduct() async {
     isLoading = true;
     update();
 
-    var response = await get(
-      Uri.parse("$baseUrl/products/$productId"),
-      headers: {"Authorization": "Bearer $accessToken"},
-    );
+    try {
+      var response = await get(
+        Uri.parse("$baseUrl/products/$productId"),
+        headers: {"Authorization": "Bearer $accessToken"},
+      );
 
-    if (response.statusCode == 200) {
-      var data = json.decode(response.body);
-      product = ProductDetailModel.fromJson(data["data"]);
+      if (response.statusCode == 200) {
+        var data = json.decode(response.body);
+        product = ProductDetailModel.fromJson(data["data"]);
 
-      // Set first variation as default if variations exist
-      if (product!.variations != null && product!.variations!.isNotEmpty) {
-        selectedVariation = product!.variations!.first;
-        selectedVariationIndex = 0;
+        if (product!.variations != null && product!.variations!.isNotEmpty) {
+          selectedVariation = product!.variations!.first;
+          selectedVariationIndex = 0;
+        }
+
+        // Sync cart state from live cart API
+        await _syncCartState();
+
+        fetchRelatedProduct(product!.subCategory!.categoryId!);
       }
-
-      fetchRelatedProduct(product!.subCategory!.categoryId!);
+    } catch (e) {
+      print("Error fetching product: $e");
     }
 
     isLoading = false;
+    update();
+  }
+
+  /// Fetch the live cart and populate cartedKeys for this product
+  Future<void> _syncCartState() async {
+    try {
+      var response = await get(
+        Uri.parse("$baseUrl/cart"),
+        headers: {"Authorization": "Bearer $accessToken"},
+      );
+
+      if (response.statusCode == 200) {
+        final body = json.decode(response.body);
+        final items = body["data"]?["items"] as List<dynamic>? ?? [];
+
+        cartedKeys = items
+            .where((item) => item["productId"] == productId)
+            .map<String>((item) {
+              final varId = item["productVariationId"];
+              return (varId != null && varId.toString().isNotEmpty)
+                  ? varId.toString()
+                  : item["productId"].toString();
+            })
+            .toSet();
+      }
+    } catch (e) {
+      print("Error syncing cart state: $e");
+      // silently ignore — cartedKeys stays as-is
+    }
     update();
   }
 
   Future<void> fetchRelatedProduct(String categoryID) async {
     releatedProducts.clear();
-    var response = await get(
-      Uri.parse("$baseUrl/products?categoryId=${categoryID}&limit=8&page=1 "),
-      headers: {"Authorization": "Bearer $accessToken"},
-    );
+    try {
+      var response = await get(
+        Uri.parse("$baseUrl/products?categoryId=$categoryID&limit=8&page=1"),
+        headers: {"Authorization": "Bearer $accessToken"},
+      );
 
-    if (response.statusCode == 200) {
-      var body = json.decode(response.body);
-      for (var data in body["data"]["data"])
-        releatedProducts.add(ProductModel.fromJson(data));
-      update();
+      if (response.statusCode == 200) {
+        var body = json.decode(response.body);
+        for (var data in body["data"]["data"]) {
+          releatedProducts.add(ProductModel.fromJson(data));
+        }
+        update();
+      }
+    } catch (e) {
+      print("Error fetching related products: $e");
     }
+
     isLoading = false;
     update();
   }
+
+  // ── Variation selection ───────────────────────────────────────────────────
 
   void selectVariation(int index) {
     if (product!.variations != null && index < product!.variations!.length) {
@@ -71,6 +127,8 @@ class Productcontroller extends GetxController {
       update();
     }
   }
+
+  // ── Price helpers ─────────────────────────────────────────────────────────
 
   String getCurrentPrice() {
     if (selectedVariation != null) {
@@ -94,29 +152,26 @@ class Productcontroller extends GetxController {
     return null;
   }
 
+  bool checkStock() {
+    if (selectedVariation != null) {
+      return (selectedVariation!.stockCount ?? 0) > 0;
+    }
+    return product!.isStock ?? true;
+  }
+
+  // ── Wishlist ──────────────────────────────────────────────────────────────
+
   Future<void> toggleWishlist() async {
     if (isWishlistLoading) return;
-
     if (login != "IN") {
       showLoginDialog();
       return;
     }
 
-    bool currentStatus = product?.isWishlisted ?? false;
-
-    if (currentStatus) {
+    if (product?.isWishlisted ?? false) {
       await removeFromWishlist();
     } else {
       await addToWishlist();
-    }
-  }
-
-  bool checkStock() {
-    if (selectedVariation != null) {
-      print(selectedVariation!.stockCount);
-      return (selectedVariation!.stockCount ?? 0) > 0;
-    } else {
-      return product!.isStock ?? true;
     }
   }
 
@@ -125,8 +180,6 @@ class Productcontroller extends GetxController {
     update();
 
     Map<String, dynamic> body = {"productId": productId};
-
-    // Add variation ID if product has variations
     if (selectedVariation != null) {
       body["productVariationId"] = selectedVariation!.id;
     }
@@ -140,9 +193,6 @@ class Productcontroller extends GetxController {
         },
         body: json.encode(body),
       );
-
-      print("Wishlist add response: ${response.body}");
-      print("Status code: ${response.statusCode}");
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         product!.isWishlisted = true;
@@ -169,9 +219,6 @@ class Productcontroller extends GetxController {
         headers: {"Authorization": "Bearer $accessToken"},
       );
 
-      print("Wishlist remove response: ${response.body}");
-      print("Status code: ${response.statusCode}");
-
       if (response.statusCode == 200 || response.statusCode == 204) {
         product!.isWishlisted = false;
       } else {
@@ -186,15 +233,32 @@ class Productcontroller extends GetxController {
     update();
   }
 
-  Future<void> addToCart() async {
-    if (isCartLoading) return;
+  // ── Cart ──────────────────────────────────────────────────────────────────
 
+  Future<void> toggleCart() async {
+    if (isCartLoading) return;
+    if (login != "IN") {
+      showLoginDialog();
+      return;
+    }
+
+    if (!checkStock()) {
+      Fluttertoast.showToast(msg: "Product is out of stock");
+      return;
+    }
+
+    if (isCurrentInCart) {
+      await removeFromCart();
+    } else {
+      await addToCart();
+    }
+  }
+
+  Future<void> addToCart() async {
     isCartLoading = true;
     update();
 
     Map<String, dynamic> body = {"productId": productId, "quantity": 1};
-
-    // Add variation ID if product has variations
     if (selectedVariation != null) {
       body["productVariationId"] = selectedVariation!.id;
     }
@@ -213,7 +277,7 @@ class Productcontroller extends GetxController {
       print("Status code: ${response.statusCode}");
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        product!.isInCart = true;
+        cartedKeys.add(_currentCartKey);
         Fluttertoast.showToast(msg: "Added to cart");
       } else {
         Fluttertoast.showToast(msg: "Failed to add to cart");
@@ -228,14 +292,17 @@ class Productcontroller extends GetxController {
   }
 
   Future<void> removeFromCart() async {
-    if (isCartLoading) return;
-
     isCartLoading = true;
     update();
 
     try {
+      // Use variationId or productId depending on the item type
+      final queryParam = selectedVariation != null
+          ? "productVariationId=${selectedVariation!.id}"
+          : "productId=$productId";
+
       var response = await delete(
-        Uri.parse("$baseUrl/cart/delete-cart?id=$productId"),
+        Uri.parse("$baseUrl/cart/delete-cart?$queryParam"),
         headers: {"Authorization": "Bearer $accessToken"},
       );
 
@@ -243,7 +310,7 @@ class Productcontroller extends GetxController {
       print("Status code: ${response.statusCode}");
 
       if (response.statusCode == 200 || response.statusCode == 204) {
-        product!.isInCart = false;
+        cartedKeys.remove(_currentCartKey);
         Fluttertoast.showToast(msg: "Removed from cart");
       } else {
         Fluttertoast.showToast(msg: "Failed to remove from cart");
@@ -260,6 +327,6 @@ class Productcontroller extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    fetchProduct(); // ✅ call here
+    fetchProduct();
   }
 }

@@ -1,202 +1,284 @@
-class CartModel {
-  final bool success;
-  final List<CartItem> data;
+class CartItemModel {
+  String? id;
+  String? productId;
+  String? productVariationId;
+  int? quantity;
+  String? createdAt;
+  String? updatedAt;
+  String? customerProfileId;
+  Product? product;
+  ProductVariation? productVariation;
 
-  CartModel({required this.success, required this.data});
-
-  factory CartModel.fromJson(Map<String, dynamic> json) {
-    final dataMap = json['data'];
-    final items = dataMap != null && dataMap['items'] != null
-        ? (dataMap['items'] as List<dynamic>)
-              .map((e) => CartItem.fromJson(e))
-              .whereType<CartItem>()
-              .toList()
-        : <CartItem>[];
-    return CartModel(success: json['success'] ?? false, data: items);
-  }
-
-  factory CartModel.empty() => CartModel(success: false, data: []);
-}
-
-class CartItem {
-  final String id;
-  final String? productId;
-  final String? productVariationId;
-  final int quantity;
-  final Product product;
-
-  CartItem({
-    required this.id,
+  CartItemModel({
+    this.id,
     this.productId,
     this.productVariationId,
-    required this.quantity,
-    required this.product,
+    this.quantity,
+    this.createdAt,
+    this.updatedAt,
+    this.customerProfileId,
+    this.product,
+    this.productVariation,
   });
 
-  factory CartItem.fromJson(Map<String, dynamic> json) {
-    final variation = json['productVariation'];
-
-    String toTitleCase(String input) {
-      if (input.trim().isEmpty) return '';
-      return input
-          .trim()
-          .split(RegExp(r'\s+'))
-          .map((word) {
-            if (word.isEmpty) return word;
-            return '${word[0].toUpperCase()}${word.substring(1).toLowerCase()}';
-          })
-          .join(' ');
-    }
-
-    Map<String, dynamic> productJson;
-    if (json['product'] != null) {
-      productJson = json['product'] as Map<String, dynamic>;
-    } else if (variation != null && variation['product'] != null) {
-      productJson = variation['product'] as Map<String, dynamic>;
-    } else {
-      productJson = {
-        'id': '',
-        'name': '',
-        'categoryName': '',
-        'discountedPrice': 0,
-        'actualPrice': 0,
-        'description': '',
-        'stockCount': 0,
-        'isStock': false,
-        'createdAt': DateTime.now().toIso8601String(),
-        'updatedAt': DateTime.now().toIso8601String(),
-        'images': [],
-      };
-    }
-
-    final String variationValue =
-        (variation != null ? variation['variationName'] : '')
-            .toString()
-            .trim();
-
-    final String variationLabel;
-    if (variationValue.isEmpty) {
-      variationLabel = '';
-    } else {
-      variationLabel = '(${toTitleCase(variationValue)})';
-    }
-
-    productJson = Map<String, dynamic>.from(productJson)
-      ..['variationName'] = variationLabel;
-
-    return CartItem(
-      id: json['id'] ?? '',
-      productId: json['productId'],
-      productVariationId: json['productVariationId'],
-      quantity: json['quantity'] ?? 1,
-      product: Product.fromJson(productJson),
-    );
+  CartItemModel.fromJson(Map<String, dynamic> json) {
+    id = json['id'];
+    productId = json['productId'];
+    productVariationId = json['productVariationId'];
+    quantity = json['quantity'];
+    createdAt = json['createdAt'];
+    updatedAt = json['updatedAt'];
+    customerProfileId = json['customerProfileId'];
+    product = json['product'] != null
+        ? new Product.fromJson(json['product'])
+        : null;
+    productVariation = json['productVariation'] != null
+        ? new ProductVariation.fromJson(json['productVariation'])
+        : null;
   }
 
-  String get cartKey => productVariationId ?? productId ?? id;
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = new Map<String, dynamic>();
+    data['id'] = this.id;
+    data['productId'] = this.productId;
+    data['productVariationId'] = this.productVariationId;
+    data['quantity'] = this.quantity;
+    data['createdAt'] = this.createdAt;
+    data['updatedAt'] = this.updatedAt;
+    data['customerProfileId'] = this.customerProfileId;
+    if (this.product != null) {
+      data['product'] = this.product!.toJson();
+    }
+    if (this.productVariation != null) {
+      data['productVariation'] = this.productVariation!.toJson();
+    }
+    return data;
+  }
 
-  int get qty => quantity;
-  double get unitPrice => product.effectivePrice;
-  double get lineTotal => unitPrice * qty;
+  double getEffectivePrice() {
+    double price = 0;
+    double discountPrice = 0;
+    if (productVariation != null) {
+      price = double.parse(productVariation!.actualPrice ?? "0");
+      discountPrice = double.parse(productVariation!.discountedPrice ?? "0");
+    } else {
+      price = double.parse(product!.actualPrice ?? "0");
+      discountPrice = double.parse(product!.discountedPrice ?? "0");
+    }
+    return (discountPrice != 0) ? discountPrice : price;
+  }
 
-  bool get isValid => product.id.isNotEmpty;
+  double getStrikeThoughtPrice() {
+    double price = 0;
+    double discountPrice = 0;
+    if (productVariation != null) {
+      price = double.parse(productVariation!.actualPrice ?? "0");
+      discountPrice = double.parse(productVariation!.discountedPrice ?? "0");
+    } else {
+      price = double.parse(product!.actualPrice ?? "0");
+      discountPrice = double.parse(product!.discountedPrice ?? "0");
+    }
+    return (discountPrice != 0) ? price : 0;
+  }
 
-  CartItem copyWith({int? quantity}) {
-    return CartItem(
-      id: id,
-      productId: productId,
-      productVariationId: productVariationId,
-      quantity: quantity ?? this.quantity,
-      product: product,
-    );
+  String getProductName() {
+    String name = product!.name ?? "";
+
+    if (productVariation != null)
+      name = name + "(${productVariation!.variationName})";
+    return name;
+  }
+
+  bool isOutOfStock() {
+    if (productVariation != null) {
+      return (productVariation!.stockCount!) <= 0;
+    } else {
+      return (product!.stockCount!) <= 0;
+    }
+  }
+
+  int getStockCount() {
+    if (productVariation != null) {
+      return (productVariation!.stockCount!);
+    } else {
+      return (product!.stockCount!);
+    }
   }
 }
 
 class Product {
-  final String id;
-  final String name;
-  final String categoryName;
-  final double discountedPrice;
-  final double actualPrice;
-  final String description;
-  final int stockCount;
-  final bool isStock;
-  final String variationName;
-  final DateTime createdAt;
-  final DateTime updatedAt;
-  final List<ProductImage> images;
+  String? id;
+  String? name;
+  String? subCategoryId;
+  String? discountedPrice;
+  String? actualPrice;
+  String? description;
+  int? stockCount;
+  bool? isStock;
+  bool? isFeatured;
+  bool? isActive;
+  String? variationTitle;
+  String? createdAt;
+  String? updatedAt;
+  List<Images>? images;
 
   Product({
-    required this.id,
-    required this.name,
-    required this.categoryName,
-    required this.discountedPrice,
-    required this.actualPrice,
-    required this.description,
-    required this.stockCount,
-    required this.isStock,
-    required this.createdAt,
-    required this.updatedAt,
-    required this.images,
-    required this.variationName,
+    this.id,
+    this.name,
+    this.subCategoryId,
+    this.discountedPrice,
+    this.actualPrice,
+    this.description,
+    this.stockCount,
+    this.isStock,
+    this.isFeatured,
+    this.isActive,
+    this.variationTitle,
+    this.createdAt,
+    this.updatedAt,
+    this.images,
   });
 
-  factory Product.fromJson(Map<String, dynamic> json) {
-    return Product(
-      id: json['id'] ?? '',
-      name: json['name'] ?? '',
-      categoryName: json['categoryName'] ?? '',
-      discountedPrice:
-          double.tryParse(json['discountedPrice']?.toString() ?? '0') ?? 0,
-      actualPrice: double.tryParse(json['actualPrice']?.toString() ?? '0') ?? 0,
-      description: json['description'] ?? '',
-      stockCount: json['stockCount'] ?? 0,
-      isStock: json['isStock'] ?? false,
-      createdAt: json['createdAt'] != null
-          ? DateTime.tryParse(json['createdAt']) ?? DateTime.now()
-          : DateTime.now(),
-      updatedAt: json['updatedAt'] != null
-          ? DateTime.tryParse(json['updatedAt']) ?? DateTime.now()
-          : DateTime.now(),
-      images:
-          (json['images'] as List<dynamic>?)
-              ?.map((e) => ProductImage.fromJson(e))
-              .toList() ??
-          [],
-        variationName: (json['variationName'] ?? '').toString(),
-    );
+  Product.fromJson(Map<String, dynamic> json) {
+    id = json['id'];
+    name = json['name'];
+    subCategoryId = json['subCategoryId'];
+    discountedPrice = json['discountedPrice'];
+    actualPrice = json['actualPrice'];
+    description = json['description'];
+    stockCount = json['stockCount'];
+    isStock = json['isStock'];
+    isFeatured = json['isFeatured'];
+    isActive = json['isActive'];
+    variationTitle = json['variationTitle'];
+    createdAt = json['createdAt'];
+    updatedAt = json['updatedAt'];
+    if (json['images'] != null) {
+      images = <Images>[];
+      json['images'].forEach((v) {
+        images!.add(new Images.fromJson(v));
+      });
+    }
   }
 
-  /// Use discounted price if available, otherwise fallback to actual price
-  double get effectivePrice =>
-      discountedPrice > 0 ? discountedPrice : actualPrice;
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = new Map<String, dynamic>();
+    data['id'] = this.id;
+    data['name'] = this.name;
+    data['subCategoryId'] = this.subCategoryId;
+    data['discountedPrice'] = this.discountedPrice;
+    data['actualPrice'] = this.actualPrice;
+    data['description'] = this.description;
+    data['stockCount'] = this.stockCount;
+    data['isStock'] = this.isStock;
+    data['isFeatured'] = this.isFeatured;
+    data['isActive'] = this.isActive;
+    data['variationTitle'] = this.variationTitle;
+    data['createdAt'] = this.createdAt;
+    data['updatedAt'] = this.updatedAt;
+    if (this.images != null) {
+      data['images'] = this.images!.map((v) => v.toJson()).toList();
+    }
+    return data;
+  }
 }
 
-class ProductImage {
-  final String id;
-  final String productId;
-  final String url;
-  final String altText;
-  final bool isMain;
-  final int sortOrder;
+class Images {
+  String? id;
+  String? productId;
+  String? url;
+  String? altText;
+  bool? isMain;
+  int? sortOrder;
 
-  ProductImage({
-    required this.id,
-    required this.productId,
-    required this.url,
-    required this.altText,
-    required this.isMain,
-    required this.sortOrder,
+  Images({
+    this.id,
+    this.productId,
+    this.url,
+    this.altText,
+    this.isMain,
+    this.sortOrder,
   });
 
-  factory ProductImage.fromJson(Map<String, dynamic> json) {
-    return ProductImage(
-      id: json['id'] ?? '',
-      productId: json['productId'] ?? '',
-      url: json['url'] ?? '',
-      altText: json['altText'] ?? '',
-      isMain: json['isMain'] ?? false,
-      sortOrder: json['sortOrder'] ?? 0,
-    );
+  Images.fromJson(Map<String, dynamic> json) {
+    id = json['id'];
+    productId = json['productId'];
+    url = json['url'];
+    altText = json['altText'];
+    isMain = json['isMain'];
+    sortOrder = json['sortOrder'];
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = new Map<String, dynamic>();
+    data['id'] = this.id;
+    data['productId'] = this.productId;
+    data['url'] = this.url;
+    data['altText'] = this.altText;
+    data['isMain'] = this.isMain;
+    data['sortOrder'] = this.sortOrder;
+    return data;
+  }
+}
+
+class ProductVariation {
+  String? id;
+  String? productId;
+  String? variationName;
+  String? sku;
+  String? discountedPrice;
+  String? actualPrice;
+  int? stockCount;
+  bool? isAvailable;
+  String? createdAt;
+  String? updatedAt;
+  Product? product;
+
+  ProductVariation({
+    this.id,
+    this.productId,
+    this.variationName,
+    this.sku,
+    this.discountedPrice,
+    this.actualPrice,
+    this.stockCount,
+    this.isAvailable,
+    this.createdAt,
+    this.updatedAt,
+    this.product,
+  });
+
+  ProductVariation.fromJson(Map<String, dynamic> json) {
+    id = json['id'];
+    productId = json['productId'];
+    variationName = json['variationName'];
+    sku = json['sku'];
+    discountedPrice = json['discountedPrice'];
+    actualPrice = json['actualPrice'];
+    stockCount = json['stockCount'];
+    isAvailable = json['isAvailable'];
+    createdAt = json['createdAt'];
+    updatedAt = json['updatedAt'];
+    product = json['product'] != null
+        ? new Product.fromJson(json['product'])
+        : null;
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = new Map<String, dynamic>();
+    data['id'] = this.id;
+    data['productId'] = this.productId;
+    data['variationName'] = this.variationName;
+    data['sku'] = this.sku;
+    data['discountedPrice'] = this.discountedPrice;
+    data['actualPrice'] = this.actualPrice;
+    data['stockCount'] = this.stockCount;
+    data['isAvailable'] = this.isAvailable;
+    data['createdAt'] = this.createdAt;
+    data['updatedAt'] = this.updatedAt;
+    if (this.product != null) {
+      data['product'] = this.product!.toJson();
+    }
+    return data;
   }
 }

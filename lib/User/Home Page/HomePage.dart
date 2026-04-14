@@ -117,384 +117,391 @@ class _HomePageState extends State<HomePage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Obx(() {
-              if (bannerController.isLoading.value) {
-                return const Center(
-                  child: CircularProgressIndicator(color: Colors.white),
-                );
-              }
-
-              if (bannerController.banners.isEmpty) {
-                return Image.asset("assets/section.png", fit: BoxFit.cover);
-              }
-
-              return Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(20.r),
-                ),
-                padding: EdgeInsets.all(10.w),
-                child: CarouselSlider.builder(
-                  itemCount: bannerController.banners.length,
-                  itemBuilder: (context, index, realIndex) {
-                    return Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 5.w),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(10.r),
-                        child: Image.network(
-                          bannerController.banners[index].image,
-                          fit: BoxFit.cover,
-                          width: double.infinity,
-                        ),
-                      ),
+                Obx(() {
+                  if (bannerController.isLoading.value) {
+                    return const Center(
+                      child: CircularProgressIndicator(color: Colors.white),
                     );
-                  },
-                  options: CarouselOptions(
-                    height: 230.h,
-                    viewportFraction: .85,
+                  }
 
-                    autoPlay: true,
-                    //  enlargeCenterPage: true,
+                  if (bannerController.banners.isEmpty) {
+                    return Image.asset("assets/section.png", fit: BoxFit.cover);
+                  }
+
+                  return Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(20.r),
+                    ),
+                    padding: EdgeInsets.all(10.w),
+                    child: CarouselSlider.builder(
+                      itemCount: bannerController.banners.length,
+                      itemBuilder: (context, index, realIndex) {
+                        return Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 5.w),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(10.r),
+                            child: Image.network(
+                              bannerController.banners[index].image,
+                              fit: BoxFit.cover,
+                              width: double.infinity,
+                            ),
+                          ),
+                        );
+                      },
+                      options: CarouselOptions(
+                        height: 230.h,
+                        viewportFraction: .85,
+
+                        autoPlay: true,
+                        //  enlargeCenterPage: true,
                     onPageChanged: (index, reason) {
                       setState(() {
                         _currentBannerIndex = index;
                       });
                     },
-                  ),
-                ),
-              );
-            }),
-            SizedBox(height: 20.h),
-
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 10.w),
-              child: Row(
-                children: [
-                  Text(
-                    "Featured item",
-                    style: TextStyle(
-                      fontSize: 21.sp,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  Spacer(),
-                  TextButton(
-                    onPressed: () {
-                      Get.to(
-                        () => SearchProductScreen(),
-                      ); // navigate to all products
-                    },
-                    child: Text(
-                      "View All",
-                      style: TextStyle(
-                        fontSize: 12.sp,
-                        fontWeight: FontWeight.w400,
-                        color: Color(0xFFAE933F),
                       ),
                     ),
-                  ),
-                ],
-              ),
-            ),
-            SizedBox(height: 20.h),
-            Padding(
-              padding: EdgeInsets.only(bottom: 20.h),
-              child: Obx(() {
-                if (productController.isLoadingFeaturedProducts.value) {
-                  return const Center(child: CircularProgressIndicator());
-                }
+                  );
+                }),
+                SizedBox(height: 20.h),
 
-                if (productController.featuredProducts.isEmpty) {
-                  return const Center(child: Text("No featured products"));
-                }
-
-                return CarouselSlider(
-                  items: [
-                    for (var product in productController.featuredProducts)
-                      ProductCard(
-                        productId: product.id,
-                        title: product.name,
-                        category: product.subCategory.name,
-                        imageUrl: product.images.isNotEmpty
-                            ? product.images.first.url
-                            : "",
-                        price: double.tryParse(product.discountedPrice) ?? 0.0,
-                        fullPrice:
-                            product.actualPrice != product.discountedPrice
-                            ? product.actualPrice
-                            : null,
-                      ),
-                  ],
-                  options: CarouselOptions(
-                    viewportFraction: 0.45,
-                    autoPlay: true,
-                    autoPlayInterval: const Duration(seconds: 3),
-                    autoPlayAnimationDuration: const Duration(seconds: 3),
-                    autoPlayCurve: Curves.linear,
-
-                    // --- Disable all pausing behaviors ---
-                    pauseAutoPlayOnTouch: false,
-                    pauseAutoPlayOnManualNavigate: false,
-                    //    pauseAutoPlayInScrolling: false,
-                  ),
-                );
-              }),
-            ),
-
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 10.w),
-              child: Row(
-                children: [
-                  Text(
-                    "Shop by category",
-                    style: TextStyle(
-                      fontSize: 21.sp,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  Spacer(),
-                ],
-              ),
-            ),
-            SizedBox(height: 20.h),
-            Obx(() {
-              if (productController.isLoadingCategories.value) {
-                return const Center(child: CircularProgressIndicator());
-              }
-
-              return SizedBox(
-                height: 100.h,
-                child: ListView.separated(
-                  scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  itemCount: productController.categories.length,
-                  separatorBuilder: (_, __) => SizedBox(width: 12.w),
-                  itemBuilder: (context, index) {
-                    final category = productController.categories[index];
-
-                    return (category.isActive == false)
-                        ? Container()
-                        : CategoryCard(
-                            imageUrl: category.image ?? '',
-                            title: category.name,
-                            description:
-                                category.description ?? 'No description',
-                            onTap: () {
-                              Get.to(
-                                () => SearchProductScreen(
-                                  categoryId: category.id,
-                                ),
-                              );
-                            },
-                          );
-                  },
-                ),
-              );
-            }),
-            SizedBox(height: 20.h),
-
-            Obx(() {
-              if (productController.categories.isEmpty) {
-                return Container();
-              }
-
-              return Column(
-                children: productController.categories.map((category) {
-                  final products =
-                      productController.featuredProductsMap[category.id] ?? [];
-
-                  return (products.isEmpty)
-                      ? Container()
-                      : Padding(
-                          padding: EdgeInsets.only(bottom: 0.h),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              // SizedBox(height: 10.h),
-                              Padding(
-                                padding: EdgeInsets.symmetric(horizontal: 10.w),
-                                child: Row(
-                                  children: [
-                                    Text(
-                                      category.name.capitalize.toString(),
-                                      style: TextStyle(
-                                        fontSize: 21.sp,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
-                                    Spacer(),
-                                  ],
-                                ),
-                              ),
-                              SizedBox(height: 20.h),
-
-                              SingleChildScrollView(
-                                scrollDirection: Axis.horizontal,
-                                child: Row(
-                                  spacing: 10,
-                                  children: [
-                                    SizedBox(width: 16),
-                                    for (var product in products)
-                                      ProductCard(
-                                        productId: product.id,
-                                        title: product.name,
-                                        category: product.subCategory.name,
-                                        imageUrl: product.images.isNotEmpty
-                                            ? product.images.first.url
-                                            : "",
-                                        price:
-                                            double.tryParse(
-                                              product.discountedPrice,
-                                            ) ??
-                                            0.0,
-                                        fullPrice:
-                                            product.actualPrice !=
-                                                product.discountedPrice
-                                            ? product.actualPrice
-                                            : null,
-                                      ),
-                                  ],
-                                ),
-                              ),
-
-                              SizedBox(height: 20),
-
-                              // GridView.builder(
-                              //   itemCount: products.length,
-                              //   shrinkWrap: true,
-                              //   physics: const NeverScrollableScrollPhysics(),
-                              //   padding: EdgeInsets.symmetric(horizontal: 20.w),
-                              //   gridDelegate:
-                              //       SliverGridDelegateWithFixedCrossAxisCount(
-                              //         crossAxisCount: 2,
-                              //         mainAxisSpacing: 12.h,
-                              //         crossAxisSpacing: 12.w,
-                              //         childAspectRatio: 0.66,
-                              //       ),
-                              //   itemBuilder: (context, index) {
-                              //     final product = products[index];
-                              //     return
-                              //   },
-                              // ),
-                            ],
-                          ),
-                        );
-                }).toList(),
-              );
-            }),
-
-            Padding(
-              padding: EdgeInsets.symmetric(vertical: 0.h, horizontal: 16.w),
-              child: Container(
-                width: double.infinity,
-                padding: EdgeInsets.all(16.w),
-                decoration: BoxDecoration(
-                  color: const Color(0xffF4ECE4),
-                  borderRadius: BorderRadius.circular(12.r),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    SizedBox(
-                      height: 160.h,
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(19.r),
-                              child: Image.asset(
-                                "assets/image1.png",
-                                fit: BoxFit.cover,
-                              ),
-                            ),
-                          ),
-                          SizedBox(width: 12.w),
-                          Expanded(
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(19.r),
-                              child: Image.asset(
-                                "assets/image2.png",
-                                fit: BoxFit.cover,
-                              ),
-                            ),
-                          ),
-                          SizedBox(width: 12.w),
-                          Expanded(
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(19.r),
-                              child: Image.asset(
-                                "assets/image3.png",
-                                fit: BoxFit.cover,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    SizedBox(height: 14.h),
-                    Text(
-                      "Signature Scents",
-                      style: TextStyle(
-                        color: Colors.black54,
-                        fontSize: 12.sp,
-                        letterSpacing: 1.1,
-                      ),
-                    ),
-                    SizedBox(height: 4.h),
-                    Text(
-                      "Luxury Perfumes",
-                      style: TextStyle(
-                        fontSize: 20.sp,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    SizedBox(height: 6.h),
-                    Text(
-                      "Experience our exclusive collection of premium fragrances. Each scent is carefully crafted to create lasting memories and express your unique personality.",
-                      style: TextStyle(
-                        fontSize: 13.sp,
-                        color: Colors.black54,
-                        height: 1.4,
-                      ),
-                    ),
-                    SizedBox(height: 14.h),
-                  ],
-                ),
-              ),
-            ),
-
-            SizedBox(height: 20.h),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                SizedBox(width: double.infinity),
                 Padding(
-                  padding: EdgeInsets.symmetric(vertical: 40.h),
-                  child: Column(
+                  padding: EdgeInsets.symmetric(horizontal: 10.w),
+                  child: Row(
                     children: [
                       Text(
-                        "RAHEEB",
+                        "Featured item",
                         style: TextStyle(
-                          fontSize: 26.sp,
+                          fontSize: 21.sp,
                           fontWeight: FontWeight.w600,
-                          letterSpacing: 2,
-                          color: Colors.grey.shade400,
                         ),
                       ),
-                      SizedBox(height: 8.h),
-                      Text(
-                        "DEFINED BY ELEGANCE",
-                        style: TextStyle(
-                          fontSize: 12.sp,
-                          letterSpacing: 3,
-                          color: Colors.grey.shade500,
+                      Spacer(),
+                      TextButton(
+                        onPressed: () {
+                          Get.to(
+                            () => SearchProductScreen(),
+                          ); // navigate to all products
+                        },
+                        child: Text(
+                          "View All",
+                          style: TextStyle(
+                            fontSize: 12.sp,
+                            fontWeight: FontWeight.w400,
+                            color: Color(0xFFAE933F),
+                          ),
                         ),
                       ),
                     ],
                   ),
                 ),
-              ],
-            ),
-            SizedBox(height: 20.h),
+                SizedBox(height: 20.h),
+                Padding(
+                  padding: EdgeInsets.only(bottom: 20.h),
+                  child: Obx(() {
+                    if (productController.isLoadingFeaturedProducts.value) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+
+                    if (productController.featuredProducts.isEmpty) {
+                      return const Center(child: Text("No featured products"));
+                    }
+
+                    return CarouselSlider(
+                      items: [
+                        for (var product in productController.featuredProducts)
+                          ProductCard(
+                            productId: product.id,
+                            title: product.name,
+                            category: product.subCategory.name,
+                            imageUrl: product.images.isNotEmpty
+                                ? product.images.first.url
+                                : "",
+                            price:
+                                double.tryParse(product.discountedPrice) ?? 0.0,
+                            fullPrice:
+                                product.actualPrice != product.discountedPrice
+                                ? product.actualPrice
+                                : null,
+                          ),
+                      ],
+                      options: CarouselOptions(
+                        viewportFraction: 0.45,
+                        autoPlay: true,
+                        autoPlayInterval: const Duration(seconds: 3),
+                        autoPlayAnimationDuration: const Duration(seconds: 3),
+                        autoPlayCurve: Curves.linear,
+
+                        // --- Disable all pausing behaviors ---
+                        pauseAutoPlayOnTouch: false,
+                        pauseAutoPlayOnManualNavigate: false,
+                        //    pauseAutoPlayInScrolling: false,
+                      ),
+                    );
+                  }),
+                ),
+
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 10.w),
+                  child: Row(
+                    children: [
+                      Text(
+                        "Shop by category",
+                        style: TextStyle(
+                          fontSize: 21.sp,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      Spacer(),
+                    ],
+                  ),
+                ),
+                SizedBox(height: 20.h),
+                Obx(() {
+                  if (productController.isLoadingCategories.value) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+
+                  return SizedBox(
+                    height: 100.h,
+                    child: ListView.separated(
+                      scrollDirection: Axis.horizontal,
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      itemCount: productController.categories.length,
+                      separatorBuilder: (_, __) => SizedBox(width: 12.w),
+                      itemBuilder: (context, index) {
+                        final category = productController.categories[index];
+
+                        return (category.isActive == false)
+                            ? Container()
+                            : CategoryCard(
+                                imageUrl: category.image ?? '',
+                                title: category.name,
+                                description:
+                                    category.description ?? 'No description',
+                                onTap: () {
+                                  Get.to(
+                                    () => SearchProductScreen(
+                                      categoryId: category.id,
+                                    ),
+                                  );
+                                },
+                              );
+                      },
+                    ),
+                  );
+                }),
+                SizedBox(height: 20.h),
+
+                Obx(() {
+                  if (productController.categories.isEmpty) {
+                    return Container();
+                  }
+
+                  return Column(
+                    children: productController.categories.map((category) {
+                      final products =
+                          productController.featuredProductsMap[category.id] ??
+                          [];
+
+                      return (products.isEmpty)
+                          ? Container()
+                          : Padding(
+                              padding: EdgeInsets.only(bottom: 0.h),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  // SizedBox(height: 10.h),
+                                  Padding(
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: 10.w,
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Text(
+                                          category.name.capitalize.toString(),
+                                          style: TextStyle(
+                                            fontSize: 21.sp,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                        Spacer(),
+                                      ],
+                                    ),
+                                  ),
+                                  SizedBox(height: 20.h),
+
+                                  SingleChildScrollView(
+                                    scrollDirection: Axis.horizontal,
+                                    child: Row(
+                                      spacing: 10,
+                                      children: [
+                                        SizedBox(width: 16),
+                                        for (var product in products)
+                                          ProductCard(
+                                            productId: product.id,
+                                            title: product.name,
+                                            category: product.subCategory.name,
+                                            imageUrl: product.images.isNotEmpty
+                                                ? product.images.first.url
+                                                : "",
+                                            price:
+                                                double.tryParse(
+                                                  product.discountedPrice,
+                                                ) ??
+                                                0.0,
+                                            fullPrice:
+                                                product.actualPrice !=
+                                                    product.discountedPrice
+                                                ? product.actualPrice
+                                                : null,
+                                          ),
+                                      ],
+                                    ),
+                                  ),
+
+                                  SizedBox(height: 20),
+
+                                  // GridView.builder(
+                                  //   itemCount: products.length,
+                                  //   shrinkWrap: true,
+                                  //   physics: const NeverScrollableScrollPhysics(),
+                                  //   padding: EdgeInsets.symmetric(horizontal: 20.w),
+                                  //   gridDelegate:
+                                  //       SliverGridDelegateWithFixedCrossAxisCount(
+                                  //         crossAxisCount: 2,
+                                  //         mainAxisSpacing: 12.h,
+                                  //         crossAxisSpacing: 12.w,
+                                  //         childAspectRatio: 0.66,
+                                  //       ),
+                                  //   itemBuilder: (context, index) {
+                                  //     final product = products[index];
+                                  //     return
+                                  //   },
+                                  // ),
+                                ],
+                              ),
+                            );
+                    }).toList(),
+                  );
+                }),
+
+                Padding(
+                  padding: EdgeInsets.symmetric(
+                    vertical: 0.h,
+                    horizontal: 16.w,
+                  ),
+                  child: Container(
+                    width: double.infinity,
+                    padding: EdgeInsets.all(16.w),
+                    decoration: BoxDecoration(
+                      color: const Color(0xffF4ECE4),
+                      borderRadius: BorderRadius.circular(12.r),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SizedBox(
+                          height: 160.h,
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(19.r),
+                                  child: Image.asset(
+                                    "assets/image1.png",
+                                    fit: BoxFit.cover,
+                                  ),
+                                ),
+                              ),
+                              SizedBox(width: 12.w),
+                              Expanded(
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(19.r),
+                                  child: Image.asset(
+                                    "assets/image2.png",
+                                    fit: BoxFit.cover,
+                                  ),
+                                ),
+                              ),
+                              SizedBox(width: 12.w),
+                              Expanded(
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(19.r),
+                                  child: Image.asset(
+                                    "assets/image3.png",
+                                    fit: BoxFit.cover,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        SizedBox(height: 14.h),
+                        Text(
+                          "Signature Scents",
+                          style: TextStyle(
+                            color: Colors.black54,
+                            fontSize: 12.sp,
+                            letterSpacing: 1.1,
+                          ),
+                        ),
+                        SizedBox(height: 4.h),
+                        Text(
+                          "Luxury Perfumes",
+                          style: TextStyle(
+                            fontSize: 20.sp,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        SizedBox(height: 6.h),
+                        Text(
+                          "Experience our exclusive collection of premium fragrances. Each scent is carefully crafted to create lasting memories and express your unique personality.",
+                          style: TextStyle(
+                            fontSize: 13.sp,
+                            color: Colors.black54,
+                            height: 1.4,
+                          ),
+                        ),
+                        SizedBox(height: 14.h),
+                      ],
+                    ),
+                  ),
+                ),
+
+                SizedBox(height: 20.h),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    SizedBox(width: double.infinity),
+                    Padding(
+                      padding: EdgeInsets.symmetric(vertical: 40.h),
+                      child: Column(
+                        children: [
+                          Text(
+                            "RAHEEB",
+                            style: TextStyle(
+                              fontSize: 26.sp,
+                              fontWeight: FontWeight.w600,
+                              letterSpacing: 2,
+                              color: Colors.grey.shade400,
+                            ),
+                          ),
+                          SizedBox(height: 8.h),
+                          Text(
+                            "DEFINED BY ELEGANCE",
+                            style: TextStyle(
+                              fontSize: 12.sp,
+                              letterSpacing: 3,
+                              color: Colors.grey.shade500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 20.h),
           ],
         ),
       ),

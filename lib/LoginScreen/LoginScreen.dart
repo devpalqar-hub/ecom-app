@@ -31,28 +31,28 @@ class LoginScreen extends StatelessWidget {
                     padding: EdgeInsets.symmetric(horizontal: 30.w),
                     child: Column(
                       children: [
-                        // --- Top Skip Button ---
-                        Align(
-                          alignment: Alignment.centerRight,
-                          child: TextButton(
-                            onPressed: () {
-                              controller.skipLogin();
-                              Get.offAll(() => DashBoard());
-                            },
-                            child: Text(
-                              "Skip",
-                              style: GoogleFonts.poppins(
-                                color: Colors.grey.shade500,
-                                fontWeight: FontWeight.w500,
-                                fontSize: 14.sp,
+                            // --- Top Skip Button ---
+                            Align(
+                              alignment: Alignment.centerRight,
+                              child: TextButton(
+                                onPressed: () {
+                                  controller.skipLogin();
+                                  Get.offAll(() => DashBoard());
+                                },
+                                child: Text(
+                                  "Skip",
+                                  style: GoogleFonts.poppins(
+                                    color: Colors.grey.shade500,
+                                    fontWeight: FontWeight.w500,
+                                    fontSize: 14.sp,
+                                  ),
+                                ),
                               ),
                             ),
-                          ),
-                        ),
 
-                        const Spacer(),
+                          const Spacer(),
 
-                        // --- Logo Section ---
+                            // --- Logo Section ---
                         Padding(
                           padding: EdgeInsets.symmetric(horizontal: 30.w),
                           child: Image.asset(
@@ -62,9 +62,9 @@ class LoginScreen extends StatelessWidget {
                           ),
                         ),
 
-                        SizedBox(height: 40.h),
+                          SizedBox(height: 40.h),
 
-                        // --- Header Text ---
+                            // --- Header Text ---
                         Text(
                           "Welcome Back",
                           style: GoogleFonts.poppins(
@@ -84,19 +84,19 @@ class LoginScreen extends StatelessWidget {
                           ),
                         ),
 
-                        SizedBox(height: 40.h),
+                          SizedBox(height: 40.h),
 
-                        // --- Email Input Field ---
-                        _buildEmailField(controller),
+                            // --- Email Input Field ---
+                          _buildEmailField(controller),
 
-                        SizedBox(height: 20.h),
+                          SizedBox(height: 20.h),
 
-                        // --- Main Action Button ---
-                        _buildContinueButton(controller),
+                            // --- Main Action Button ---
+                          _buildContinueButton(controller),
 
-                        SizedBox(height: 15.h),
+                          SizedBox(height: 15.h),
 
-                        // --- Secondary Skip/Guest Option ---
+                            // --- Secondary Skip/Guest Option ---
                         TextButton(
                           onPressed: () async {
                             controller.skipLogin();
@@ -113,10 +113,10 @@ class LoginScreen extends StatelessWidget {
                           ),
                         ),
 
-                        const Spacer(),
+                          const Spacer(),
 
-                        // --- Footer Branding ---
-                        _buildFooter(),
+                            // --- Footer Branding ---
+                          _buildFooter(),
 
                         SizedBox(height: 20.h),
                       ],
