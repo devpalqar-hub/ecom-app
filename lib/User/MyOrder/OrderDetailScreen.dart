@@ -117,10 +117,6 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         appBar: AppBar(
           backgroundColor: Colors.white,
           elevation: 0,
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back_ios, color: Colors.black),
-            onPressed: Get.back,
-          ),
           title: Text(
             "Order Details",
             style: TextStyle(
