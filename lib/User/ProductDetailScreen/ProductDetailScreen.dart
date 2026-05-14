@@ -87,6 +87,58 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     );
   }
 
+void showSizeChartPopup(String imageUrl) {
+  showDialog(
+    context: context,
+    builder: (_) => Dialog(
+      backgroundColor: Colors.transparent,
+      insetPadding: EdgeInsets.zero,
+      child: Stack(
+        children: [
+          Container(
+            color: Colors.black.withOpacity(0.7),
+          ),
+
+          Center(
+  child: SizedBox(
+    width: MediaQuery.of(context).size.width * 0.95,
+    height: MediaQuery.of(context).size.height * 0.85,
+    child: InteractiveViewer(
+      minScale: 1,
+      maxScale: 5,
+      child: Image.network(
+        imageUrl,
+        fit: BoxFit.contain,
+      ),
+    ),
+  ),
+),
+
+          Positioned(
+            top: 40.h,
+            right: 20.w,
+            child: GestureDetector(
+              onTap: () => Navigator.pop(context),
+              child: Container(
+                decoration: const BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.black54,
+                ),
+                padding: EdgeInsets.all(8.w),
+                child: Icon(
+                  Icons.close,
+                  color: Colors.white,
+                  size: 24.sp,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -345,16 +397,21 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   Row(
                     children: [
                       SizedBox(width: 16.w),
-                      Text(
-                        ___.product!.subCategory!.name,
-                        style: GoogleFonts.montserrat(
-                          fontSize: 13.sp,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.black54,
-                        ),
+                      Column(
+                        children: [
+                          Text(
+                            ___.product!.subCategory!.name,
+                            style: GoogleFonts.montserrat(
+                              fontSize: 13.sp,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.black54,
+                            ),
+                          ),
+                        ],
                       ),
                       const Spacer(),
                       const Icon(Icons.star_rounded, color: Colors.amber),
+                      
                       Text(
                         (___.product!.reviewStats!.averageRating ?? 0)
                             .toStringAsFixed(1),
@@ -385,18 +442,99 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
 
                   SizedBox(height: 10.h),
 
-                  // ── Description ────────────────────────────────────────
-                  Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 16.w),
-                    child: Text(
-                      "Product Details",
-                      style: GoogleFonts.montserrat(
-                        fontSize: 13.sp,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.black,
-                      ),
-                    ),
+                // ── Product Details + Size Chart ───────────────────────
+Padding(
+  padding: EdgeInsets.symmetric(horizontal: 16.w,vertical: 6.h),
+  child: Row(
+    children: [
+      Text(
+        "Product Details",
+        style: GoogleFonts.montserrat(
+          fontSize: 13.sp,
+          fontWeight: FontWeight.w600,
+          color: Colors.black,
+        ),
+      ),
+
+      const Spacer(),
+
+      if (___.product!.sizeChart != null &&
+          ___.product!.sizeChart!.isNotEmpty)
+        GestureDetector(
+          onTap: () {
+            showSizeChartPopup(___.product!.sizeChart!);
+          },
+          child: Text(
+            "Size Chart",
+            style: GoogleFonts.montserrat(
+              fontSize: 13.sp,
+              fontWeight: FontWeight.w600,
+              color: const Color(0xFFAE933F),
+              decoration: TextDecoration.underline,
+              decorationColor: const Color(0xFFAE933F),
+            ),
+          ),
+        ),
+    ],
+  ),
+),
+     
+if (___.hasVariations) ...[
+  SizedBox(height: 10.h),
+
+  // Size selector (if sizes exist)
+  if (___.hasSizeVariations) ...[
+    Padding(
+      padding: EdgeInsets.symmetric(horizontal: 16.w),
+      child: Text(
+        "Select Size",
+        style: GoogleFonts.montserrat(
+          fontSize: 13.sp,
+          fontWeight: FontWeight.w600,
+          color: Colors.black,
+        ),
+      ),
+    ),
+    SizedBox(height: 8.h),
+    SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: [
+          SizedBox(width: 16.w),
+          for (final size in ___.availableSizes)
+            GestureDetector(
+              onTap: () => ___.selectSize(size),
+              child: Container(
+                padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
+                margin: EdgeInsets.only(right: 10.w),
+                decoration: BoxDecoration(
+                  color: ___.selectedSize == size
+                      ? const Color(0xFFAE933F)
+                      : Colors.white,
+                  border: Border.all(
+                    color: ___.selectedSize == size
+                        ? const Color(0xFFAE933F)
+                        : Colors.black12,
                   ),
+                  borderRadius: BorderRadius.circular(8.r),
+                ),
+                child: Text(
+                  size,
+                  style: GoogleFonts.montserrat(
+                    fontSize: 13.sp,
+                    fontWeight: FontWeight.w500,
+                    color: ___.selectedSize == size
+                        ? Colors.white
+                        : Colors.black87,
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
+    ),
+    SizedBox(height: 16.h),
+  ],                                                                                                                                                                                                                                                                                                                                                                                                    
                   SizedBox(height: 5.h),
                   Padding(
                     padding: EdgeInsets.symmetric(horizontal: 16.w),
@@ -421,92 +559,97 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                       ),
                     ),
                   ),
+                
+    
 
-                  // ── Variations ─────────────────────────────────────────
-                  if (___.product!.variations != null &&
-                      ___.product!.variations!.isNotEmpty) ...[
-                    SizedBox(height: 10.h),
-                    Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 16.w),
-                      child: Text(
-                        "Select ${___.product!.variationTitle ?? "Size"}",
-                        style: GoogleFonts.montserrat(
-                          fontSize: 13.sp,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.black,
+  // Color selector (if colors exist)
+  if (___.hasColorVariations) ...[
+    Padding(
+      padding: EdgeInsets.symmetric(horizontal: 16.w),
+      child: Text(
+        "Select Color",
+        style: GoogleFonts.montserrat(
+          fontSize: 13.sp,
+          fontWeight: FontWeight.w600,
+          color: Colors.black,
+        ),
+      ),
+    ),
+    SizedBox(height: 8.h),
+    SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: [
+          SizedBox(width: 16.w),
+          for (final color in ___.availableColors)
+            GestureDetector(
+              onTap: () => ___.selectColor(color),
+              child: Container(
+                padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+                margin: EdgeInsets.only(right: 10.w),
+                decoration: BoxDecoration(
+                  color: ___.selectedColor == color
+                      ? const Color(0xFFAE933F)
+                      : Colors.white,
+                  border: Border.all(
+                    color: ___.selectedColor == color
+                        ? const Color(0xFFAE933F)
+                        : Colors.black12,
+                    width: 1.5,
+                  ),
+                  borderRadius: BorderRadius.circular(8.r),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Color swatch
+                    Container(
+                      width: 20.w,
+                      height: 20.w,
+                      decoration: BoxDecoration(
+                        color: Color(
+                          int.parse(
+                            (___.getColorHex(color) ?? '#cccccc')
+                                .replaceFirst('#', '0xFF'),
+                          ),
                         ),
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.black12),
                       ),
                     ),
-                    SizedBox(height: 5.h),
-                    SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: Row(
-                        children: [
-                          SizedBox(width: 16.w),
-                          for (
-                            int i = 0;
-                            i < ___.product!.variations!.length;
-                            i++
-                          )
-                            GestureDetector(
-                              onTap: () => ___.selectVariation(i),
-                              child: Container(
-                                padding: EdgeInsets.symmetric(
-                                  horizontal: 15.w,
-                                  vertical: 8.h,
-                                ),
-                                margin: EdgeInsets.only(right: 10.w),
-                                decoration: BoxDecoration(
-                                  color: ___.selectedVariationIndex == i
-                                      ? const Color(0xFFAE933F)
-                                      : Colors.white,
-                                  border: Border.all(
-                                    color: ___.selectedVariationIndex == i
-                                        ? const Color(0xFFAE933F)
-                                        : Colors.black12,
-                                  ),
-                                  borderRadius: BorderRadius.circular(8.r),
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Text(
-                                      ___
-                                              .product!
-                                              .variations![i]
-                                              .variationName ??
-                                          "",
-                                      style: GoogleFonts.montserrat(
-                                        fontSize: 13.sp,
-                                        fontWeight: FontWeight.w500,
-                                        color: ___.selectedVariationIndex == i
-                                            ? Colors.white
-                                            : Colors.black87,
-                                      ),
-                                    ),
-                                    // Cart badge: shows if this specific
-                                    // variation is already in the cart
-                                    if (___.cartedKeys.contains(
-                                      ___.product!.variations![i].id,
-                                    )) ...[
-                                      SizedBox(width: 5.w),
-                                      Icon(
-                                        Icons.shopping_cart_rounded,
-                                        size: 13.sp,
-                                        color: ___.selectedVariationIndex == i
-                                            ? Colors.white
-                                            : const Color(0xFFAE933F),
-                                      ),
-                                    ],
-                                  ],
-                                ),
-                              ),
-                            ),
-                        ],
+                    SizedBox(width: 8.w),
+                    Text(
+                      color,
+                      style: GoogleFonts.montserrat(
+                        fontSize: 13.sp,
+                        fontWeight: FontWeight.w500,
+                        color: ___.selectedColor == color
+                            ? Colors.white
+                            : Colors.black87,
                       ),
                     ),
-                    SizedBox(height: 20.h),
+                    // Cart indicator
+                    if (___.isVariationInCart(___.selectedSize, color)) ...[
+                      SizedBox(width: 6.w),
+                      Icon(
+                        Icons.shopping_cart_rounded,
+                        size: 14.sp,
+                        color: ___.selectedColor == color
+                            ? Colors.white
+                            : const Color(0xFFAE933F),
+                      ),
+                    ],
                   ],
+                ),
+              ),
+            ),
+        ],
+      ),
+    ),
+    SizedBox(height: 20.h),
+  ],
+],
+
 
                   // ── Related Products ───────────────────────────────────
                   if (___.releatedProducts.isNotEmpty) ...[

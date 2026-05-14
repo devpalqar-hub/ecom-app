@@ -1,4 +1,3 @@
-// ================= ORDER DETAIL SCREEN =================
 
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -75,7 +74,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     }
   }
 
-  // Derive the lists once so we don't recompute in every build.
+  
 
   @override
   void initState() {
@@ -108,7 +107,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // final order  = controller.se//= widget.order;
+ 
 
     return ScreenUtilInit(
       designSize: const Size(375, 812),
@@ -235,9 +234,9 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     );
   }
 
-  // ── Order Summary Card ──
+
   Widget _orderSummaryCard(OrderDetailModel order) {
-    // Override display status when fully returned
+   
     int count = order.items.where((it) => it.isReturn).length;
 
     final displayStatus = count == order.items.length
@@ -377,196 +376,254 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     }
   }
 
-  // ── Order Items list (used for both active and returned sections) ──
-  Widget _orderItems(
-    OrderDetailModel order,
-    List<OrderItem> items, {
-    required bool isReturned,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Section header
-        Row(
-          children: [
-            Text(
-              isReturned ? "Returned Items" : "Order Items",
-              style: TextStyle(
-                fontWeight: FontWeight.w700,
-                fontSize: 16.sp,
-                color: Colors.black87,
+
+Widget _orderItems(
+  OrderDetailModel order,
+  List<OrderItem> items, {
+  required bool isReturned,
+}) {
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      // Section header
+      Row(
+        children: [
+          Text(
+            isReturned ? "Returned Items" : "Order Items",
+            style: TextStyle(
+              fontWeight: FontWeight.w700,
+              fontSize: 16.sp,
+              color: Colors.black87,
+            ),
+          ),
+          SizedBox(width: 8.w),
+          if (isReturned)
+            Container(
+              padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 3.h),
+              decoration: BoxDecoration(
+                color: Colors.purple.shade50,
+                borderRadius: BorderRadius.circular(10.r),
+              ),
+              child: Text(
+                "${items.length}",
+                style: TextStyle(
+                  fontSize: 11.sp,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.purple.shade700,
+                ),
               ),
             ),
-            SizedBox(width: 8.w),
-            if (isReturned)
-              Container(
-                padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 3.h),
-                decoration: BoxDecoration(
-                  color: Colors.purple.shade50,
-                  borderRadius: BorderRadius.circular(10.r),
-                ),
-                child: Text(
-                  "${items.length}",
-                  style: TextStyle(
-                    fontSize: 11.sp,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.purple.shade700,
-                  ),
-                ),
-              ),
-          ],
-        ),
-        SizedBox(height: 12.h),
+        ],
+      ),
+      SizedBox(height: 12.h),
 
-        ...items.map((item) {
-          final imageUrl = item.product.images.isNotEmpty
-              ? item.product.images.first.url
-              : null;
+      ...items.map((item) {
+        final imageUrl = item.product.images.isNotEmpty
+            ? item.product.images.first.url
+            : null;
 
-          return GestureDetector(
-            onTap: () =>
-                Get.to(() => ProductDetailScreen(productId: item.product.id)),
-            child: Container(
-              margin: EdgeInsets.only(bottom: 12.h),
-              padding: EdgeInsets.all(12.w),
-              decoration: BoxDecoration(
-                // Slightly tinted background for returned items
+        final attrs = item.productVariation?.attributes;
+        final size = attrs?.size;
+        final colorName = attrs?.color?.name;
+        final colorHex = attrs?.color?.hex;
+
+        Color? colorSwatch;
+        if (colorHex != null) {
+          try {
+            colorSwatch = Color(
+              int.parse('FF${colorHex.replaceAll('#', '')}', radix: 16),
+            );
+          } catch (_) {}
+        }
+
+        return GestureDetector(
+          onTap: () =>
+              Get.to(() => ProductDetailScreen(productId: item.product.id)),
+          child: Container(
+            margin: EdgeInsets.only(bottom: 12.h),
+            padding: EdgeInsets.all(12.w),
+            decoration: BoxDecoration(
+              color: isReturned
+                  ? Colors.purple.shade50.withOpacity(0.4)
+                  : Colors.white,
+              borderRadius: BorderRadius.circular(12.r),
+              border: Border.all(
                 color: isReturned
-                    ? Colors.purple.shade50.withOpacity(0.4)
-                    : Colors.white,
-                borderRadius: BorderRadius.circular(12.r),
-                border: Border.all(
-                  color: isReturned
-                      ? Colors.purple.shade100
-                      : Colors.grey.shade200,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.02),
-                    blurRadius: 6,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
+                    ? Colors.purple.shade100
+                    : Colors.grey.shade200,
               ),
-              child: Column(
-                children: [
-                  Row(
-                    children: [
-                      // product image
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(8.r),
-                        child: imageUrl != null
-                            ? Image.network(
-                                imageUrl,
-                                width: 55.w,
-                                height: 55.w,
-                                fit: BoxFit.cover,
-                              )
-                            : _imagePlaceholder(),
-                      ),
-                      SizedBox(width: 10.w),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              item.displayVariationName.isNotEmpty
-                                  ? "${item.product.name} (${item.displayVariationName})"
-                                  : item.product.name,
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                fontWeight: FontWeight.w500,
-                                fontSize: 12.sp,
-                              ),
-                            ),
-                            SizedBox(height: 4.h),
-                            Text(
-                              "Qty: ${item.quantity}",
-                              style: TextStyle(
-                                color: Colors.grey,
-                                fontSize: 11.sp,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.02),
+                  blurRadius: 6,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Column(
+              children: [
+                Row(
+                  children: [
+                    // Product image
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(8.r),
+                      child: imageUrl != null
+                          ? Image.network(
+                              imageUrl,
+                              width: 55.w,
+                              height: 55.w,
+                              fit: BoxFit.cover,
+                            )
+                          : _imagePlaceholder(),
+                    ),
+                    SizedBox(width: 10.w),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            "QAR ${item.unitDiscountedPrice}",
+                            item.product.name,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
                             style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 13.sp,
+                              fontWeight: FontWeight.w500,
+                              fontSize: 12.sp,
                             ),
                           ),
-                          if (item.hasActualStrikePrice)
-                            Text(
-                              "QAR ${item.unitActualPrice}",
-                              style: TextStyle(
-                                fontSize: 11.sp,
-                                color: Colors.grey.shade600,
-                                decoration: TextDecoration.lineThrough,
+                          SizedBox(height: 4.h),
+                          Text(
+                            "Qty: ${item.quantity}",
+                            style: TextStyle(
+                              color: Colors.grey,
+                              fontSize: 11.sp,
+                            ),
+                          ),
+
+                          // ── Size & Color line ───────────────────────
+                          if (size != null || colorName != null)
+                            Padding(
+                              padding: EdgeInsets.only(top: 3.h),
+                              child: Row(
+                                children: [
+                                  if (size != null)
+                                    Text(
+                                      'Size: $size',
+                                      style: TextStyle(
+                                        fontSize: 10.sp,
+                                        color: Colors.grey.shade600,
+                                      ),
+                                    ),
+                                  if (size != null && colorName != null)
+                                    Text(
+                                      '  •  ',
+                                      style: TextStyle(
+                                        fontSize: 10.sp,
+                                        color: Colors.grey.shade400,
+                                      ),
+                                    ),
+                                  if (colorName != null) ...[
+                                    if (colorSwatch != null)
+                                      Container(
+                                        width: 9.w,
+                                        height: 9.w,
+                                        margin: EdgeInsets.only(right: 3.w),
+                                        decoration: BoxDecoration(
+                                          color: colorSwatch,
+                                          shape: BoxShape.circle,
+                                          border: Border.all(
+                                            color: Colors.grey.shade400,
+                                            width: 0.5,
+                                          ),
+                                        ),
+                                      ),
+                                    Text(
+                                      'Color: $colorName',
+                                      style: TextStyle(
+                                        fontSize: 10.sp,
+                                        color: Colors.grey.shade600,
+                                      ),
+                                    ),
+                                  ],
+                                ],
                               ),
                             ),
-                          // "Returned" badge on item level
-                          if (isReturned) ...[
-                            SizedBox(height: 4.h),
-                            Container(
-                              padding: EdgeInsets.symmetric(
-                                horizontal: 6.w,
-                                vertical: 2.h,
-                              ),
-                              decoration: BoxDecoration(
-                                color: _returnStatusBgColor(item),
-                                borderRadius: BorderRadius.circular(8.r),
-                              ),
-                              child: Text(
-                                _returnStatusLabel(item),
-                                style: TextStyle(
-                                  fontSize: 9.sp,
-                                  fontWeight: FontWeight.w600,
-                                  color: _returnStatusTextColor(item),
-                                ),
-                              ),
-                            ),
-                          ],
                         ],
                       ),
-                    ],
-                  ),
-
-                  // Review CTA — only for delivered, non-returned items with no review yet
-                  if (order.status.toLowerCase() == 'delivered' &&
-                      item.review == null)
-                    GestureDetector(
-                      onTap: () => _openReviewBottomSheet(
-                        order: order,
-                        productId: item.product.id,
-                      ),
-                      child: Padding(
-                        padding: EdgeInsets.only(top: 8.h),
-                        child: Center(
-                          child: Text(
-                            "Write a review",
+                    ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text(
+                          "QAR ${item.unitDiscountedPrice}",
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13.sp,
+                          ),
+                        ),
+                        if (item.hasActualStrikePrice)
+                          Text(
+                            "QAR ${item.unitActualPrice}",
                             style: TextStyle(
-                              color: const Color(0xffC47C47),
-                              fontSize: 13.sp,
-                              fontWeight: FontWeight.w600,
+                              fontSize: 11.sp,
+                              color: Colors.grey.shade600,
+                              decoration: TextDecoration.lineThrough,
                             ),
+                          ),
+                        if (isReturned) ...[
+                          SizedBox(height: 4.h),
+                          Container(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 6.w,
+                              vertical: 2.h,
+                            ),
+                            decoration: BoxDecoration(
+                              color: _returnStatusBgColor(item),
+                              borderRadius: BorderRadius.circular(8.r),
+                            ),
+                            child: Text(
+                              _returnStatusLabel(item),
+                              style: TextStyle(
+                                fontSize: 9.sp,
+                                fontWeight: FontWeight.w600,
+                                color: _returnStatusTextColor(item),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ],
+                ),
+
+                if (order.status.toLowerCase() == 'delivered' &&
+                    item.review == null)
+                  GestureDetector(
+                    onTap: () => _openReviewBottomSheet(
+                      order: order,
+                      productId: item.product.id,
+                    ),
+                    child: Padding(
+                      padding: EdgeInsets.only(top: 8.h),
+                      child: Center(
+                        child: Text(
+                          "Write a review",
+                          style: TextStyle(
+                            color: const Color(0xffC47C47),
+                            fontSize: 13.sp,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                       ),
                     ),
-                ],
-              ),
+                  ),
+              ],
             ),
-          );
-        }),
-      ],
-    );
-  }
+          ),
+        );
+      }),
+    ],
+  );
+}
 
   // ── Review Bottom Sheet ──
   void _openReviewBottomSheet({
@@ -704,7 +761,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     child: Icon(Icons.photo, color: Colors.grey.shade400, size: 24.sp),
   );
 
-  // ── Delivery Address ──
+  
   Widget _deliveryAddress(OrderDetailModel order) {
     final a = order.shippingAddress;
     return Column(
@@ -802,7 +859,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     );
   }
 
-  // ── Tracking ──
+
   Widget _trackingUpdates(OrderDetailModel order) {
     final tracking = order.tracking;
 

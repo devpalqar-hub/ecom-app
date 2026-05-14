@@ -125,48 +125,41 @@ class MyOrderScreen extends StatelessWidget {
                       return _emptyOrdersView();
                     }
 
-                    return ListView.builder(
-                      itemCount: controller.orders.length,
+                  return ListView.builder(
+  itemCount: controller.orders.length,
+  itemBuilder: (context, index) {
+    final order = controller.orders[index];
+    final firstItem = order.items.first;
+    final firstItemLineAmount =
+        firstItem.unitDiscountedPriceValue * firstItem.quantity;
 
-                      itemBuilder: (context, index) {
-                        final order = controller.orders[index];
-                        final firstItem = order.items.first;
-                        final firstItemLineAmount =
-                            firstItem.unitDiscountedPriceValue *
-                            firstItem.quantity;
+    // ── Extract attributes ──────────────────────────────────────
+    final attrs = firstItem.productVariation?.attributes;
 
-                        return OrderCard(
-                          orderId: order.orderNumber,
-                          date: _formatDate(order.createdAt),
-                          productName: firstItem.displayVariationName.isNotEmpty
-                              ? "${firstItem.product.name} (${firstItem.displayVariationName})"
-                              : firstItem.product.name,
-                          productImage: firstItem.product.images.isNotEmpty
-                              ? firstItem.product.images.first.url
-                              : '',
-                          quantity: firstItem.quantity,
-                          price: firstItemLineAmount,
-                          status: order.status.capitalizeFirst!,
-                          estimatedDelivery:
-                              order.status.toLowerCase() == 'pending'
-                              ? ''
-                              : 'Within 2 days',
-                          showTrackButton:
-                              order.status.toLowerCase() == 'pending' ||
-                              order.status.toLowerCase() == 'shipped',
-                          onTap: () async {
-                            Get.to(() => OrderDetailScreen(orderID: order.id));
-
-                            // } else {
-                            //   Get.snackbar(
-                            //     "Error",
-                            //     "Order details not found",
-                            //     snackPosition: SnackPosition.BOTTOM,
-                            //   );
-                          },
-                        );
-                      },
-                    );
+    return OrderCard(
+      orderId: order.orderNumber,
+      date: _formatDate(order.createdAt),
+      productName: firstItem.product.name,  // ✅ clean name only
+      productImage: firstItem.product.images.isNotEmpty
+          ? firstItem.product.images.first.url
+          : '',
+      quantity: firstItem.quantity,
+      price: firstItemLineAmount,
+      status: order.status.capitalizeFirst!,
+      estimatedDelivery: order.status.toLowerCase() == 'pending'
+          ? ''
+          : 'Within 2 days',
+      showTrackButton: order.status.toLowerCase() == 'pending' ||
+          order.status.toLowerCase() == 'shipped',
+      variationSize: attrs?.size,           
+      variationColor: attrs?.color?.name,    
+      variationColorHex: attrs?.color?.hex,  
+      onTap: () async {
+        Get.to(() => OrderDetailScreen(orderID: order.id));
+      },
+    );
+  },
+);
                   }),
                 ),
               ],

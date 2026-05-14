@@ -42,28 +42,32 @@ class OrderModel {
       status: json["status"] ?? "",
       paymentStatus: json["paymentStatus"] ?? "",
       paymentMethod: json["paymentMethod"] ?? "",
-      totalAmount: json["totalAmount"] ?? "0",
-      shippingCost: json["shippingCost"] ?? "0",
-      taxAmount: json["taxAmount"] ?? "0",
-      discountAmount: json["discountAmount"] ?? "0",
+      totalAmount: json["totalAmount"]?.toString() ?? "0",
+      shippingCost: json["shippingCost"]?.toString() ?? "0",
+      taxAmount: json["taxAmount"]?.toString() ?? "0",
+      discountAmount: json["discountAmount"]?.toString() ?? "0",
       notes: json["notes"],
-      createdAt: DateTime.parse(
-        json["createdAt"] ?? DateTime.now().toIso8601String(),
+      createdAt: DateTime.tryParse(json["createdAt"] ?? "") ??
+          DateTime.now(),
+      updatedAt: DateTime.tryParse(json["updatedAt"] ?? "") ??
+          DateTime.now(),
+      customerProfile: CustomerProfile.fromJson(
+        json["CustomerProfile"] ?? {},
       ),
-      updatedAt: DateTime.parse(
-        json["updatedAt"] ?? DateTime.now().toIso8601String(),
+      shippingAddress: ShippingAddress.fromJson(
+        json["shippingAddress"] ?? {},
       ),
-      customerProfile: CustomerProfile.fromJson(json["CustomerProfile"] ?? {}),
-      shippingAddress: ShippingAddress.fromJson(json["shippingAddress"] ?? {}),
       tracking: Tracking.fromJson(json["tracking"] ?? {}),
       items: (json["items"] as List<dynamic>? ?? [])
-          .map((item) => OrderItem.fromJson(item))
+          .map((e) => OrderItem.fromJson(e))
           .toList(),
     );
   }
 
-  // ---------------- COPY WITH ----------------
-  OrderModel copyWith({Tracking? tracking, String? status}) {
+  OrderModel copyWith({
+    Tracking? tracking,
+    String? status,
+  }) {
     return OrderModel(
       id: id,
       orderNumber: orderNumber,
@@ -89,14 +93,21 @@ class CustomerProfile {
   final String id;
   final String name;
   final String phone;
+  final String email;
 
-  CustomerProfile({required this.id, required this.name, required this.phone});
+  CustomerProfile({
+    required this.id,
+    required this.name,
+    required this.phone,
+    required this.email,
+  });
 
   factory CustomerProfile.fromJson(Map<String, dynamic> json) {
     return CustomerProfile(
       id: json["id"] ?? "",
       name: json["name"] ?? "",
       phone: json["phone"] ?? "",
+      email: json["user"]?["email"] ?? "",
     );
   }
 }
@@ -145,12 +156,10 @@ class ShippingAddress {
       country: json["country"] ?? "",
       phone: json["phone"],
       isDefault: json["isDefault"] ?? false,
-      createdAt: DateTime.parse(
-        json["createdAt"] ?? DateTime.now().toIso8601String(),
-      ),
-      updatedAt: DateTime.parse(
-        json["updatedAt"] ?? DateTime.now().toIso8601String(),
-      ),
+      createdAt: DateTime.tryParse(json["createdAt"] ?? "") ??
+          DateTime.now(),
+      updatedAt: DateTime.tryParse(json["updatedAt"] ?? "") ??
+          DateTime.now(),
     );
   }
 }
@@ -162,7 +171,7 @@ class Tracking {
   final String trackingNumber;
   final String? trackingUrl;
   String status;
-  // final dynamic statusHistory;
+  final List<TrackingHistory> statusHistory;
   final DateTime lastUpdatedAt;
 
   Tracking({
@@ -172,7 +181,7 @@ class Tracking {
     required this.trackingNumber,
     this.trackingUrl,
     required this.status,
-    //  this.statusHistory,
+    required this.statusHistory,
     required this.lastUpdatedAt,
   });
 
@@ -184,15 +193,20 @@ class Tracking {
       trackingNumber: json["trackingNumber"] ?? "",
       trackingUrl: json["trackingUrl"],
       status: json["status"] ?? "",
-      // statusHistory: json["statusHistory"],
-      lastUpdatedAt: DateTime.parse(
-        json["lastUpdatedAt"] ?? DateTime.now().toIso8601String(),
-      ),
+      statusHistory:
+          (json["statusHistory"] as List<dynamic>? ?? [])
+              .map((e) => TrackingHistory.fromJson(e))
+              .toList(),
+      lastUpdatedAt:
+          DateTime.tryParse(json["lastUpdatedAt"] ?? "") ??
+              DateTime.now(),
     );
   }
 
-  // ---------------- COPY WITH ----------------
-  Tracking copyWith({String? status, DateTime? lastUpdatedAt}) {
+  Tracking copyWith({
+    String? status,
+    DateTime? lastUpdatedAt,
+  }) {
     return Tracking(
       id: id,
       orderId: orderId,
@@ -200,8 +214,30 @@ class Tracking {
       trackingNumber: trackingNumber,
       trackingUrl: trackingUrl,
       status: status ?? this.status,
-      //   statusHistory: statusHistory,
+      statusHistory: statusHistory,
       lastUpdatedAt: lastUpdatedAt ?? this.lastUpdatedAt,
+    );
+  }
+}
+
+class TrackingHistory {
+  final String status;
+  final String notes;
+  final DateTime timestamp;
+
+  TrackingHistory({
+    required this.status,
+    required this.notes,
+    required this.timestamp,
+  });
+
+  factory TrackingHistory.fromJson(Map<String, dynamic> json) {
+    return TrackingHistory(
+      status: json["status"] ?? "",
+      notes: json["notes"] ?? "",
+      timestamp:
+          DateTime.tryParse(json["timestamp"] ?? "") ??
+              DateTime.now(),
     );
   }
 }
@@ -209,12 +245,16 @@ class Tracking {
 class OrderItem {
   final String id;
   final int quantity;
+  final bool isReturned;
+  final dynamic returnStatus;
   final Product product;
-  final dynamic productVariation;
+  final ProductVariation? productVariation;
 
   OrderItem({
     required this.id,
     required this.quantity,
+    required this.isReturned,
+    this.returnStatus,
     required this.product,
     this.productVariation,
   });
@@ -223,8 +263,12 @@ class OrderItem {
     return OrderItem(
       id: json["id"] ?? "",
       quantity: json["quantity"] ?? 0,
+      isReturned: json["isReturned"] ?? false,
+      returnStatus: json["returnStatus"],
       product: Product.fromJson(json["product"] ?? {}),
-      productVariation: json["productVariation"],
+      productVariation: json["productVariation"] != null
+          ? ProductVariation.fromJson(json["productVariation"])
+          : null,
     );
   }
 }
@@ -232,15 +276,124 @@ class OrderItem {
 class Product {
   final String id;
   final String name;
-  final List<dynamic> images;
+  final List<ProductImage> images;
 
-  Product({required this.id, required this.name, required this.images});
+  Product({
+    required this.id,
+    required this.name,
+    required this.images,
+  });
 
   factory Product.fromJson(Map<String, dynamic> json) {
     return Product(
       id: json["id"] ?? "",
       name: json["name"] ?? "",
-      images: json["images"] ?? [],
+      images: (json["images"] as List<dynamic>? ?? [])
+          .map((e) => ProductImage.fromJson(e))
+          .toList(),
+    );
+  }
+}
+
+class ProductImage {
+  final String id;
+  final String url;
+  final String altText;
+  final bool isMain;
+
+  ProductImage({
+    required this.id,
+    required this.url,
+    required this.altText,
+    required this.isMain,
+  });
+
+  factory ProductImage.fromJson(Map<String, dynamic> json) {
+    return ProductImage(
+      id: json["id"] ?? "",
+      url: json["url"] ?? "",
+      altText: json["altText"] ?? "",
+      isMain: json["isMain"] ?? false,
+    );
+  }
+}
+
+class ProductVariation {
+  final String id;
+  final String productId;
+  final String variationName;
+  final String variationType;
+  final VariationAttributes attributes;
+  final String sku;
+  final String discountedPrice;
+  final String actualPrice;
+  final int stockCount;
+  final bool isAvailable;
+
+  ProductVariation({
+    required this.id,
+    required this.productId,
+    required this.variationName,
+    required this.variationType,
+    required this.attributes,
+    required this.sku,
+    required this.discountedPrice,
+    required this.actualPrice,
+    required this.stockCount,
+    required this.isAvailable,
+  });
+
+  factory ProductVariation.fromJson(Map<String, dynamic> json) {
+    return ProductVariation(
+      id: json["id"] ?? "",
+      productId: json["productId"] ?? "",
+      variationName: json["variationName"] ?? "",
+      variationType: json["variationType"] ?? "",
+      attributes: VariationAttributes.fromJson(
+        json["attributes"] ?? {},
+      ),
+      sku: json["sku"] ?? "",
+      discountedPrice:
+          json["discountedPrice"]?.toString() ?? "0",
+      actualPrice: json["actualPrice"]?.toString() ?? "0",
+      stockCount: json["stockCount"] ?? 0,
+      isAvailable: json["isAvailable"] ?? false,
+    );
+  }
+}
+
+class VariationAttributes {
+  final String size;
+  final VariationColor? color;
+
+  VariationAttributes({
+    required this.size,
+    this.color,
+  });
+
+  factory VariationAttributes.fromJson(Map<String, dynamic> json) {
+    return VariationAttributes(
+      size: json["size"] ?? "",
+      color: json["color"] != null
+          ? VariationColor.fromJson(json["color"])
+          : null,
+    );
+  }
+}
+
+class VariationColor {
+  final String name;
+  final String hex;
+
+  VariationColor({
+    required this.name,
+    required this.hex,
+  });
+
+  factory VariationColor.fromJson(Map<String, dynamic> json) {
+    return VariationColor(
+      name: json["name"] ?? "",
+      hex: json["hex"] ?? "",
     );
   }
 }

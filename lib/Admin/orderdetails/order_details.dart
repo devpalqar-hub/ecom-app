@@ -315,30 +315,150 @@ class OrderDetailsScreen extends StatelessWidget {
       ),
     );
   }
+Widget _buildOrderSummaryCard() {
+  return _cardContainer(
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          "${order.items.length} items",
+          style: const TextStyle(
+            fontSize: 15,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
 
-  Widget _buildOrderSummaryCard() {
-    return _cardContainer(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text("${order.items.length} items"),
-          SizedBox(height: 12),
-          ...order.items.map(
-            (item) => Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        const SizedBox(height: 16),
+
+        ...order.items.map((item) {
+          final variation = item.productVariation;
+
+          final size =
+              variation?.attributes.size ?? "";
+
+          final colorName =
+              variation?.attributes.color?.name ?? "";
+
+          final colorHex =
+              variation?.attributes.color?.hex ?? "";
+
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 16),
+            child: Column(
+              crossAxisAlignment:
+                  CrossAxisAlignment.start,
               children: [
+                /// PRODUCT NAME
                 Text(
-                  "${item.quantity}x ${item.product.name}",
-                  style: TextStyle(fontSize: 13),
+                  item.product.name,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+
+                const SizedBox(height: 6),
+
+                /// SAME ROW
+                Row(
+                  children: [
+                    /// QTY
+                    Text(
+                      "Qty: ${item.quantity}",
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey.shade700,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+
+                    /// SIZE
+                    if (size.isNotEmpty) ...[
+                      Padding(
+                        padding:
+                            const EdgeInsets.symmetric(
+                              horizontal: 8,
+                            ),
+                        child: Text(
+                          "•",
+                          style: TextStyle(
+                            color:
+                                Colors.grey.shade500,
+                          ),
+                        ),
+                      ),
+
+                      Text(
+                        "Size: $size",
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey.shade700,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+
+                    /// COLOR
+                    if (colorName.isNotEmpty) ...[
+                      Padding(
+                        padding:
+                            const EdgeInsets.symmetric(
+                              horizontal: 8,
+                            ),
+                        child: Text(
+                          "•",
+                          style: TextStyle(
+                            color:
+                                Colors.grey.shade500,
+                          ),
+                        ),
+                      ),
+
+                      Container(
+                        width: 12,
+                        height: 12,
+                        margin: const EdgeInsets.only(
+                          right: 5,
+                        ),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color:
+                              colorHex.isNotEmpty
+                              ? Color(
+                                  int.parse(
+                                    colorHex.replaceFirst(
+                                      "#",
+                                      "0xff",
+                                    ),
+                                  ),
+                                )
+                              : Colors.grey,
+                          border: Border.all(
+                            color:
+                                Colors.grey.shade400,
+                          ),
+                        ),
+                      ),
+
+                      Text(
+                        colorName,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey.shade700,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
               ],
             ),
-          ),
-        ],
-      ),
-    );
-  }
-
+          );
+        }),
+      ],
+    ),
+  );
+}
   Widget _buildIssueCard() {
     return _cardContainer(
       child: Column(

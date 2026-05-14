@@ -53,68 +53,126 @@ class Authenticationcontroller extends GetxController {
     }
   }
 
-  void VerfyOtp() async {
-    if (otpController.text.length != 6) {
-      Fluttertoast.showToast(msg: "Please enter valid otp");
+ void VerfyOtp() async {
+  if (otpController.text.length != 6) {
+    Fluttertoast.showToast(msg: "Please enter valid otp");
+    return;
+  }
+
+  isLoading = true;
+  update();
+
+  final response = await post(
+    Uri.parse(baseUrl + "/auth/otp/verify"),
+    body: {
+      "email": emailController.text.trim(),
+      "otp": otpController.text.trim(),
+    },
+  );
+
+  isLoading = false;
+  update();
+
+  print("VERIFY OTP RESPONSE => ${response.body}");
+  print("STATUS CODE => ${response.statusCode}");
+
+  if (response.statusCode == 200 || response.statusCode == 201) {
+    var data = json.decode(response.body);
+
+    print("FULL DATA => $data");
+
+    SharedPreferences preferences = await SharedPreferences.getInstance();
+
+    /// ACCESS TOKEN
+    accessToken = data["data"]["access_token"];
+
+    await preferences.setString(
+      "access_token",
+      accessToken ?? "",
+    );
+
+    /// ROLE
+    String role = data["data"]["role"] ?? "";
+
+    await preferences.setString("ROLE", role);
+
+    /// ================= SAVE USER NAME =================
+    String savedName = "USER";
+
+    /// Try multiple possible keys safely
+    if (data["data"]["name"] != null &&
+        data["data"]["name"].toString().trim().isNotEmpty) {
+      savedName = data["data"]["name"].toString();
+    } else if (data["data"]["user"] != null &&
+        data["data"]["user"]["name"] != null) {
+      savedName = data["data"]["user"]["name"].toString();
+    } else if (data["data"]["deliveryPartner"] != null &&
+        data["data"]["deliveryPartner"]["name"] != null) {
+      savedName =
+          data["data"]["deliveryPartner"]["name"].toString();
+    }
+
+    /// SAVE NAME
+    await preferences.setString("name", savedName);
+
+    print("SAVED NAME => $savedName");
+
+    /// LOGIN STATUS
+    login = "IN";
+    await preferences.setString("LOGIN", "IN");
+
+    /// SEND FCM TOKEN
+    await _requestNotificationPermissionAndSendToken();
+
+    /// ================= NEW USER =================
+    if (data["data"]["isNew"] == true) {
+      isNew = true;
+
+      Get.bottomSheet(
+        CompleteProfileBottomSheet(),
+        isDismissible: false,
+        enableDrag: false,
+        isScrollControlled: true,
+      );
+
       return;
     }
 
-    isLoading = true;
-    update();
-    final response = await post(
-      Uri.parse(baseUrl + "/auth/otp/verify"),
-      body: {"email": emailController.text, "otp": otpController.text},
-    );
-    isLoading = false;
-    update();
-    print(response.body);
-    if (response.statusCode == 200 || response.statusCode == 201) {
-      var data = json.decode(response.body);
+    /// CLEAR OLD CONTROLLERS
+    Get.deleteAll();
 
-      SharedPreferences preferences = await SharedPreferences.getInstance();
-      preferences.setString("access_token", data["data"]["access_token"]);
-      accessToken = data["data"]["access_token"];
-
-      // Request notification permission and send FCM token
-      await _requestNotificationPermissionAndSendToken();
-
-      if (data["data"]["isNew"]) {
-        isNew = true;
-        Get.bottomSheet(
-          CompleteProfileBottomSheet(),
-          isDismissible: false,
-          enableDrag: false,
-          isScrollControlled: true,
-        );
-      } else {
-        login = "IN";
-        preferences.setString("LOGIN", "IN");
-        preferences.setString("name", data["data"]["name"] ?? "USER");
-        preferences.setString("ROLE", data["data"]["role"]);
-        Get.deleteAll();
-        String role = data["data"]["role"];
-        if (role == "ADMIN") {
-          Get.offAll(
-            () => AdminWebViewScreen(accessToken: accessToken ?? ""),
-            transition: Transition.rightToLeft,
-          );
-        } else if (role == "DELIVERY") {
-          Get.offAll(
-            () => DeliveryHomeScreen(),
-            transition: Transition.rightToLeft,
-          );
-        } else {
-          Get.offAll(() => DashBoard(), transition: Transition.rightToLeft);
-        }
-      }
+    /// ================= NAVIGATION =================
+    if (role == "ADMIN") {
+      Get.offAll(
+        () => AdminWebViewScreen(
+          accessToken: accessToken ?? "",
+        ),
+        transition: Transition.rightToLeft,
+      );
+    } else if (role == "DELIVERY") {
+      Get.offAll(
+        () => const DeliveryHomeScreen(),
+        transition: Transition.rightToLeft,
+      );
     } else {
-      var data = json.decode(response.body);
-      var message = (data["message"] ?? "Something went wrong")
-          .toString()
-          .replaceAll("Invalid OTP", "Please enter a valid otp ");
-      Fluttertoast.showToast(msg: message);
+      Get.offAll(
+        () => DashBoard(),
+        transition: Transition.rightToLeft,
+      );
     }
+  } else {
+    var data = json.decode(response.body);
+
+    var message = (data["message"] ?? "Something went wrong")
+        .toString()
+        .replaceAll(
+          "Invalid OTP",
+          "Please enter a valid otp",
+        );
+
+    Fluttertoast.showToast(msg: message);
   }
+}
 
   // Request notification permission and send FCM token
   Future<void> _requestNotificationPermissionAndSendToken() async {

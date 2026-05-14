@@ -17,6 +17,9 @@ class OrderCard extends StatelessWidget {
   final String estimatedDelivery;
   final bool showTrackButton;
   final OrderDetailModel? order;
+  final String? variationSize;   // ✅ added
+  final String? variationColor;  // ✅ added
+  final String? variationColorHex; // ✅ added
 
   const OrderCard({
     Key? key,
@@ -31,6 +34,9 @@ class OrderCard extends StatelessWidget {
     this.showTrackButton = false,
     this.onTap,
     this.order,
+    this.variationSize,        // ✅ added
+    this.variationColor,       // ✅ added
+    this.variationColorHex,    // ✅ added
   }) : super(key: key);
 
   Color getStatusColor() {
@@ -77,6 +83,19 @@ class OrderCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // ── Parse color hex ───────────────────────────────────────────────────
+    Color? colorSwatch;
+    if (variationColorHex != null) {
+      try {
+        colorSwatch = Color(
+          int.parse(
+            'FF${variationColorHex!.replaceAll('#', '')}',
+            radix: 16,
+          ),
+        );
+      } catch (_) {}
+    }
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -189,7 +208,58 @@ class OrderCard extends StatelessWidget {
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
-                      SizedBox(height: 6.h),
+                      SizedBox(height: 4.h),
+
+                      // ── Size & Color line ─────────────────────────────
+                      if (variationSize != null || variationColor != null)
+                        Padding(
+                          padding: EdgeInsets.only(bottom: 4.h),
+                          child: Row(
+                            children: [
+                              if (variationSize != null)
+                                Text(
+                                  'Size: $variationSize',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 10.sp,
+                                    color: Colors.grey.shade600,
+                                  ),
+                                ),
+                              if (variationSize != null &&
+                                  variationColor != null)
+                                Text(
+                                  '  •  ',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 10.sp,
+                                    color: Colors.grey.shade400,
+                                  ),
+                                ),
+                              if (variationColor != null) ...[
+                                if (colorSwatch != null)
+                                  Container(
+                                    width: 9.w,
+                                    height: 9.w,
+                                    margin: EdgeInsets.only(right: 3.w),
+                                    decoration: BoxDecoration(
+                                      color: colorSwatch,
+                                      shape: BoxShape.circle,
+                                      border: Border.all(
+                                        color: Colors.grey.shade400,
+                                        width: 0.5,
+                                      ),
+                                    ),
+                                  ),
+                                Text(
+                                  'Color: $variationColor',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 10.sp,
+                                    color: Colors.grey.shade600,
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
+
                       Container(
                         padding: EdgeInsets.symmetric(
                           horizontal: 8.w,

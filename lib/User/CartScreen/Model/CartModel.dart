@@ -29,29 +29,23 @@ class CartItemModel {
     createdAt = json['createdAt'];
     updatedAt = json['updatedAt'];
     customerProfileId = json['customerProfileId'];
-    product = json['product'] != null
-        ? new Product.fromJson(json['product'])
-        : null;
+    product = json['product'] != null ? Product.fromJson(json['product']) : null;
     productVariation = json['productVariation'] != null
-        ? new ProductVariation.fromJson(json['productVariation'])
+        ? ProductVariation.fromJson(json['productVariation'])
         : null;
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['id'] = this.id;
-    data['productId'] = this.productId;
-    data['productVariationId'] = this.productVariationId;
-    data['quantity'] = this.quantity;
-    data['createdAt'] = this.createdAt;
-    data['updatedAt'] = this.updatedAt;
-    data['customerProfileId'] = this.customerProfileId;
-    if (this.product != null) {
-      data['product'] = this.product!.toJson();
-    }
-    if (this.productVariation != null) {
-      data['productVariation'] = this.productVariation!.toJson();
-    }
+    final Map<String, dynamic> data = {};
+    data['id'] = id;
+    data['productId'] = productId;
+    data['productVariationId'] = productVariationId;
+    data['quantity'] = quantity;
+    data['createdAt'] = createdAt;
+    data['updatedAt'] = updatedAt;
+    data['customerProfileId'] = customerProfileId;
+    if (product != null) data['product'] = product!.toJson();
+    if (productVariation != null) data['productVariation'] = productVariation!.toJson();
     return data;
   }
 
@@ -83,28 +77,30 @@ class CartItemModel {
 
   String getProductName() {
     String name = product!.name ?? "";
-
-    if (productVariation != null)
-      name = name + "(${productVariation!.variationName})";
+    if (productVariation != null) {
+      name = "$name (${productVariation!.variationName})";
+    }
     return name;
   }
 
   bool isOutOfStock() {
     if (productVariation != null) {
-      return (productVariation!.stockCount!) <= 0;
+      return (productVariation!.stockCount ?? 0) <= 0;
     } else {
-      return (product!.stockCount!) <= 0;
+      return (product!.stockCount ?? 0) <= 0;
     }
   }
 
   int getStockCount() {
     if (productVariation != null) {
-      return (productVariation!.stockCount!);
+      return productVariation!.stockCount ?? 0;
     } else {
-      return (product!.stockCount!);
+      return product!.stockCount ?? 0;
     }
   }
 }
+
+// ── Product ───────────────────────────────────────────────────────────────────
 
 class Product {
   String? id;
@@ -155,33 +151,31 @@ class Product {
     updatedAt = json['updatedAt'];
     if (json['images'] != null) {
       images = <Images>[];
-      json['images'].forEach((v) {
-        images!.add(new Images.fromJson(v));
-      });
+      json['images'].forEach((v) => images!.add(Images.fromJson(v)));
     }
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['id'] = this.id;
-    data['name'] = this.name;
-    data['subCategoryId'] = this.subCategoryId;
-    data['discountedPrice'] = this.discountedPrice;
-    data['actualPrice'] = this.actualPrice;
-    data['description'] = this.description;
-    data['stockCount'] = this.stockCount;
-    data['isStock'] = this.isStock;
-    data['isFeatured'] = this.isFeatured;
-    data['isActive'] = this.isActive;
-    data['variationTitle'] = this.variationTitle;
-    data['createdAt'] = this.createdAt;
-    data['updatedAt'] = this.updatedAt;
-    if (this.images != null) {
-      data['images'] = this.images!.map((v) => v.toJson()).toList();
-    }
+    final Map<String, dynamic> data = {};
+    data['id'] = id;
+    data['name'] = name;
+    data['subCategoryId'] = subCategoryId;
+    data['discountedPrice'] = discountedPrice;
+    data['actualPrice'] = actualPrice;
+    data['description'] = description;
+    data['stockCount'] = stockCount;
+    data['isStock'] = isStock;
+    data['isFeatured'] = isFeatured;
+    data['isActive'] = isActive;
+    data['variationTitle'] = variationTitle;
+    data['createdAt'] = createdAt;
+    data['updatedAt'] = updatedAt;
+    if (images != null) data['images'] = images!.map((v) => v.toJson()).toList();
     return data;
   }
 }
+
+// ── Images ────────────────────────────────────────────────────────────────────
 
 class Images {
   String? id;
@@ -191,14 +185,7 @@ class Images {
   bool? isMain;
   int? sortOrder;
 
-  Images({
-    this.id,
-    this.productId,
-    this.url,
-    this.altText,
-    this.isMain,
-    this.sortOrder,
-  });
+  Images({this.id, this.productId, this.url, this.altText, this.isMain, this.sortOrder});
 
   Images.fromJson(Map<String, dynamic> json) {
     id = json['id'];
@@ -209,22 +196,24 @@ class Images {
     sortOrder = json['sortOrder'];
   }
 
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['id'] = this.id;
-    data['productId'] = this.productId;
-    data['url'] = this.url;
-    data['altText'] = this.altText;
-    data['isMain'] = this.isMain;
-    data['sortOrder'] = this.sortOrder;
-    return data;
-  }
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'productId': productId,
+    'url': url,
+    'altText': altText,
+    'isMain': isMain,
+    'sortOrder': sortOrder,
+  };
 }
+
+// ── ProductVariation ──────────────────────────────────────────────────────────
 
 class ProductVariation {
   String? id;
   String? productId;
   String? variationName;
+  String? variationType;        // ✅ added
+  VariationAttributes? attributes; // ✅ added
   String? sku;
   String? discountedPrice;
   String? actualPrice;
@@ -238,6 +227,8 @@ class ProductVariation {
     this.id,
     this.productId,
     this.variationName,
+    this.variationType,
+    this.attributes,
     this.sku,
     this.discountedPrice,
     this.actualPrice,
@@ -252,6 +243,10 @@ class ProductVariation {
     id = json['id'];
     productId = json['productId'];
     variationName = json['variationName'];
+    variationType = json['variationType'];
+    attributes = json['attributes'] != null
+        ? VariationAttributes.fromJson(json['attributes'])
+        : null;
     sku = json['sku'];
     discountedPrice = json['discountedPrice'];
     actualPrice = json['actualPrice'];
@@ -259,26 +254,62 @@ class ProductVariation {
     isAvailable = json['isAvailable'];
     createdAt = json['createdAt'];
     updatedAt = json['updatedAt'];
-    product = json['product'] != null
-        ? new Product.fromJson(json['product'])
-        : null;
+    product = json['product'] != null ? Product.fromJson(json['product']) : null;
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['id'] = this.id;
-    data['productId'] = this.productId;
-    data['variationName'] = this.variationName;
-    data['sku'] = this.sku;
-    data['discountedPrice'] = this.discountedPrice;
-    data['actualPrice'] = this.actualPrice;
-    data['stockCount'] = this.stockCount;
-    data['isAvailable'] = this.isAvailable;
-    data['createdAt'] = this.createdAt;
-    data['updatedAt'] = this.updatedAt;
-    if (this.product != null) {
-      data['product'] = this.product!.toJson();
-    }
+    final Map<String, dynamic> data = {};
+    data['id'] = id;
+    data['productId'] = productId;
+    data['variationName'] = variationName;
+    data['variationType'] = variationType;
+    if (attributes != null) data['attributes'] = attributes!.toJson();
+    data['sku'] = sku;
+    data['discountedPrice'] = discountedPrice;
+    data['actualPrice'] = actualPrice;
+    data['stockCount'] = stockCount;
+    data['isAvailable'] = isAvailable;
+    data['createdAt'] = createdAt;
+    data['updatedAt'] = updatedAt;
+    if (product != null) data['product'] = product!.toJson();
     return data;
   }
+}
+
+// ── VariationAttributes ───────────────────────────────────────────────────────
+
+class VariationAttributes {
+  String? size;               // nullable — some variations are color-only
+  VariationColor? color;
+
+  VariationAttributes({this.size, this.color});
+
+  VariationAttributes.fromJson(Map<String, dynamic> json) {
+    size = json['size'];
+    color = json['color'] != null ? VariationColor.fromJson(json['color']) : null;
+  }
+
+  Map<String, dynamic> toJson() => {
+    'size': size,
+    if (color != null) 'color': color!.toJson(),
+  };
+}
+
+// ── VariationColor ────────────────────────────────────────────────────────────
+
+class VariationColor {
+  String? hex;
+  String? name;
+
+  VariationColor({this.hex, this.name});
+
+  VariationColor.fromJson(Map<String, dynamic> json) {
+    hex = json['hex'];
+    name = json['name'];
+  }
+
+  Map<String, dynamic> toJson() => {
+    'hex': hex,
+    'name': name,
+  };
 }

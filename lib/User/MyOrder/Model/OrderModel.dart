@@ -99,11 +99,12 @@ class OrderItem {
     );
   }
 }
-
 class ProductVariation {
   final String id;
   final String productId;
   final String variationName;
+  final String variationType;            // ✅ added
+  final VariationAttributes? attributes; // ✅ added
   final String sku;
   final String discountedPrice;
   final String actualPrice;
@@ -116,6 +117,8 @@ class ProductVariation {
     required this.id,
     required this.productId,
     required this.variationName,
+    required this.variationType,
+    this.attributes,
     required this.sku,
     required this.discountedPrice,
     required this.actualPrice,
@@ -130,6 +133,10 @@ class ProductVariation {
       id: json['id'] ?? '',
       productId: json['productId'] ?? '',
       variationName: json['variationName'] ?? '',
+      variationType: json['variationType'] ?? '',
+      attributes: json['attributes'] != null
+          ? VariationAttributes.fromJson(json['attributes'])
+          : null,
       sku: json['sku'] ?? '',
       discountedPrice: json['discountedPrice'] ?? '0',
       actualPrice: json['actualPrice'] ?? '0',
@@ -141,6 +148,40 @@ class ProductVariation {
       updatedAt: DateTime.parse(
         json['updatedAt'] ?? DateTime.now().toIso8601String(),
       ),
+    );
+  }
+}
+
+// ── VariationAttributes ───────────────────────────────────────────────────────
+
+class VariationAttributes {
+  final String? size;
+  final VariationColor? color;
+
+  VariationAttributes({this.size, this.color});
+
+  factory VariationAttributes.fromJson(Map<String, dynamic> json) {
+    return VariationAttributes(
+      size: json['size'],
+      color: json['color'] != null
+          ? VariationColor.fromJson(json['color'])
+          : null,
+    );
+  }
+}
+
+// ── VariationColor ────────────────────────────────────────────────────────────
+
+class VariationColor {
+  final String? hex;
+  final String? name;
+
+  VariationColor({this.hex, this.name});
+
+  factory VariationColor.fromJson(Map<String, dynamic> json) {
+    return VariationColor(
+      hex: json['hex'],
+      name: json['name'],
     );
   }
 }

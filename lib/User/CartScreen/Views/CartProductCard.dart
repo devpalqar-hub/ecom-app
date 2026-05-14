@@ -23,6 +23,20 @@ class CartProductCard extends StatelessWidget {
     final canIncrease =
         !cartItem.isOutOfStock() && quantity < cartItem.getStockCount();
 
+    // ── Extract attributes ────────────────────────────────────────────────
+    final attrs = cartItem.productVariation?.attributes;
+    final size = attrs?.size;
+    final colorName = attrs?.color?.name;
+    final colorHex = attrs?.color?.hex;
+
+    // Parse hex safely
+    Color? colorSwatch;
+    if (colorHex != null) {
+      try {
+        colorSwatch = Color(int.parse('FF${colorHex.replaceAll('#', '')}', radix: 16));
+      } catch (_) {}
+    }
+
     return Column(
       children: [
         Container(
@@ -112,7 +126,56 @@ class CartProductCard extends StatelessWidget {
                         ],
                       ),
 
-                      SizedBox(height: 6.h),
+                      SizedBox(height: 4.h),
+
+                      // ── Size & Color line ─────────────────────────────
+                      if (size != null || colorName != null)
+                        Padding(
+                          padding: EdgeInsets.only(bottom: 4.h),
+                          child: Row(
+                            children: [
+                              if (size != null)
+                                Text(
+                                  'Size: $size',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 10.sp,
+                                    color: Colors.grey.shade600,
+                                  ),
+                                ),
+                              if (size != null && colorName != null)
+                                Text(
+                                  '  •  ',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 10.sp,
+                                    color: Colors.grey.shade400,
+                                  ),
+                                ),
+                              if (colorName != null) ...[
+                                if (colorSwatch != null)
+                                  Container(
+                                    width: 9.w,
+                                    height: 9.w,
+                                    margin: EdgeInsets.only(right: 3.w),
+                                    decoration: BoxDecoration(
+                                      color: colorSwatch,
+                                      shape: BoxShape.circle,
+                                      border: Border.all(
+                                        color: Colors.grey.shade400,
+                                        width: 0.5,
+                                      ),
+                                    ),
+                                  ),
+                                Text(
+                                  'Color: $colorName',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 10.sp,
+                                    color: Colors.grey.shade600,
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
 
                       // Stock Badge
                       Container(

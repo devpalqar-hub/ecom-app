@@ -12,6 +12,7 @@ class ProductDetailModel {
   bool? isFeatured;
   bool? isActive;
   String? variationTitle;
+  String? sizeChart;
   String? createdAt;
   String? updatedAt;
   List<Images>? images;
@@ -21,6 +22,8 @@ class ProductDetailModel {
   bool? isWishlisted;
   bool? isInCart;
   ReviewStats? reviewStats;
+
+
 
   ProductDetailModel({
     this.id,
@@ -34,6 +37,7 @@ class ProductDetailModel {
     this.isFeatured,
     this.isActive,
     this.variationTitle,
+    this.sizeChart,
     this.createdAt,
     this.updatedAt,
     this.images,
@@ -43,6 +47,7 @@ class ProductDetailModel {
     this.isWishlisted,
     this.isInCart,
     this.reviewStats,
+
   });
 
   ProductDetailModel.fromJson(Map<String, dynamic> json) {
@@ -59,6 +64,7 @@ class ProductDetailModel {
     variationTitle = json['variationTitle'];
     createdAt = json['createdAt'];
     updatedAt = json['updatedAt'];
+    sizeChart = json['sizeChart'];
     if (json['images'] != null) {
       images = <Images>[];
       json['images'].forEach((v) {
@@ -102,6 +108,7 @@ class ProductDetailModel {
     data['variationTitle'] = this.variationTitle;
     data['createdAt'] = this.createdAt;
     data['updatedAt'] = this.updatedAt;
+    data['sizeChart'] = sizeChart;
     if (this.images != null) {
       data['images'] = this.images!.map((v) => v.toJson()).toList();
     }
@@ -163,6 +170,8 @@ class Variations {
   String? id;
   String? productId;
   String? variationName;
+  String? variationType;
+  VariationAttributes? attributes;
   String? sku;
   String? discountedPrice;
   String? actualPrice;
@@ -175,6 +184,8 @@ class Variations {
     this.id,
     this.productId,
     this.variationName,
+    this.variationType,
+    this.attributes,
     this.sku,
     this.discountedPrice,
     this.actualPrice,
@@ -188,6 +199,10 @@ class Variations {
     id = json['id'];
     productId = json['productId'];
     variationName = json['variationName'];
+    variationType = json['variationType'];
+    attributes = json['attributes'] != null
+        ? VariationAttributes.fromJson(json['attributes'])
+        : null;
     sku = json['sku'];
     discountedPrice = json['discountedPrice'];
     actualPrice = json['actualPrice'];
@@ -198,19 +213,59 @@ class Variations {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['id'] = this.id;
-    data['productId'] = this.productId;
-    data['variationName'] = this.variationName;
-    data['sku'] = this.sku;
-    data['discountedPrice'] = this.discountedPrice;
-    data['actualPrice'] = this.actualPrice;
-    data['stockCount'] = this.stockCount;
-    data['isAvailable'] = this.isAvailable;
-    data['createdAt'] = this.createdAt;
-    data['updatedAt'] = this.updatedAt;
+    final Map<String, dynamic> data = {};
+    data['id'] = id;
+    data['productId'] = productId;
+    data['variationName'] = variationName;
+    data['variationType'] = variationType;
+    if (attributes != null) data['attributes'] = attributes!.toJson();
+    data['sku'] = sku;
+    data['discountedPrice'] = discountedPrice;
+    data['actualPrice'] = actualPrice;
+    data['stockCount'] = stockCount;
+    data['isAvailable'] = isAvailable;
+    data['createdAt'] = createdAt;
+    data['updatedAt'] = updatedAt;
     return data;
   }
+}
+
+class VariationAttributes {
+  String? size;
+  VariationColor? color;
+
+  VariationAttributes({this.size, this.color});
+
+  VariationAttributes.fromJson(Map<String, dynamic> json) {
+    size = json['size'];
+    color = json['color'] != null
+        ? VariationColor.fromJson(json['color'])
+        : null;
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = {};
+    data['size'] = size;
+    if (color != null) data['color'] = color!.toJson();
+    return data;
+  }
+}
+
+class VariationColor {
+  String? hex;
+  String? name;
+
+  VariationColor({this.hex, this.name});
+
+  VariationColor.fromJson(Map<String, dynamic> json) {
+    hex = json['hex'];
+    name = json['name'];
+  }
+
+  Map<String, dynamic> toJson() => {
+    'hex': hex,
+    'name': name,
+  };
 }
 
 class Reviews {

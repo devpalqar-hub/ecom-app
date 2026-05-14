@@ -34,15 +34,29 @@ class _DeliveryHomeScreenState extends State<DeliveryHomeScreen> {
     fetchUserName();
   }
 
-  Future<void> fetchUserName() async {
+ Future<void> fetchUserName() async {
+  try {
     final prefs = await SharedPreferences.getInstance();
+
+    // Debug all stored values
+    print("ALL PREFS: ${prefs.getKeys()}");
+
     String? name = prefs.getString("name");
 
-    setState(() {
-      userName = (name != null && name.isNotEmpty) ? name : "User";
-    });
-  }
+    print("FETCHED NAME => $name");
 
+    setState(() {
+      userName =
+          (name != null && name.trim().isNotEmpty)
+              ? name
+              : "User";
+    });
+
+    print("USERNAME SET => $userName");
+  } catch (e) {
+    print("ERROR FETCHING USERNAME => $e");
+  }
+}
   deliveryController t = Get.put(deliveryController());
 
   @override
@@ -171,7 +185,7 @@ class _DeliveryHomeScreenState extends State<DeliveryHomeScreen> {
                         ),
                       ),
 
-                      SizedBox(height: 12.h),
+                    
 
                       if (t.pageloader)
                         Container(
@@ -184,25 +198,28 @@ class _DeliveryHomeScreenState extends State<DeliveryHomeScreen> {
                           for (var order in t.pendingOrders)
                             if (order.orderNumber.contains(t.searchText) ||
                                 t.searchText.isEmpty)
-                              OrderCard(
-                                title: order.items.isNotEmpty
-                                    ? order.items.first.product.name
-                                    : "No Item",
-                                orderId: order.orderNumber,
-                                branch: order.customerProfile.name,
-                                pickup: "Warehouse Pickup",
-                                delivery:
-                                    "${order.shippingAddress.address}, ${order.shippingAddress.city}",
-                                earning: "QAR ${order.totalAmount}",
-                                status:
-                                    order.tracking?.status.toUpperCase() ??
-                                    order.status.toUpperCase(),
-                                buttonText: "View Details",
-                                onPressed: () {
-                                  Get.to(
-                                    () => OrderDetailsScreen(order: order),
-                                  );
-                                },
+                              Padding(
+                                padding:  EdgeInsets.symmetric(horizontal: 16.w,vertical: 16.h),
+                                child: OrderCard(
+                                  title: order.items.isNotEmpty
+                                      ? order.items.first.product.name
+                                      : "No Item",
+                                  orderId: order.orderNumber,
+                                  branch: order.customerProfile.name,
+                                  pickup: "Warehouse Pickup",
+                                  delivery:
+                                      "${order.shippingAddress.address}, ${order.shippingAddress.city}",
+                                  earning: "QAR ${order.totalAmount}",
+                                  status:
+                                      order.tracking?.status.toUpperCase() ??
+                                      order.status.toUpperCase(),
+                                  buttonText: "View Details",
+                                  onPressed: () {
+                                    Get.to(
+                                      () => OrderDetailsScreen(order: order),
+                                    );
+                                  },
+                                ),
                               ),
 
                           if (t.pendingOrders.isEmpty ||
@@ -246,7 +263,10 @@ class _DeliveryHomeScreenState extends State<DeliveryHomeScreen> {
                                   t.searchText,
                                 ) ||
                                 t.searchText.isEmpty)
-                              ReturnOrderCard(returnOrder: order),
+                              Padding(
+                                padding:  EdgeInsets.symmetric(horizontal: 16.w,vertical: 16.h),
+                                child: ReturnOrderCard(returnOrder: order),
+                              ),
 
                           if (t.pendingReturns.isEmpty ||
                               t.pendingReturns

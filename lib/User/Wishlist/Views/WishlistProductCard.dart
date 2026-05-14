@@ -25,9 +25,23 @@ class WishlistProductCard extends StatelessWidget {
     final double price = double.tryParse(product.discountedPrice) ?? 0;
     final double mrp = double.tryParse(product.actualPrice) ?? 0;
     final bool isOutOfStock = product.stockCount == 0;
-    final String imageUrl = product.images.isNotEmpty
-        ? product.images.first.url
-        : '';
+    final String imageUrl =
+        product.images.isNotEmpty ? product.images.first.url : '';
+
+    // ── Extract variation attributes ──────────────────────────────────────
+    final attrs = wishlistProduct.productVariation?.attributes;
+    final size = attrs?.size;
+    final colorName = attrs?.color?.name;
+    final colorHex = attrs?.color?.hex;
+
+    Color? colorSwatch;
+    if (colorHex != null) {
+      try {
+        colorSwatch = Color(
+          int.parse('FF${colorHex.replaceAll('#', '')}', radix: 16),
+        );
+      } catch (_) {}
+    }
 
     return Container(
       decoration: BoxDecoration(
@@ -82,6 +96,7 @@ class WishlistProductCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // Name + Remove
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -97,7 +112,6 @@ class WishlistProductCard extends StatelessWidget {
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                        // Remove button
                         InkWell(
                           onTap: onRemove,
                           borderRadius: BorderRadius.circular(15.r),
@@ -113,7 +127,56 @@ class WishlistProductCard extends StatelessWidget {
                       ],
                     ),
 
-                    SizedBox(height: 6.h),
+                    SizedBox(height: 4.h),
+
+                    // ── Size & Color line ─────────────────────────────────
+                    if (size != null || colorName != null)
+                      Padding(
+                        padding: EdgeInsets.only(bottom: 4.h),
+                        child: Row(
+                          children: [
+                            if (size != null)
+                              Text(
+                                'Size: $size',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 10.sp,
+                                  color: Colors.grey.shade600,
+                                ),
+                              ),
+                            if (size != null && colorName != null)
+                              Text(
+                                '  •  ',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 10.sp,
+                                  color: Colors.grey.shade400,
+                                ),
+                              ),
+                            if (colorName != null) ...[
+                              if (colorSwatch != null)
+                                Container(
+                                  width: 9.w,
+                                  height: 9.w,
+                                  margin: EdgeInsets.only(right: 3.w),
+                                  decoration: BoxDecoration(
+                                    color: colorSwatch,
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                      color: Colors.grey.shade400,
+                                      width: 0.5,
+                                    ),
+                                  ),
+                                ),
+                              Text(
+                                'Color: $colorName',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 10.sp,
+                                  color: Colors.grey.shade600,
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
 
                     // Stock Badge
                     Container(
@@ -147,7 +210,7 @@ class WishlistProductCard extends StatelessWidget {
 
                     SizedBox(height: 8.h),
 
-                    // Price
+                    // Price + Move to Cart
                     Row(
                       children: [
                         Text(
@@ -185,10 +248,6 @@ class WishlistProductCard extends StatelessWidget {
                               ),
                               padding: EdgeInsets.symmetric(horizontal: 12.w),
                             ),
-                            // icon: Icon(
-                            //   Icons.shopping_bag_outlined,
-                            //   size: 14.sp,
-                            // ),
                             label: Text(
                               "Move to Cart",
                               style: GoogleFonts.poppins(
@@ -200,10 +259,6 @@ class WishlistProductCard extends StatelessWidget {
                         ),
                       ],
                     ),
-
-                    SizedBox(height: 8.h),
-
-                    // Move to Bag Button
                   ],
                 ),
               ),
