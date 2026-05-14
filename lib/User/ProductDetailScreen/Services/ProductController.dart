@@ -96,7 +96,8 @@ class Productcontroller extends GetxController {
   }
 
   Future<void> fetchRelatedProduct(String categoryID) async {
-    releatedProducts.clear();
+    releatedProducts = [];
+    update();
     try {
       var response = await get(
         Uri.parse("$baseUrl/products?categoryId=$categoryID&limit=8&page=1"),
@@ -105,6 +106,8 @@ class Productcontroller extends GetxController {
 
       if (response.statusCode == 200) {
         var body = json.decode(response.body);
+        releatedProducts = [];
+        update();
         for (var data in body["data"]["data"]) {
           releatedProducts.add(ProductModel.fromJson(data));
         }
