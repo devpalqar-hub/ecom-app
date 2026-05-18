@@ -135,29 +135,36 @@ class MyOrderScreen extends StatelessWidget {
 
     // ── Extract attributes ──────────────────────────────────────
     final attrs = firstItem.productVariation?.attributes;
+return OrderCard(
+  orderId: order.orderNumber,
+  date: _formatDate(order.createdAt),
+  productName: firstItem.product.name,
 
-    return OrderCard(
-      orderId: order.orderNumber,
-      date: _formatDate(order.createdAt),
-      productName: firstItem.product.name,  // ✅ clean name only
-      productImage: firstItem.product.images.isNotEmpty
-          ? firstItem.product.images.first.url
-          : '',
-      quantity: firstItem.quantity,
-      price: firstItemLineAmount,
-      status: order.status.capitalizeFirst!,
-      estimatedDelivery: order.status.toLowerCase() == 'pending'
-          ? ''
-          : 'Within 2 days',
-      showTrackButton: order.status.toLowerCase() == 'pending' ||
-          order.status.toLowerCase() == 'shipped',
-      variationSize: attrs?.size,           
-      variationColor: attrs?.color?.name,    
-      variationColorHex: attrs?.color?.hex,  
-      onTap: () async {
-        Get.to(() => OrderDetailScreen(orderID: order.id));
-      },
-    );
+  productImage: firstItem.product.images.isNotEmpty
+      ? firstItem.product.images.first.url
+      : '',
+
+  quantity: firstItem.quantity,
+  price: firstItemLineAmount,
+  status: order.status.capitalizeFirst!,
+
+  estimatedDelivery: order.status.toLowerCase() == 'pending'
+      ? ''
+      : 'Within 2 days',
+
+  showTrackButton: order.status.toLowerCase() == 'pending' ||
+      order.status.toLowerCase() == 'shipped',
+
+  variationSize: attrs?.size,
+  variationColor: attrs?.color?.name,
+  variationColorHex: attrs?.color?.hex,
+
+  firstItem: firstItem, // ✅ IMPORTANT FIX
+
+  onTap: () {
+    Get.to(() => OrderDetailScreen(orderID: order.id));
+  },
+);
   },
 );
                   }),

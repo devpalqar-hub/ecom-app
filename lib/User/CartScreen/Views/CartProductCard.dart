@@ -17,6 +17,22 @@ class CartProductCard extends StatelessWidget {
   });
 
   @override
+
+  String? _getImage(CartItemModel item) {
+  // 1. Variation images (HIGHEST PRIORITY)
+  if (item.productVariation?.images != null &&
+      item.productVariation!.images!.isNotEmpty) {
+    return item.productVariation!.images!.first;
+  }
+
+  // 2. Product images fallback
+  if (item.product?.images != null &&
+      item.product!.images!.isNotEmpty) {
+    return item.product!.images!.first.url;
+  }
+
+  return null;
+}
   Widget build(BuildContext context) {
     final CartController controller = Get.find<CartController>();
     final quantity = cartItem.quantity ?? 1;
@@ -58,31 +74,30 @@ class CartProductCard extends StatelessWidget {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Product Image
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(10.r),
-                  child: cartItem.product!.images!.isNotEmpty
-                      ? Image.network(
-                          cartItem.product!.images!.first.url!,
-                          height: 85.h,
-                          width: 70.w,
-                          fit: BoxFit.cover,
-                        )
-                      : Container(
-                          height: 85.h,
-                          width: 70.w,
-                          decoration: BoxDecoration(
-                            color: Colors.grey.shade100,
-                            borderRadius: BorderRadius.circular(10.r),
-                          ),
-                          child: Icon(
-                            Icons.image_outlined,
-                            color: Colors.grey.shade400,
-                            size: 30.sp,
-                          ),
-                        ),
-                ),
-
+               // Product Image
+ClipRRect(
+  borderRadius: BorderRadius.circular(10.r),
+  child: _getImage(cartItem) != null
+      ? Image.network(
+          _getImage(cartItem)!,
+          height: 85.h,
+          width: 70.w,
+          fit: BoxFit.cover,
+        )
+      : Container(
+          height: 85.h,
+          width: 70.w,
+          decoration: BoxDecoration(
+            color: Colors.grey.shade100,
+            borderRadius: BorderRadius.circular(10.r),
+          ),
+          child: Icon(
+            Icons.image_outlined,
+            color: Colors.grey.shade400,
+            size: 30.sp,
+          ),
+        ),
+),
                 SizedBox(width: 10.w),
 
                 // Product Details

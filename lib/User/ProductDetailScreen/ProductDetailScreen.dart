@@ -32,6 +32,21 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     ctrl = Get.put(Productcontroller(widget.productId), tag: widget.productId);
   }
 
+  // ONLY ADD THIS HELPER INSIDE STATE CLASS
+List<String> get _carouselImages {
+  final variationImages = ctrl.selectedVariation?.images;
+
+  if (variationImages != null && variationImages.isNotEmpty) {
+    return variationImages;
+  }
+
+  return ctrl.product?.images
+          ?.map((e) => e.url ?? "")
+          .where((e) => e.isNotEmpty)
+          .toList() ??
+      [];
+}
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -44,48 +59,48 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   }
 
   void showImageOverlay(int initialIndex) {
-    if (ctrl.product!.images == null || ctrl.product!.images!.isEmpty) return;
+  if (_carouselImages.isEmpty) return;
 
-    showDialog(
-      context: context,
-      builder: (_) => Dialog(
-        backgroundColor: Colors.transparent,
-        insetPadding: EdgeInsets.all(0),
-        child: Stack(
-          children: [
-            Container(color: Colors.black.withOpacity(0.7)),
-            Center(
-              child: PageView.builder(
-                controller: PageController(initialPage: initialIndex),
-                itemCount: ctrl.product!.images!.length,
-                itemBuilder: (context, index) {
-                  final imgData = ctrl.product!.images![index];
-                  return InteractiveViewer(
-                    child: Image.network(imgData.url!, fit: BoxFit.contain),
-                  );
-                },
-              ),
+  showDialog(
+    context: context,
+    builder: (_) => Dialog(
+      backgroundColor: Colors.transparent,
+      insetPadding: EdgeInsets.all(0),
+      child: Stack(
+        children: [
+          Container(color: Colors.black.withOpacity(0.7)),
+          Center(
+            child: PageView.builder(
+              controller: PageController(initialPage: initialIndex),
+              itemCount: _carouselImages.length,
+              itemBuilder: (context, index) {
+                final img = _carouselImages[index];
+                return InteractiveViewer(
+                  child: Image.network(img, fit: BoxFit.contain),
+                );
+              },
             ),
-            Positioned(
-              top: 40.h,
-              right: 20.w,
-              child: GestureDetector(
-                onTap: () => Navigator.pop(context),
-                child: Container(
-                  decoration: const BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.black54,
-                  ),
-                  padding: EdgeInsets.all(8.w),
-                  child: Icon(Icons.close, color: Colors.white, size: 24.sp),
+          ),
+          Positioned(
+            top: 40.h,
+            right: 20.w,
+            child: GestureDetector(
+              onTap: () => Navigator.pop(context),
+              child: Container(
+                decoration: const BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.black54,
                 ),
+                padding: EdgeInsets.all(8.w),
+                child: Icon(Icons.close, color: Colors.white, size: 24.sp),
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
-    );
-  }
+    ),
+  );
+}
 
 void showSizeChartPopup(String imageUrl) {
   showDialog(
@@ -364,32 +379,31 @@ void showSizeChartPopup(String imageUrl) {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // ── Image Carousel ─────────────────────────────────────
-                  CarouselSlider(
-                    items: [
-                      for (int i = 0; i < ___.product!.images!.length; i++)
-                        Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 5.w),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(10.r),
-                            child: GestureDetector(
-                              onTap: () => showImageOverlay(i),
-                              child: Image.network(
-                                ___.product!.images![i].url!,
-                                fit: BoxFit.contain,
-                                height:
-                                    MediaQuery.of(context).size.width * 3 / 4,
-                                width: double.infinity,
-                              ),
-                            ),
-                          ),
-                        ),
-                    ],
-                    options: CarouselOptions(
-                      autoPlay: true,
-                      viewportFraction: 0.9,
-                      height: MediaQuery.of(context).size.width * 3 / 4,
-                    ),
-                  ),
+                 CarouselSlider(
+  items: [
+    for (int i = 0; i < _carouselImages.length; i++)
+      Padding(
+        padding: EdgeInsets.symmetric(horizontal: 5.w),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(10.r),
+          child: GestureDetector(
+            onTap: () => showImageOverlay(i),
+            child: Image.network(
+              _carouselImages[i],
+              fit: BoxFit.contain,
+              height: MediaQuery.of(context).size.width * 3 / 4,
+              width: double.infinity,
+            ),
+          ),
+        ),
+      ),
+  ],
+  options: CarouselOptions(
+    autoPlay: true,
+    viewportFraction: 0.9,
+    height: MediaQuery.of(context).size.width * 3 / 4,
+  ),
+),
 
                   SizedBox(height: 25.h),
 

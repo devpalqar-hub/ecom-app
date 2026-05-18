@@ -103,8 +103,8 @@ class ProductVariation {
   final String id;
   final String productId;
   final String variationName;
-  final String variationType;            // ✅ added
-  final VariationAttributes? attributes; // ✅ added
+  final String variationType;
+  final VariationAttributes? attributes;
   final String sku;
   final String discountedPrice;
   final String actualPrice;
@@ -112,6 +112,9 @@ class ProductVariation {
   final bool isAvailable;
   final DateTime createdAt;
   final DateTime updatedAt;
+
+  // ✅ ADD THIS
+  final List<String> images;
 
   ProductVariation({
     required this.id,
@@ -126,6 +129,7 @@ class ProductVariation {
     required this.isAvailable,
     required this.createdAt,
     required this.updatedAt,
+    required this.images,
   });
 
   factory ProductVariation.fromJson(Map<String, dynamic> json) {
@@ -138,16 +142,18 @@ class ProductVariation {
           ? VariationAttributes.fromJson(json['attributes'])
           : null,
       sku: json['sku'] ?? '',
-      discountedPrice: json['discountedPrice'] ?? '0',
-      actualPrice: json['actualPrice'] ?? '0',
+      discountedPrice: json['discountedPrice']?.toString() ?? '0',
+      actualPrice: json['actualPrice']?.toString() ?? '0',
       stockCount: json['stockCount'] ?? 0,
       isAvailable: json['isAvailable'] ?? false,
-      createdAt: DateTime.parse(
-        json['createdAt'] ?? DateTime.now().toIso8601String(),
-      ),
-      updatedAt: DateTime.parse(
-        json['updatedAt'] ?? DateTime.now().toIso8601String(),
-      ),
+      createdAt: DateTime.tryParse(json['createdAt'] ?? '') ?? DateTime.now(),
+      updatedAt: DateTime.tryParse(json['updatedAt'] ?? '') ?? DateTime.now(),
+
+      // ✅ SAFE PARSE
+      images: (json['images'] as List?)
+              ?.map((e) => e.toString())
+              .toList() ??
+          [],
     );
   }
 }

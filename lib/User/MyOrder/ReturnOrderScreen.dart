@@ -194,9 +194,17 @@ class _ReturnOrderScreenState extends State<ReturnOrderScreen> {
 
                     ..._eligibleItems.map((item) {
                       final isSelected = _selectedItems.containsKey(item.id);
-                      final imgUrl = item.product.images.isNotEmpty
-                          ? item.product.images.first.url
-                          : null;
+                     String? imgUrl;
+
+// 1. variation image FIRST
+final variationImages = item.productVariation?.images;
+if (variationImages != null && variationImages.isNotEmpty) {
+  imgUrl = variationImages.first;
+}
+// 2. fallback product image
+else if (item.product.images.isNotEmpty) {
+  imgUrl = item.product.images.first.url;
+}
 
                       return GestureDetector(
                         onTap: () => _toggleItem(item),
@@ -252,7 +260,7 @@ class _ReturnOrderScreenState extends State<ReturnOrderScreen> {
                               // image
                               ClipRRect(
                                 borderRadius: BorderRadius.circular(8.r),
-                                child: imgUrl != null
+                                child: (imgUrl != null && imgUrl!.isNotEmpty)
                                     ? Image.network(
                                         imgUrl,
                                         width: 50.w,

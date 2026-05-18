@@ -25,8 +25,9 @@ class WishlistProductCard extends StatelessWidget {
     final double price = double.tryParse(product.discountedPrice) ?? 0;
     final double mrp = double.tryParse(product.actualPrice) ?? 0;
     final bool isOutOfStock = product.stockCount == 0;
-    final String imageUrl =
-        product.images.isNotEmpty ? product.images.first.url : '';
+   final String imageUrl = (wishlistProduct.productVariation?.images.isNotEmpty ?? false)
+    ? wishlistProduct.productVariation!.images.first
+    : (product.images.isNotEmpty ? product.images.first.url : '');
 
     // ── Extract variation attributes ──────────────────────────────────────
     final attrs = wishlistProduct.productVariation?.attributes;

@@ -180,6 +180,8 @@ class Variations {
   String? createdAt;
   String? updatedAt;
 
+  List<String>? images; // ✅ ADD THIS
+
   Variations({
     this.id,
     this.productId,
@@ -193,6 +195,7 @@ class Variations {
     this.isAvailable,
     this.createdAt,
     this.updatedAt,
+    this.images,
   });
 
   Variations.fromJson(Map<String, dynamic> json) {
@@ -200,9 +203,11 @@ class Variations {
     productId = json['productId'];
     variationName = json['variationName'];
     variationType = json['variationType'];
+
     attributes = json['attributes'] != null
         ? VariationAttributes.fromJson(json['attributes'])
         : null;
+
     sku = json['sku'];
     discountedPrice = json['discountedPrice'];
     actualPrice = json['actualPrice'];
@@ -210,15 +215,25 @@ class Variations {
     isAvailable = json['isAvailable'];
     createdAt = json['createdAt'];
     updatedAt = json['updatedAt'];
+
+    // ✅ FIXED IMAGES PARSING
+    if (json['images'] != null) {
+      images = List<String>.from(json['images']);
+    }
   }
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = {};
+
     data['id'] = id;
     data['productId'] = productId;
     data['variationName'] = variationName;
     data['variationType'] = variationType;
-    if (attributes != null) data['attributes'] = attributes!.toJson();
+
+    if (attributes != null) {
+      data['attributes'] = attributes!.toJson();
+    }
+
     data['sku'] = sku;
     data['discountedPrice'] = discountedPrice;
     data['actualPrice'] = actualPrice;
@@ -226,6 +241,10 @@ class Variations {
     data['isAvailable'] = isAvailable;
     data['createdAt'] = createdAt;
     data['updatedAt'] = updatedAt;
+
+    // ✅ FIXED
+    data['images'] = images;
+
     return data;
   }
 }

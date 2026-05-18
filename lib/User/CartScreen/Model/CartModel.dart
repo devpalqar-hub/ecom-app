@@ -78,7 +78,7 @@ class CartItemModel {
   String getProductName() {
     String name = product!.name ?? "";
     if (productVariation != null) {
-      name = "$name (${productVariation!.variationName})";
+      name = "$name ";
     }
     return name;
   }
@@ -207,13 +207,12 @@ class Images {
 }
 
 // ── ProductVariation ──────────────────────────────────────────────────────────
-
 class ProductVariation {
   String? id;
   String? productId;
   String? variationName;
-  String? variationType;        // ✅ added
-  VariationAttributes? attributes; // ✅ added
+  String? variationType;
+  VariationAttributes? attributes;
   String? sku;
   String? discountedPrice;
   String? actualPrice;
@@ -222,6 +221,9 @@ class ProductVariation {
   String? createdAt;
   String? updatedAt;
   Product? product;
+
+  // ✅ ADD THIS
+  List<String>? images;
 
   ProductVariation({
     this.id,
@@ -237,6 +239,7 @@ class ProductVariation {
     this.createdAt,
     this.updatedAt,
     this.product,
+    this.images,
   });
 
   ProductVariation.fromJson(Map<String, dynamic> json) {
@@ -244,9 +247,11 @@ class ProductVariation {
     productId = json['productId'];
     variationName = json['variationName'];
     variationType = json['variationType'];
+
     attributes = json['attributes'] != null
         ? VariationAttributes.fromJson(json['attributes'])
         : null;
+
     sku = json['sku'];
     discountedPrice = json['discountedPrice'];
     actualPrice = json['actualPrice'];
@@ -254,16 +259,26 @@ class ProductVariation {
     isAvailable = json['isAvailable'];
     createdAt = json['createdAt'];
     updatedAt = json['updatedAt'];
-    product = json['product'] != null ? Product.fromJson(json['product']) : null;
+
+    product = json['product'] != null
+        ? Product.fromJson(json['product'])
+        : null;
+
+    // ✅ HANDLE VARIATION IMAGES (LIST OF STRINGS)
+    if (json['images'] != null) {
+      images = List<String>.from(json['images']);
+    }
   }
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = {};
+
     data['id'] = id;
     data['productId'] = productId;
     data['variationName'] = variationName;
     data['variationType'] = variationType;
     if (attributes != null) data['attributes'] = attributes!.toJson();
+
     data['sku'] = sku;
     data['discountedPrice'] = discountedPrice;
     data['actualPrice'] = actualPrice;
@@ -271,11 +286,15 @@ class ProductVariation {
     data['isAvailable'] = isAvailable;
     data['createdAt'] = createdAt;
     data['updatedAt'] = updatedAt;
+
     if (product != null) data['product'] = product!.toJson();
+
+    // ✅ ADD THIS
+    if (images != null) data['images'] = images;
+
     return data;
   }
 }
-
 // ── VariationAttributes ───────────────────────────────────────────────────────
 
 class VariationAttributes {

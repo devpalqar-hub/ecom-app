@@ -172,6 +172,7 @@ class ProductVariation {
   final bool isAvailable;
   final DateTime createdAt;
   final DateTime updatedAt;
+  final List<String> images;
 
   ProductVariation({
     required this.id,
@@ -179,6 +180,7 @@ class ProductVariation {
     required this.variationName,
     required this.variationType,
     this.attributes,
+    required this.images,
     required this.sku,
     required this.discountedPrice,
     required this.actualPrice,
@@ -197,6 +199,9 @@ class ProductVariation {
       attributes: json['attributes'] != null
           ? VariationAttributes.fromJson(json['attributes'])
           : null,
+      images: (json['images'] as List<dynamic>? ?? [])
+          .map((e) => e.toString())
+          .toList(),
       sku: json['sku'] ?? '',
       discountedPrice: json['discountedPrice']?.toString() ?? '0',
       actualPrice: json['actualPrice']?.toString() ?? '0',

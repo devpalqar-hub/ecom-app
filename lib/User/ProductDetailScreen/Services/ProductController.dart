@@ -26,34 +26,50 @@ class Productcontroller extends GetxController {
   String? selectedSize;
   String? selectedColor;
 
-  // Derived lists
-  List<String> get availableSizes {
-    if (product?.variations == null) return [];
-    return product!.variations!
-        .map((v) => v.attributes?.size)           // ✅ Fix #1
-        .where((s) => s != null && s.isNotEmpty)
-        .cast<String>()
-        .toSet()
-        .toList();
-  }
+
+String? getSizeImage(String size) {
+  final variation = product?.variations?.firstWhereOrNull(
+    (v) => v.attributes?.size == size,
+  );
+
+  return (variation?.images != null && variation!.images!.isNotEmpty)
+      ? variation.images!.first
+      : product?.images?.first.url;
+}
+
+String? getColorImage(String color) {
+  final variation = product?.variations?.firstWhereOrNull(
+    (v) => v.attributes?.color?.name == color,
+  );
+
+  return (variation?.images != null && variation!.images!.isNotEmpty)
+      ? variation.images!.first
+      : product?.images?.first.url;
+}
+List<String> get availableSizes {
+  final vars = product?.variations ?? [];
+  return vars
+      .map((v) => v.attributes?.size)
+      .whereType<String>()
+      .where((e) => e.isNotEmpty)
+      .toSet()
+      .toList();
+}
 
   List<String> get availableColors {
-    if (product?.variations == null) return [];
+  final vars = product?.variations ?? [];
 
-    var variations = product!.variations!;
-    if (selectedSize != null) {
-      variations = variations
-          .where((v) => v.attributes?.size == selectedSize)  // ✅ Fix #1
-          .toList();
-    }
+  final filtered = selectedSize != null
+      ? vars.where((v) => v.attributes?.size == selectedSize).toList()
+      : vars;
 
-    return variations
-        .map((v) => v.attributes?.color?.name)               // ✅ Fix #1
-        .where((c) => c != null && c.isNotEmpty)
-        .cast<String>()
-        .toSet()
-        .toList();
-  }
+  return filtered
+      .map((v) => v.attributes?.color?.name)
+      .whereType<String>()
+      .where((e) => e.isNotEmpty)
+      .toSet()
+      .toList();
+}
 
   // Check what type of variations exist
   bool get hasSizeVariations => availableSizes.isNotEmpty;
@@ -179,31 +195,55 @@ class Productcontroller extends GetxController {
   }
 
   Future<void> _syncCartState() async {
-    try {
-      var response = await get(
-        Uri.parse("$baseUrl/cart"),
-        headers: {"Authorization": "Bearer $accessToken"},
-      );
+  try {
+    final url = "$baseUrl/cart";
+    print("📡 REQUEST → GET: $url");
+    print("🔑 TOKEN: $accessToken");
 
-      if (response.statusCode == 200) {
-        final body = json.decode(response.body);
-        final items = body["data"]?["items"] as List<dynamic>? ?? [];
+    var response = await get(
+      Uri.parse(url),
+      headers: {
+        "Authorization": "Bearer $accessToken",
+        "Content-Type": "application/json",
+      },
+    );
 
-        cartedKeys = items
-            .where((item) => item["productId"] == productId)
-            .map<String>((item) {
-              final varId = item["productVariationId"];
-              return (varId != null && varId.toString().isNotEmpty)
-                  ? varId.toString()
-                  : item["productId"].toString();
-            })
-            .toSet();
-      }
-    } catch (e) {
-      print("Error syncing cart state: $e");
+    print("📥 RESPONSE STATUS: ${response.statusCode}");
+    print("📥 RESPONSE BODY: ${response.body}");
+
+    if (response.statusCode == 200) {
+      final body = json.decode(response.body);
+
+      print("📦 PARSED BODY: $body");
+
+      final items = body["data"]?["items"] as List<dynamic>? ?? [];
+
+      print("🛒 CART ITEMS COUNT: ${items.length}");
+
+      cartedKeys = items
+          .where((item) => item["productId"] == productId)
+          .map<String>((item) {
+            final varId = item["productVariationId"];
+            final key = (varId != null && varId.toString().isNotEmpty)
+                ? varId.toString()
+                : item["productId"].toString();
+
+            print("➡ ITEM MATCH → productId=${item["productId"]} varId=$varId key=$key");
+            return key;
+          })
+          .toSet();
+
+      print("✅ CARTED KEYS FINAL: $cartedKeys");
+    } else {
+      print("❌ CART API FAILED");
     }
-    update();
+  } catch (e, stack) {
+    print("🔥 ERROR syncing cart state: $e");
+    print("STACKTRACE: $stack");
   }
+
+  update();
+}
 
   Future<void> fetchRelatedProduct(String categoryID) async {
     releatedProducts = [];

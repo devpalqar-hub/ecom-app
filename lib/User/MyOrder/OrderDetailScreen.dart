@@ -418,9 +418,17 @@ Widget _orderItems(
       SizedBox(height: 12.h),
 
       ...items.map((item) {
-        final imageUrl = item.product.images.isNotEmpty
-            ? item.product.images.first.url
-            : null;
+      String? imageUrl;
+
+// 1. Variation image FIRST
+final variationImages = item.productVariation?.images;
+if (variationImages != null && variationImages.isNotEmpty) {
+  imageUrl = variationImages.first;
+}
+// 2. Product image fallback
+else if (item.product.images.isNotEmpty) {
+  imageUrl = item.product.images.first.url;
+}
 
         final attrs = item.productVariation?.attributes;
         final size = attrs?.size;
@@ -464,18 +472,18 @@ Widget _orderItems(
               children: [
                 Row(
                   children: [
-                    // Product image
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(8.r),
-                      child: imageUrl != null
-                          ? Image.network(
-                              imageUrl,
-                              width: 55.w,
-                              height: 55.w,
-                              fit: BoxFit.cover,
-                            )
-                          : _imagePlaceholder(),
-                    ),
+                ClipRRect(
+  borderRadius: BorderRadius.circular(8.r),
+  child: (imageUrl != null && imageUrl!.isNotEmpty)
+      ? Image.network(
+          imageUrl!,
+          width: 55.w,
+          height: 55.w,
+          fit: BoxFit.cover,
+          errorBuilder: (_, __, ___) => _imagePlaceholder(),
+        )
+      : _imagePlaceholder(),
+),
                     SizedBox(width: 10.w),
                     Expanded(
                       child: Column(
