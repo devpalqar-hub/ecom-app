@@ -18,7 +18,7 @@ class OrderController extends GetxController {
   final int limit = 10;
   final Map<String, int> reviewedProducts = {};
 
-  // ── NEW: tracks return submission loading state ──
+  
   var isReturnLoading = false.obs;
 
   @override
@@ -69,9 +69,6 @@ class OrderController extends GetxController {
   String selectedOrderID = "";
   Future<void> getOrderById(String orderId) async {
     try {
-      // isLoading.value = true;
-      // error.value = null;
-
       final response = await http.get(
         Uri.parse('$baseUrl/orders/$orderId'),
         headers: {
@@ -92,12 +89,12 @@ class OrderController extends GetxController {
         }
         update();
       } else {
-        //error.value = response.body;
+       
       }
     } catch (e) {
-      // error.value = e.toString();
+      
     } finally {
-      //  isLoading.value = false;
+    
       update();
     }
   }
@@ -153,9 +150,7 @@ class OrderController extends GetxController {
     String? comment,
   }) async {
     try {
-      // isLoading.value = true;
-      // error.value = null;
-
+     
       final response = await http.post(
         Uri.parse('$baseUrl/reviews'),
         headers: {
@@ -174,11 +169,9 @@ class OrderController extends GetxController {
         reviewedProducts[productId] = rating;
         update();
         getOrderById(orderId);
-        // ── BUG FIX: close the bottom sheet after successful review ──
-
+      
         Get.back();
-        //  getOrderById(selectedOrderID);
-
+      
         Fluttertoast.showToast(
           msg: 'Thank you! Review submitted successfully.',
         );

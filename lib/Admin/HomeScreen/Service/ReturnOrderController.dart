@@ -23,18 +23,16 @@ class ReturnOrderController extends GetxController {
     int page = 1,
     int limit = 20,
   }) async {
-    //  try {
+
     isLoading = true;
     update();
 
-    /// 🔹 Get token
     final prefs = await SharedPreferences.getInstance();
     String? token = prefs.getString("access_token");
 
-    //print("========== FETCH RETURNS START ==========");
-
+   
     if (token == null || token.isEmpty) {
-      //print("❌ TOKEN MISSING");
+     
       showAppNotification(
         "Session expired. Please login again",
         type: AppNotificationType.error,
@@ -42,7 +40,7 @@ class ReturnOrderController extends GetxController {
       return;
     }
 
-    /// 🔹 Build URL
+    
     String url =
         "$baseUrl/returns/delivery-partner/my-returns?page=$page&limit=$limit&status=pending";
 
@@ -50,10 +48,6 @@ class ReturnOrderController extends GetxController {
       url = "$url?orderId=$orderId";
     }
 
-    //print("📡 REQUEST URL => $url");
-    //print("🔑 TOKEN => Bearer $token");
-
-    /// 🔹 API CALL
     final response = await http.get(
       Uri.parse(url),
       headers: {
@@ -62,48 +56,35 @@ class ReturnOrderController extends GetxController {
       },
     );
 
-    /// 🔹 RESPONSE DEBUG
-    //print("✅ STATUS CODE => ${response.statusCode}");
-    //print("📦 RAW RESPONSE BODY =>");
-    print(response.body);
-
     final data = jsonDecode(response.body);
 
-    /// 🔹 SUCCESS CASE
+    
     if (response.statusCode == 200 && data["success"] == true) {
       final List<dynamic> list = data['data']?['data'] ?? [];
 
-      /// ✅ Clear old list
-      returnOrders.clear();
 
-      /// ✅ Parse model
+
       returnOrders.addAll(
         list.map((e) {
-          //  //print("➡️ Parsing Order ID: ${e['_id']}");
+        
           return ReturnOrder.fromJson(e);
         }).toList(),
       );
 
-      /// ✅ Copy for filtering
+     
       filteredReturnOrders = List.from(returnOrders);
 
-      //print("✅ Parsed Return Orders Count => ${returnOrders.length}");
+     
     } else {
-      //print("❌ API ERROR => ${data["message"]}");
+    
       showAppNotification(
         data["message"] ?? "Failed to fetch return orders",
         type: AppNotificationType.error,
       );
     }
-    // } catch (e, stack) {
-    //   //print("🚨 RETURN ERROR => $e");
-    //   //print("STACK TRACE => $stack");
-
-    //   Get.snackbar("Error", "Failed to fetch return orders");
-    // }
-
+   
     isLoading = false;
     update();
-    //print("========== FETCH RETURNS END ==========");
+   
   }
 }
