@@ -172,9 +172,15 @@ class SearchProductScreen extends StatelessWidget {
                         productId: data.id,
                         category: data.subCategory.name,
                         title: data.name,
-                        imageUrl: (data.images == null || data.images.isEmpty)
-                            ? ""
-                            : data.images.first.url ?? "",
+                       imageUrl: data.images.isEmpty
+    ? ""
+    : (data.images
+              .where((img) => img.isMain)
+              .isNotEmpty
+          ? data.images
+              .firstWhere((img) => img.isMain)
+              .url
+          : data.images.first.url),
                         price: data.discountedPrice,
                       );
                     },

@@ -46,14 +46,54 @@ String? getColorImage(String color) {
       ? variation.images!.first
       : product?.images?.first.url;
 }
+
 List<String> get availableSizes {
   final vars = product?.variations ?? [];
-  return vars
+
+  final sizes = vars
       .map((v) => v.attributes?.size)
       .whereType<String>()
       .where((e) => e.isNotEmpty)
       .toSet()
       .toList();
+
+  // Sort ascending
+  sizes.sort((a, b) {
+    // Try numeric sort first (for sizes like 28, 30, 32)
+    final aNum = int.tryParse(a);
+    final bNum = int.tryParse(b);
+
+    if (aNum != null && bNum != null) {
+      return aNum.compareTo(bNum);
+    }
+
+    // Standard clothing size order
+    const sizeOrder = [
+      "XXS",
+      "XS",
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL",
+      "3XL",
+        "4XL",
+          "5XL",
+            "6XL",
+    ];
+
+    final aIndex = sizeOrder.indexOf(a.toUpperCase());
+    final bIndex = sizeOrder.indexOf(b.toUpperCase());
+
+    if (aIndex != -1 && bIndex != -1) {
+      return aIndex.compareTo(bIndex);
+    }
+
+    // Fallback alphabetical
+    return a.compareTo(b);
+  });
+
+  return sizes;
 }
 
   List<String> get availableColors {
@@ -93,54 +133,68 @@ List<String> get availableSizes {
   // ── Selection methods ─────────────────────────────────────────────────────
 
   void selectSize(String size) {
-    selectedSize = size;
-
-    if (selectedColor != null && !availableColors.contains(selectedColor)) {
-      selectedColor = null;
-    }
-
-    if (availableColors.length == 1) {
-      selectedColor = availableColors.first;
-    }
-
-    _updateSelectedVariation();
+  // Toggle unselect
+  if (selectedSize == size) {
+    selectedSize = null;
+    selectedVariation = null;
     update();
+    return;
   }
+
+  selectedSize = size;
+
+  // Remove invalid color
+  if (selectedColor != null &&
+      !availableColors.contains(selectedColor)) {
+    selectedColor = null;
+  }
+
+  _updateSelectedVariation();
+  update();
+}
 
   void selectColor(String color) {
-    selectedColor = color;
-
-    if (selectedSize == null && hasSizeVariations) {
-      final sizesWithColor = product!.variations!
-          .where((v) => v.attributes?.color?.name == color)  // ✅ Fix #1
-          .map((v) => v.attributes?.size)                    // ✅ Fix #1
-          .where((s) => s != null)
-          .toSet()
-          .toList();
-
-      if (sizesWithColor.length == 1) {
-        selectedSize = sizesWithColor.first;
-      }
-    }
-
-    _updateSelectedVariation();
+  // Toggle unselect
+  if (selectedColor == color) {
+    selectedColor = null;
+    selectedVariation = null;
     update();
+    return;
   }
 
-  void _updateSelectedVariation() {
-    if (product?.variations == null) return;
+  selectedColor = color;
 
-    selectedVariation = product!.variations!.firstWhere(
-      (v) {
-        final sizeMatch =
-            selectedSize == null || v.attributes?.size == selectedSize;       // ✅ Fix #1
-        final colorMatch = selectedColor == null ||
-            v.attributes?.color?.name == selectedColor;                       // ✅ Fix #1
-        return sizeMatch && colorMatch;
-      },
-      orElse: () => product!.variations!.first,
-    );
+  _updateSelectedVariation();
+  update();
+}
+
+void _updateSelectedVariation() {
+  if (product?.variations == null) return;
+
+  // Nothing selected
+  if (selectedSize == null &&
+      selectedColor == null) {
+    selectedVariation = null;
+    return;
   }
+
+  selectedVariation =
+      product!.variations!.firstWhereOrNull(
+    (v) {
+      final sizeMatch = selectedSize == null ||
+          v.attributes?.size == selectedSize;
+
+      final colorMatch = selectedColor == null ||
+          v.attributes?.color?.name ==
+              selectedColor;
+
+      return sizeMatch && colorMatch;
+    },
+  );
+
+  update();
+}
+  
 
   // Check if a specific size/color combo is in cart
   bool isVariationInCart(String? size, String? color) {
@@ -172,16 +226,12 @@ List<String> get availableSizes {
         var data = json.decode(response.body);
         product = ProductDetailModel.fromJson(data["data"]);
 
-        if (hasVariations) {
-          if (hasSizeVariations) {
-            selectedSize = availableSizes.first;
-          }
-          if (hasColorVariations) {
-            selectedColor =
-                availableColors.isNotEmpty ? availableColors.first : null;
-          }
-          _updateSelectedVariation();
-        }
+      if (hasVariations) {
+  // No variation selected by default
+  selectedSize = null;
+  selectedColor = null;
+  selectedVariation = null;
+}
 
         await _syncCartState();
         fetchRelatedProduct(product!.subCategory!.categoryId!);

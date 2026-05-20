@@ -32,14 +32,20 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     ctrl = Get.put(Productcontroller(widget.productId), tag: widget.productId);
   }
 
-  // ONLY ADD THIS HELPER INSIDE STATE CLASS
-List<String> get _carouselImages {
-  final variationImages = ctrl.selectedVariation?.images;
+  List<String> get _carouselImages {
+  // Selected variation images
+  final variationImages =
+      ctrl.selectedVariation?.images
+          ?.where((e) => e.isNotEmpty)
+          .toList() ??
+      [];
 
-  if (variationImages != null && variationImages.isNotEmpty) {
+  // If variation selected and has images
+  if (variationImages.isNotEmpty) {
     return variationImages;
   }
 
+  // Default product images
   return ctrl.product?.images
           ?.map((e) => e.url ?? "")
           .where((e) => e.isNotEmpty)
