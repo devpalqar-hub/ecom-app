@@ -601,68 +601,45 @@ if (___.hasVariations) ...[
       child: Row(
         children: [
           SizedBox(width: 16.w),
-          for (final color in ___.availableColors)
-            GestureDetector(
-              onTap: () => ___.selectColor(color),
-              child: Container(
-                padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
-                margin: EdgeInsets.only(right: 10.w),
-                decoration: BoxDecoration(
-                  color: ___.selectedColor == color
-                      ? const Color(0xFFAE933F)
-                      : Colors.white,
-                  border: Border.all(
-                    color: ___.selectedColor == color
-                        ? const Color(0xFFAE933F)
-                        : Colors.black12,
-                    width: 1.5,
-                  ),
-                  borderRadius: BorderRadius.circular(8.r),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // Color swatch
-                    Container(
-                      width: 20.w,
-                      height: 20.w,
-                      decoration: BoxDecoration(
-                        color: Color(
-                          int.parse(
-                            (___.getColorHex(color) ?? '#cccccc')
-                                .replaceFirst('#', '0xFF'),
-                          ),
-                        ),
-                        shape: BoxShape.circle,
-                        border: Border.all(color: Colors.black12),
-                      ),
-                    ),
-                    SizedBox(width: 8.w),
-                    Text(
-                      color,
-                      style: GoogleFonts.montserrat(
-                        fontSize: 13.sp,
-                        fontWeight: FontWeight.w500,
-                        color: ___.selectedColor == color
-                            ? Colors.white
-                            : Colors.black87,
-                      ),
-                    ),
-                    // Cart indicator
-                    if (___.isVariationInCart(___.selectedSize, color)) ...[
-                      SizedBox(width: 6.w),
-                      Icon(
-                        Icons.shopping_cart_rounded,
-                        size: 14.sp,
-                        color: ___.selectedColor == color
-                            ? Colors.white
-                            : const Color(0xFFAE933F),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
+        for (final color in ___.availableColors)
+  GestureDetector(
+    onTap: () => ___.selectColor(color),
+    child: Container(
+      margin: EdgeInsets.only(right: 10.w),
+      padding: EdgeInsets.all(4.w),
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        border: Border.all(
+          color: ___.selectedColor == color
+              ? const Color(0xFFAE933F)
+              : Colors.black12,
+          width: 2,
+        ),
+      ),
+      child: Container(
+        width: 26.w,
+        height: 26.w,
+        decoration: BoxDecoration(
+          color: Color(
+            int.parse(
+              (___.getColorHex(color) ?? '#cccccc')
+                  .replaceFirst('#', '0xFF'),
             ),
+          ),
+          shape: BoxShape.circle,
+        ),
+        child: ___.isVariationInCart(___.selectedSize, color)
+            ? const Center(
+                child: Icon(
+                  Icons.shopping_cart_rounded,
+                  size: 14,
+                  color: Colors.white,
+                ),
+              )
+            : null,
+      ),
+    ),
+  ),
         ],
       ),
     ),
