@@ -15,18 +15,13 @@ import 'package:webview_flutter_wkwebview/webview_flutter_wkwebview.dart';
 class AdminWebViewScreen extends StatefulWidget {
   final String accessToken;
 
-  const AdminWebViewScreen({
-    super.key,
-    required this.accessToken,
-  });
+  const AdminWebViewScreen({super.key, required this.accessToken});
 
   @override
-  State<AdminWebViewScreen> createState() =>
-      _AdminWebViewScreenState();
+  State<AdminWebViewScreen> createState() => _AdminWebViewScreenState();
 }
 
-class _AdminWebViewScreenState
-    extends State<AdminWebViewScreen> {
+class _AdminWebViewScreenState extends State<AdminWebViewScreen> {
   late final WebViewController _controller;
 
   bool _isLoading = true;
@@ -39,11 +34,9 @@ class _AdminWebViewScreenState
 
   /// ================= BASE URL =================
 
-  static const String baseUrl =
-      "https://admin.raheeb.qa";
+  static const String baseUrl = "https://admin.raheeb.qa";
 
-  String get initialUrl =>
-      "$baseUrl/mobile/${widget.accessToken}";
+  String get initialUrl => "$baseUrl/mobile/${widget.accessToken}";
 
   /// ================= INIT =================
 
@@ -56,70 +49,42 @@ class _AdminWebViewScreenState
   /// ================= WEBVIEW INIT =================
 
   void _initializeWebView() {
-    late final PlatformWebViewControllerCreationParams
-        params;
+    late final PlatformWebViewControllerCreationParams params;
 
-    if (WebViewPlatform.instance
-        is WebKitWebViewPlatform) {
-      params =
-          WebKitWebViewControllerCreationParams(
+    if (WebViewPlatform.instance is WebKitWebViewPlatform) {
+      params = WebKitWebViewControllerCreationParams(
         allowsInlineMediaPlayback: true,
-        mediaTypesRequiringUserAction:
-            const <PlaybackMediaTypes>{},
+        mediaTypesRequiringUserAction: const <PlaybackMediaTypes>{},
       );
     } else {
-      params =
-          const PlatformWebViewControllerCreationParams();
+      params = const PlatformWebViewControllerCreationParams();
     }
 
-    _controller =
-        WebViewController.fromPlatformCreationParams(
-      params,
-    );
+    _controller = WebViewController.fromPlatformCreationParams(params);
 
     _controller
-      ..setJavaScriptMode(
-        JavaScriptMode.unrestricted,
-      )
+      ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..setBackgroundColor(Colors.white)
       ..enableZoom(false)
-      ..setNavigationDelegate(
-        _navigationDelegate,
-      )
-      ..addJavaScriptChannel(
-        "FlutterBridge",
-        onMessageReceived: _onJsMessage,
-      )
-      ..loadRequest(
-        Uri.parse(initialUrl),
-      );
+      ..setNavigationDelegate(_navigationDelegate)
+      ..addJavaScriptChannel("FlutterBridge", onMessageReceived: _onJsMessage)
+      ..loadRequest(Uri.parse(initialUrl));
 
     /// ================= ANDROID CONFIG =================
 
-    if (_controller.platform
-        is AndroidWebViewController) {
+    if (_controller.platform is AndroidWebViewController) {
       final androidController =
-          _controller.platform
-              as AndroidWebViewController;
+          _controller.platform as AndroidWebViewController;
 
-      AndroidWebViewController.enableDebugging(
-        false,
-      );
+      AndroidWebViewController.enableDebugging(false);
 
       androidController
-        ..setMediaPlaybackRequiresUserGesture(
-          false,
-        )
-        ..setOverScrollMode(
-          WebViewOverScrollMode.never,
-        )
-        ..setOnShowFileSelector(
-          _androidFilePicker,
-        )
+        ..setMediaPlaybackRequiresUserGesture(false)
+        ..setOverScrollMode(WebViewOverScrollMode.never)
+        ..setOnShowFileSelector(_androidFilePicker)
         ..setGeolocationPermissionsPromptCallbacks(
           onShowPrompt: (request) async {
-            final status =
-                await Permission.location.request();
+            final status = await Permission.location.request();
 
             return GeolocationPermissionsResponse(
               allow: status.isGranted,
@@ -132,81 +97,79 @@ class _AdminWebViewScreenState
 
   /// ================= NAVIGATION =================
 
-  NavigationDelegate get _navigationDelegate =>
-      NavigationDelegate(
-        onProgress: (progress) {
-          if (!mounted) return;
+  NavigationDelegate get _navigationDelegate => NavigationDelegate(
+    onProgress: (progress) {
+      if (!mounted) return;
 
-          setState(() {
-            _progress = progress;
-          });
-        },
+      setState(() {
+        _progress = progress;
+      });
+    },
 
-        onPageStarted: (url) {
-          log("PAGE STARTED: $url");
+    onPageStarted: (url) {
+      log("PAGE STARTED: $url");
 
-          if (!mounted) return;
+      if (!mounted) return;
 
-          setState(() {
-            _isLoading = true;
-            _hasError = false;
-          });
-        },
+      setState(() {
+        _isLoading = true;
+        _hasError = false;
+      });
+    },
 
-        onPageFinished: (url) async {
-          log("PAGE FINISHED: $url");
+    onPageFinished: (url) async {
+      log("PAGE FINISHED: $url");
 
-          if (!mounted) return;
+      if (!mounted) return;
 
-          setState(() {
-            _isLoading = false;
-          });
+      setState(() {
+        _isLoading = false;
+      });
 
-          await _injectWebFixes();
+      await _injectWebFixes();
 
-          if (_isLoginUrl(url)) {
-            _handleLogout();
-          }
-        },
+      if (_isLoginUrl(url)) {
+        _handleLogout();
+      }
+    },
 
-        onNavigationRequest: (request) async {
-          final url = request.url;
+    onNavigationRequest: (request) async {
+      final url = request.url;
 
-          log("NAVIGATION: $url");
+      log("NAVIGATION: $url");
 
-          /// Logout detection
-          if (_isLoginUrl(url)) {
-            _handleLogout();
+      /// Logout detection
+      if (_isLoginUrl(url)) {
+        _handleLogout();
 
-            return NavigationDecision.prevent;
-          }
+        return NavigationDecision.prevent;
+      }
 
-          /// Internal URLs
-          if (url.startsWith(baseUrl)) {
-            return NavigationDecision.navigate;
-          }
+      /// Internal URLs
+      if (url.startsWith(baseUrl)) {
+        return NavigationDecision.navigate;
+      }
 
-          /// External apps / links
-          await _openExternal(url);
+      /// External apps / links
+      await _openExternal(url);
 
-          return NavigationDecision.prevent;
-        },
+      return NavigationDecision.prevent;
+    },
 
-        onWebResourceError: (error) {
-          if (error.isForMainFrame ?? true) {
-            log("WEBVIEW ERROR: ${error.description}");
+    onWebResourceError: (error) {
+      if (error.isForMainFrame ?? true) {
+        log("WEBVIEW ERROR: ${error.description}");
 
-            if (!mounted) return;
+        if (!mounted) return;
 
-            setState(() {
-              _hasError = true;
-              _isLoading = false;
-              _errorMessage =
-                  error.description;
-            });
-          }
-        },
-      );
+        setState(() {
+          _hasError = true;
+          _isLoading = false;
+          _errorMessage = error.description;
+        });
+      }
+    },
+  );
 
   /// ================= JS CHANNEL =================
 
@@ -305,22 +268,15 @@ class _AdminWebViewScreenState
 
   /// ================= FILE PICKER =================
 
-  Future<List<String>> _androidFilePicker(
-    FileSelectorParams params,
-  ) async {
+  Future<List<String>> _androidFilePicker(FileSelectorParams params) async {
     try {
-      final result =
-          await FilePicker.platform.pickFiles(
-        allowMultiple: false,
-      );
+      final result = await FilePicker.platform.pickFiles(allowMultiple: false);
 
-      if (result == null ||
-          result.files.isEmpty) {
+      if (result == null || result.files.isEmpty) {
         return [];
       }
 
-      final path =
-          result.files.single.path;
+      final path = result.files.single.path;
 
       if (path == null) return [];
 
@@ -339,14 +295,11 @@ class _AdminWebViewScreenState
     _logoutHandled = true;
 
     try {
-      final prefs =
-          await SharedPreferences.getInstance();
+      final prefs = await SharedPreferences.getInstance();
 
       await prefs.clear();
 
-      Get.offAll(
-        () => LoginScreen(),
-      );
+      Get.offAll(() => LoginScreen());
     } catch (e) {
       log("LOGOUT ERROR: $e");
     }
@@ -366,18 +319,12 @@ class _AdminWebViewScreenState
 
   /// ================= OPEN EXTERNAL =================
 
-  Future<void> _openExternal(
-    String url,
-  ) async {
+  Future<void> _openExternal(String url) async {
     try {
       final uri = Uri.parse(url);
 
       if (await canLaunchUrl(uri)) {
-        await launchUrl(
-          uri,
-          mode:
-              LaunchMode.externalApplication,
-        );
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
       }
     } catch (e) {
       log("EXTERNAL URL ERROR: $e");
@@ -423,33 +370,22 @@ class _AdminWebViewScreenState
           child: Stack(
             children: [
               /// ================= WEBVIEW =================
-
               RefreshIndicator(
                 onRefresh: _refresh,
-                child: WebViewWidget(
-                  controller: _controller,
-                ),
+                child: WebViewWidget(controller: _controller),
               ),
 
               /// ================= LOADER =================
-
               if (_isLoading)
-                LinearProgressIndicator(
-                  value: _progress / 100,
-                  minHeight: 3,
-                ),
+                LinearProgressIndicator(value: _progress / 100, minHeight: 3),
 
               /// ================= ERROR =================
-
               if (_hasError)
                 Center(
                   child: Padding(
-                    padding:
-                        const EdgeInsets.all(24),
+                    padding: const EdgeInsets.all(24),
                     child: Column(
-                      mainAxisAlignment:
-                          MainAxisAlignment
-                              .center,
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         const Icon(
                           Icons.wifi_off,
@@ -463,8 +399,7 @@ class _AdminWebViewScreenState
                           "Something went wrong",
                           style: TextStyle(
                             fontSize: 18,
-                            fontWeight:
-                                FontWeight.w600,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
 
@@ -472,20 +407,15 @@ class _AdminWebViewScreenState
 
                         Text(
                           _errorMessage,
-                          textAlign:
-                              TextAlign.center,
-                          style: TextStyle(
-                            color: Colors.grey,
-                          ),
+                          textAlign: TextAlign.center,
+                          style: TextStyle(color: Colors.grey),
                         ),
 
                         const SizedBox(height: 24),
 
                         ElevatedButton(
                           onPressed: _refresh,
-                          child: const Text(
-                            "Retry",
-                          ),
+                          child: const Text("Retry"),
                         ),
                       ],
                     ),
