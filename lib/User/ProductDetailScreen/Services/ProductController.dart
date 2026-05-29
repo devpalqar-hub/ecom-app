@@ -47,6 +47,21 @@ String? getColorImage(String color) {
       : product?.images?.first.url;
 }
 
+bool get isVariationSelected {
+  if (!hasVariations) return true;
+
+  if (hasSizeVariations && (selectedSize == null || selectedSize!.isEmpty)) {
+    return false;
+  }
+
+  if (hasColorVariations &&
+      (selectedColor == null || selectedColor!.isEmpty)) {
+    return false;
+  }
+
+  return true;
+}
+
 List<String> get availableSizes {
   final vars = product?.variations ?? [];
 

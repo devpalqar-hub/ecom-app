@@ -183,7 +183,16 @@ void showSizeChartPopup(String imageUrl) {
             builder: (___) {
               if (___.product == null) return const SizedBox();
               return IconButton(
-                onPressed: () => ___.toggleWishlist(),
+               onPressed: () {
+  if (!___.isVariationSelected) {
+    Fluttertoast.showToast(
+      msg: "Please select variation ",
+    );
+    return;
+  }
+
+  ___.toggleWishlist();
+},
                 icon: ___.isWishlistLoading
                     ? SizedBox(
                         width: 20.w,
@@ -274,26 +283,37 @@ void showSizeChartPopup(String imageUrl) {
 
                   // Cart button
                   InkWell(
-                    onTap: () {
-                      if (login != "IN") {
-                        showLoginDialog();
-                        return;
-                      }
-                      if (!___.checkStock()) {
-                        Fluttertoast.showToast(msg: "Product is out of stock");
-                        return;
-                      }
-                      // If already in cart → navigate to cart screen
-                      // If not → add to cart
-                      if (___.isCurrentInCart) {
-                        Get.to(
-                          () => CartScreen(),
-                          transition: Transition.rightToLeft,
-                        );
-                      } else {
-                        ___.addToCart();
-                      }
-                    },
+                   onTap: () {
+  if (login != "IN") {
+    showLoginDialog();
+    return;
+  }
+
+  
+  if (!___.isVariationSelected) {
+    Fluttertoast.showToast(
+      msg: "Please select variation ",
+    );
+    return;
+  }
+
+  if (!___.checkStock()) {
+    Fluttertoast.showToast(
+      msg: "Product is out of stock",
+    );
+    return;
+  }
+
+
+  if (___.isCurrentInCart) {
+    Get.to(
+      () => CartScreen(),
+      transition: Transition.rightToLeft,
+    );
+  } else {
+    ___.addToCart();
+  }
+},
                     child: Container(
                       width: 180.w,
                       height: 45.h,
