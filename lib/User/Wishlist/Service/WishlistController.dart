@@ -21,11 +21,22 @@ class WishlistController extends GetxController {
   void setMinPrice(double value) => minPrice.value = value;
   void setMaxPrice(double value) => maxPrice.value = value;
 
-  bool isProductWishlisted(String productId) {
-    return wishlistItems.any(
-      (item) => item.product?.id == productId,
-    );
-  }
+ 
+ bool isProductWishlisted({
+  required String productId,
+  String? productVariationId,
+}) {
+  return wishlistItems.any((item) {
+    final sameProduct = item.product?.id == productId;
+
+    final sameVariation =
+        (item.productVariationId ?? "") ==
+        (productVariationId ?? "");
+
+    return sameProduct && sameVariation;
+  });
+}
+
 Future<void> addToWishlist({
   String? productId,
   String? productVariationId,

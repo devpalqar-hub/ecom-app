@@ -21,6 +21,7 @@ class Productcontroller extends GetxController {
   bool isWishlistLoading = false;
   bool isCartLoading = false;
   Set<String> cartedKeys = {};
+  Set<String> wishlistedKeys = {};
 
   // ── Variation selection state ─────────────────────────────────────────────
   String? selectedSize;
@@ -225,7 +226,12 @@ void _updateSelectedVariation() {
   // ── Rest of your existing code... ─────────────────────────────────────────
 
   String get _currentCartKey => selectedVariation?.id ?? productId;
+  
   bool get isCurrentInCart => cartedKeys.contains(_currentCartKey);
+
+  String get _currentWishlistKey => selectedVariation?.id ?? productId;
+
+bool get isCurrentWishlisted =>wishlistedKeys.contains(_currentWishlistKey);
 
   Future<void> fetchProduct() async {
     isLoading = true;
@@ -379,17 +385,26 @@ void _updateSelectedVariation() {
   // ── Wishlist ──────────────────────────────────────────────────────────────
 
   Future<void> toggleWishlist() async {
-    if (isWishlistLoading) return;
-    if (login != "IN") {
-      showLoginDialog();
-      return;
-    }
-    if (product?.isWishlisted ?? false) {
-      await removeFromWishlist();
-    } else {
-      await addToWishlist();
-    }
+  if (isWishlistLoading) return;
+
+  if (login != "IN") {
+    showLoginDialog();
+    return;
   }
+
+  if (hasVariations && selectedVariation == null) {
+    Fluttertoast.showToast(
+      msg: "Please select variation",
+    );
+    return;
+  }
+
+  if (isCurrentWishlisted) {
+    await removeFromWishlist();
+  } else {
+    await addToWishlist();
+  }
+}
 
   Future<void> addToWishlist() async {
     isWishlistLoading = true;
@@ -411,7 +426,7 @@ void _updateSelectedVariation() {
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        product!.isWishlisted = true;
+       wishlistedKeys.add(_currentWishlistKey);
         Fluttertoast.showToast(msg: "Added to wishlist");
       } else {
         Fluttertoast.showToast(msg: "Failed to add to wishlist");
@@ -436,7 +451,7 @@ void _updateSelectedVariation() {
       );
 
       if (response.statusCode == 200 || response.statusCode == 204) {
-        product!.isWishlisted = false;
+      wishlistedKeys.remove(_currentWishlistKey);
       } else {
         Fluttertoast.showToast(msg: "Failed to remove from wishlist");
       }
@@ -449,7 +464,7 @@ void _updateSelectedVariation() {
     update();
   }
 
-  // ── Cart ──────────────────────────────────────────────────────────────────
+ 
 
   Future<void> toggleCart() async {
     if (isCartLoading) return;

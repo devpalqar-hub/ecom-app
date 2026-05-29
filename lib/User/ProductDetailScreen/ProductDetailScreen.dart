@@ -203,7 +203,7 @@ void showSizeChartPopup(String imageUrl) {
                         ),
                       )
                     : Icon(
-                        (___.product!.isWishlisted ?? false)
+                    ___.isCurrentWishlisted
                             ? Icons.favorite
                             : Icons.favorite_border,
                         color: const Color(0xFFAE933F),
