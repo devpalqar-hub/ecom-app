@@ -17,7 +17,7 @@ class Productcontroller extends GetxController {
   List<ProductModel> releatedProducts = [];
   bool isLoading = true;
   Variations? selectedVariation;
-  int? selectedVariationIndex; // ✅ Fix #2: declare missing field
+  int? selectedVariationIndex;
   bool isWishlistLoading = false;
   bool isCartLoading = false;
   Set<String> cartedKeys = {};
@@ -27,211 +27,241 @@ class Productcontroller extends GetxController {
   String? selectedSize;
   String? selectedColor;
 
+  String? getSizeImage(String size) {
+    final variation = product?.variations?.firstWhereOrNull(
+      (v) => v.attributes?.size == size,
+    );
 
-String? getSizeImage(String size) {
-  final variation = product?.variations?.firstWhereOrNull(
-    (v) => v.attributes?.size == size,
-  );
-
-  return (variation?.images != null && variation!.images!.isNotEmpty)
-      ? variation.images!.first
-      : product?.images?.first.url;
-}
-
-String? getColorImage(String color) {
-  final variation = product?.variations?.firstWhereOrNull(
-    (v) => v.attributes?.color?.name == color,
-  );
-
-  return (variation?.images != null && variation!.images!.isNotEmpty)
-      ? variation.images!.first
-      : product?.images?.first.url;
-}
-
-bool get isVariationSelected {
-  if (!hasVariations) return true;
-
-  if (hasSizeVariations && (selectedSize == null || selectedSize!.isEmpty)) {
-    return false;
+    return (variation?.images != null && variation!.images!.isNotEmpty)
+        ? variation.images!.first
+        : product?.images?.first.url;
   }
 
-  if (hasColorVariations &&
-      (selectedColor == null || selectedColor!.isEmpty)) {
-    return false;
+  String? getColorImage(String color) {
+    final variation = product?.variations?.firstWhereOrNull(
+      (v) => v.attributes?.color?.name == color,
+    );
+
+    return (variation?.images != null && variation!.images!.isNotEmpty)
+        ? variation.images!.first
+        : product?.images?.first.url;
   }
 
-  return true;
-}
+  bool get isVariationSelected {
+    if (!hasVariations) return true;
 
-List<String> get availableSizes {
-  final vars = product?.variations ?? [];
-
-  final sizes = vars
-      .map((v) => v.attributes?.size)
-      .whereType<String>()
-      .where((e) => e.isNotEmpty)
-      .toSet()
-      .toList();
-
-  // Sort ascending
-  sizes.sort((a, b) {
-    // Try numeric sort first (for sizes like 28, 30, 32)
-    final aNum = int.tryParse(a);
-    final bNum = int.tryParse(b);
-
-    if (aNum != null && bNum != null) {
-      return aNum.compareTo(bNum);
+    if (hasSizeVariations && (selectedSize == null || selectedSize!.isEmpty)) {
+      return false;
     }
 
-    // Standard clothing size order
-    const sizeOrder = [
-      "XXS",
-      "XS",
-      "S",
-      "M",
-      "L",
-      "XL",
-      "XXL",
-      "3XL",
+    if (hasColorVariations &&
+        (selectedColor == null || selectedColor!.isEmpty)) {
+      return false;
+    }
+
+    return true;
+  }
+
+  List<String> get availableSizes {
+    final vars = product?.variations ?? [];
+
+    final sizes = vars
+        .map((v) => v.attributes?.size)
+        .whereType<String>()
+        .where((e) => e.isNotEmpty)
+        .toSet()
+        .toList();
+
+    // Sort ascending
+    sizes.sort((a, b) {
+      // Try numeric sort first (for sizes like 28, 30, 32)
+      final aNum = int.tryParse(a);
+      final bNum = int.tryParse(b);
+
+      if (aNum != null && bNum != null) {
+        return aNum.compareTo(bNum);
+      }
+
+      // Standard clothing size order
+      const sizeOrder = [
+        "XXS",
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL",
+        "3XL",
         "4XL",
-          "5XL",
-            "6XL",
-    ];
+        "5XL",
+        "6XL",
+      ];
 
-    final aIndex = sizeOrder.indexOf(a.toUpperCase());
-    final bIndex = sizeOrder.indexOf(b.toUpperCase());
+      final aIndex = sizeOrder.indexOf(a.toUpperCase());
+      final bIndex = sizeOrder.indexOf(b.toUpperCase());
 
-    if (aIndex != -1 && bIndex != -1) {
-      return aIndex.compareTo(bIndex);
-    }
+      if (aIndex != -1 && bIndex != -1) {
+        return aIndex.compareTo(bIndex);
+      }
 
-    // Fallback alphabetical
-    return a.compareTo(b);
-  });
+      // Fallback alphabetical
+      return a.compareTo(b);
+    });
 
-  return sizes;
-}
+    return sizes;
+  }
 
   List<String> get availableColors {
-  final vars = product?.variations ?? [];
+    final vars = product?.variations ?? [];
 
-  final filtered = selectedSize != null
-      ? vars.where((v) => v.attributes?.size == selectedSize).toList()
-      : vars;
+    final filtered = selectedSize != null
+        ? vars.where((v) => v.attributes?.size == selectedSize).toList()
+        : vars;
 
-  return filtered
-      .map((v) => v.attributes?.color?.name)
-      .whereType<String>()
-      .where((e) => e.isNotEmpty)
-      .toSet()
-      .toList();
-}
+    return filtered
+        .map((v) => v.attributes?.color?.name)
+        .whereType<String>()
+        .where((e) => e.isNotEmpty)
+        .toSet()
+        .toList();
+  }
 
   // Check what type of variations exist
   bool get hasSizeVariations => availableSizes.isNotEmpty;
   bool get hasColorVariations {
     if (product?.variations == null) return false;
-    return product!.variations!
-        .any((v) => v.attributes?.color?.name != null);      // ✅ Fix #1
+    return product!.variations!.any(
+      (v) => v.attributes?.color?.name != null,
+    ); // ✅ Fix #1
   }
+
   bool get hasVariations =>
       product?.variations != null && product!.variations!.isNotEmpty;
 
   // Get color hex for display
   String? getColorHex(String colorName) {
     final variation = product?.variations?.firstWhere(
-      (v) => v.attributes?.color?.name == colorName,         // ✅ Fix #1
+      (v) => v.attributes?.color?.name == colorName, // ✅ Fix #1
       orElse: () => Variations(),
     );
-    return variation?.attributes?.color?.hex;                // ✅ Fix #1
+    return variation?.attributes?.color?.hex; // ✅ Fix #1
   }
 
   // ── Selection methods ─────────────────────────────────────────────────────
 
   void selectSize(String size) {
-  // Toggle unselect
-  if (selectedSize == size) {
-    selectedSize = null;
-    selectedVariation = null;
+    // Toggle unselect
+    if (selectedSize == size) {
+      selectedSize = null;
+      selectedVariation = null;
+      update();
+      return;
+    }
+
+    selectedSize = size;
+
+    // Remove invalid color
+    if (selectedColor != null && !availableColors.contains(selectedColor)) {
+      selectedColor = null;
+    }
+
+    // Auto-select color if only one option exists
+    if (hasColorVariations && availableColors.length == 1) {
+      selectedColor = availableColors.first;
+    }
+
+    _updateSelectedVariation();
     update();
-    return;
   }
-
-  selectedSize = size;
-
-  // Remove invalid color
-  if (selectedColor != null &&
-      !availableColors.contains(selectedColor)) {
-    selectedColor = null;
-  }
-
-  _updateSelectedVariation();
-  update();
-}
 
   void selectColor(String color) {
-  // Toggle unselect
-  if (selectedColor == color) {
-    selectedColor = null;
-    selectedVariation = null;
+    // Toggle unselect
+    if (selectedColor == color) {
+      selectedColor = null;
+      selectedVariation = null;
+      update();
+      return;
+    }
+
+    selectedColor = color;
+
+    _updateSelectedVariation();
     update();
-    return;
   }
 
-  selectedColor = color;
+  void _updateSelectedVariation() {
+    if (product?.variations == null) return;
 
-  _updateSelectedVariation();
-  update();
-}
+    // Nothing selected
+    if (selectedSize == null && selectedColor == null) {
+      selectedVariation = null;
+      return;
+    }
 
-void _updateSelectedVariation() {
-  if (product?.variations == null) return;
+    selectedVariation = product!.variations!.firstWhereOrNull((v) {
+      final sizeMatch =
+          selectedSize == null || v.attributes?.size == selectedSize;
 
-  // Nothing selected
-  if (selectedSize == null &&
-      selectedColor == null) {
-    selectedVariation = null;
-    return;
-  }
-
-  selectedVariation =
-      product!.variations!.firstWhereOrNull(
-    (v) {
-      final sizeMatch = selectedSize == null ||
-          v.attributes?.size == selectedSize;
-
-      final colorMatch = selectedColor == null ||
-          v.attributes?.color?.name ==
-              selectedColor;
+      final colorMatch =
+          selectedColor == null || v.attributes?.color?.name == selectedColor;
 
       return sizeMatch && colorMatch;
-    },
-  );
+    });
 
-  update();
-}
-  
+    update();
+  }
 
   // Check if a specific size/color combo is in cart
   bool isVariationInCart(String? size, String? color) {
     final variation = product?.variations?.firstWhere(
       (v) =>
-          v.attributes?.size == size &&                      // ✅ Fix #1
-          v.attributes?.color?.name == color,               // ✅ Fix #1
+          v.attributes?.size == size && // ✅ Fix #1
+          v.attributes?.color?.name == color, // ✅ Fix #1
       orElse: () => Variations(),
     );
     return variation?.id != null && cartedKeys.contains(variation!.id);
   }
 
+  bool isProductOrVariationInCart({String? productId, String? variationId}) {
+    if (variationId != null && cartedKeys.contains(variationId)) {
+      return true;
+    }
+    if (productId != null && cartedKeys.contains(productId)) {
+      return true;
+    }
+    return false;
+  }
+
+  // Returns true if the product (or any of its variations) is in the cart.
+  // Only used when no size or color is selected (initial page load).
+  bool get isAnyVariationInCart {
+    if (selectedSize != null || selectedColor != null) {
+      return false;
+    }
+
+    if (cartedKeys.contains(productId)) {
+      return true;
+    }
+
+    for (final variation in product?.variations ?? []) {
+      if (variation.id != null && cartedKeys.contains(variation.id)) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
   // ── Rest of your existing code... ─────────────────────────────────────────
 
   String get _currentCartKey => selectedVariation?.id ?? productId;
-  
-  bool get isCurrentInCart => cartedKeys.contains(_currentCartKey);
+
+  bool get isCurrentInCart =>
+      cartedKeys.contains(_currentCartKey) || isAnyVariationInCart;
 
   String get _currentWishlistKey => selectedVariation?.id ?? productId;
 
-bool get isCurrentWishlisted =>wishlistedKeys.contains(_currentWishlistKey);
+  bool get isCurrentWishlisted => wishlistedKeys.contains(_currentWishlistKey);
 
   Future<void> fetchProduct() async {
     isLoading = true;
@@ -247,12 +277,12 @@ bool get isCurrentWishlisted =>wishlistedKeys.contains(_currentWishlistKey);
         var data = json.decode(response.body);
         product = ProductDetailModel.fromJson(data["data"]);
 
-      if (hasVariations) {
-  // No variation selected by default
-  selectedSize = null;
-  selectedColor = null;
-  selectedVariation = null;
-}
+        if (hasVariations) {
+          // No variation selected by default
+          selectedSize = null;
+          selectedColor = null;
+          selectedVariation = null;
+        }
 
         await _syncCartState();
         fetchRelatedProduct(product!.subCategory!.categoryId!);
@@ -266,55 +296,62 @@ bool get isCurrentWishlisted =>wishlistedKeys.contains(_currentWishlistKey);
   }
 
   Future<void> _syncCartState() async {
-  try {
-    final url = "$baseUrl/cart";
-    print("📡 REQUEST → GET: $url");
-    print("🔑 TOKEN: $accessToken");
+    try {
+      final url = "$baseUrl/cart";
+      print("📡 REQUEST → GET: $url");
+      print("🔑 TOKEN: $accessToken");
 
-    var response = await get(
-      Uri.parse(url),
-      headers: {
-        "Authorization": "Bearer $accessToken",
-        "Content-Type": "application/json",
-      },
-    );
+      var response = await get(
+        Uri.parse(url),
+        headers: {
+          "Authorization": "Bearer $accessToken",
+          "Content-Type": "application/json",
+        },
+      );
 
-    print("📥 RESPONSE STATUS: ${response.statusCode}");
-    print("📥 RESPONSE BODY: ${response.body}");
+      print("📥 RESPONSE STATUS: ${response.statusCode}");
+      print("📥 RESPONSE BODY: ${response.body}");
 
-    if (response.statusCode == 200) {
-      final body = json.decode(response.body);
+      if (response.statusCode == 200) {
+        final body = json.decode(response.body);
 
-      print("📦 PARSED BODY: $body");
+        print("📦 PARSED BODY: $body");
 
-      final items = body["data"]?["items"] as List<dynamic>? ?? [];
+        final items = body["data"]?["items"] as List<dynamic>? ?? [];
 
-      print("🛒 CART ITEMS COUNT: ${items.length}");
+        print("🛒 CART ITEMS COUNT: ${items.length}");
 
-      cartedKeys = items
-          .where((item) => item["productId"] == productId)
-          .map<String>((item) {
-            final varId = item["productVariationId"];
-            final key = (varId != null && varId.toString().isNotEmpty)
-                ? varId.toString()
-                : item["productId"].toString();
+        cartedKeys = items
+            .where((item) => item["productId"] == productId)
+            .map<String>((item) {
+              final varId = item["productVariationId"];
+              final key = (varId != null && varId.toString().isNotEmpty)
+                  ? varId.toString()
+                  : item["productId"].toString();
+              return key;
+            })
+            .toSet();
 
-            print("➡ ITEM MATCH → productId=${item["productId"]} varId=$varId key=$key");
-            return key;
-          })
-          .toSet();
-
-      print("✅ CARTED KEYS FINAL: $cartedKeys");
-    } else {
-      print("❌ CART API FAILED");
+        print("✅ CARTED KEYS FINAL: $cartedKeys");
+      } else {
+        print("❌ CART API FAILED");
+      }
+    } catch (e, stack) {
+      print("🔥 ERROR syncing cart state: $e");
+      print("STACKTRACE: $stack");
     }
-  } catch (e, stack) {
-    print("🔥 ERROR syncing cart state: $e");
-    print("STACKTRACE: $stack");
-  }
 
-  update();
-}
+    // if(isProductOrVariationInCart(
+    //   productId: productId,
+    //   variationId: selectedVariation?.id,
+    // )){
+
+    //   isCurrentInCart = true;
+
+    // }
+
+    update();
+  }
 
   Future<void> fetchRelatedProduct(String categoryID) async {
     releatedProducts = [];
@@ -346,7 +383,7 @@ bool get isCurrentWishlisted =>wishlistedKeys.contains(_currentWishlistKey);
 
   void selectVariation(int index) {
     if (product!.variations != null && index < product!.variations!.length) {
-      selectedVariationIndex = index;             // ✅ Fix #2: now declared above
+      selectedVariationIndex = index; // ✅ Fix #2: now declared above
       selectedVariation = product!.variations![index];
       update();
     }
@@ -363,7 +400,8 @@ bool get isCurrentWishlisted =>wishlistedKeys.contains(_currentWishlistKey);
 
   String? getCurrentActualPrice() {
     if (selectedVariation != null) {
-      if (selectedVariation!.discountedPrice != selectedVariation!.actualPrice) {
+      if (selectedVariation!.discountedPrice !=
+          selectedVariation!.actualPrice) {
         return selectedVariation!.actualPrice;
       }
       return null;
@@ -385,26 +423,24 @@ bool get isCurrentWishlisted =>wishlistedKeys.contains(_currentWishlistKey);
   // ── Wishlist ──────────────────────────────────────────────────────────────
 
   Future<void> toggleWishlist() async {
-  if (isWishlistLoading) return;
+    if (isWishlistLoading) return;
 
-  if (login != "IN") {
-    showLoginDialog();
-    return;
-  }
+    if (login != "IN") {
+      showLoginDialog();
+      return;
+    }
 
-  if (hasVariations && selectedVariation == null) {
-    Fluttertoast.showToast(
-      msg: "Please select variation",
-    );
-    return;
-  }
+    if (hasVariations && selectedVariation == null) {
+      Fluttertoast.showToast(msg: "Please select variation");
+      return;
+    }
 
-  if (isCurrentWishlisted) {
-    await removeFromWishlist();
-  } else {
-    await addToWishlist();
+    if (isCurrentWishlisted) {
+      await removeFromWishlist();
+    } else {
+      await addToWishlist();
+    }
   }
-}
 
   Future<void> addToWishlist() async {
     isWishlistLoading = true;
@@ -426,7 +462,7 @@ bool get isCurrentWishlisted =>wishlistedKeys.contains(_currentWishlistKey);
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-       wishlistedKeys.add(_currentWishlistKey);
+        wishlistedKeys.add(_currentWishlistKey);
         Fluttertoast.showToast(msg: "Added to wishlist");
       } else {
         Fluttertoast.showToast(msg: "Failed to add to wishlist");
@@ -451,7 +487,7 @@ bool get isCurrentWishlisted =>wishlistedKeys.contains(_currentWishlistKey);
       );
 
       if (response.statusCode == 200 || response.statusCode == 204) {
-      wishlistedKeys.remove(_currentWishlistKey);
+        wishlistedKeys.remove(_currentWishlistKey);
       } else {
         Fluttertoast.showToast(msg: "Failed to remove from wishlist");
       }
@@ -463,8 +499,6 @@ bool get isCurrentWishlisted =>wishlistedKeys.contains(_currentWishlistKey);
     isWishlistLoading = false;
     update();
   }
-
- 
 
   Future<void> toggleCart() async {
     if (isCartLoading) return;

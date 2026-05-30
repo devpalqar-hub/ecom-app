@@ -33,25 +33,23 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   }
 
   List<String> get _carouselImages {
-  // Selected variation images
-  final variationImages =
-      ctrl.selectedVariation?.images
-          ?.where((e) => e.isNotEmpty)
-          .toList() ??
-      [];
+    // Selected variation images
+    final variationImages =
+        ctrl.selectedVariation?.images?.where((e) => e.isNotEmpty).toList() ??
+        [];
 
-  // If variation selected and has images
-  if (variationImages.isNotEmpty) {
-    return variationImages;
+    // If variation selected and has images
+    if (variationImages.isNotEmpty) {
+      return variationImages;
+    }
+
+    // Default product images
+    return ctrl.product?.images
+            ?.map((e) => e.url ?? "")
+            .where((e) => e.isNotEmpty)
+            .toList() ??
+        [];
   }
-
-  // Default product images
-  return ctrl.product?.images
-          ?.map((e) => e.url ?? "")
-          .where((e) => e.isNotEmpty)
-          .toList() ??
-      [];
-}
 
   @override
   void didChangeDependencies() {
@@ -65,100 +63,91 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   }
 
   void showImageOverlay(int initialIndex) {
-  if (_carouselImages.isEmpty) return;
+    if (_carouselImages.isEmpty) return;
 
-  showDialog(
-    context: context,
-    builder: (_) => Dialog(
-      backgroundColor: Colors.transparent,
-      insetPadding: EdgeInsets.all(0),
-      child: Stack(
-        children: [
-          Container(color: Colors.black.withOpacity(0.7)),
-          Center(
-            child: PageView.builder(
-              controller: PageController(initialPage: initialIndex),
-              itemCount: _carouselImages.length,
-              itemBuilder: (context, index) {
-                final img = _carouselImages[index];
-                return InteractiveViewer(
-                  child: Image.network(img, fit: BoxFit.contain),
-                );
-              },
-            ),
-          ),
-          Positioned(
-            top: 40.h,
-            right: 20.w,
-            child: GestureDetector(
-              onTap: () => Navigator.pop(context),
-              child: Container(
-                decoration: const BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.black54,
-                ),
-                padding: EdgeInsets.all(8.w),
-                child: Icon(Icons.close, color: Colors.white, size: 24.sp),
+    showDialog(
+      context: context,
+      builder: (_) => Dialog(
+        backgroundColor: Colors.transparent,
+        insetPadding: EdgeInsets.all(0),
+        child: Stack(
+          children: [
+            Container(color: Colors.black.withOpacity(0.7)),
+            Center(
+              child: PageView.builder(
+                controller: PageController(initialPage: initialIndex),
+                itemCount: _carouselImages.length,
+                itemBuilder: (context, index) {
+                  final img = _carouselImages[index];
+                  return InteractiveViewer(
+                    child: Image.network(img, fit: BoxFit.contain),
+                  );
+                },
               ),
             ),
-          ),
-        ],
-      ),
-    ),
-  );
-}
-
-void showSizeChartPopup(String imageUrl) {
-  showDialog(
-    context: context,
-    builder: (_) => Dialog(
-      backgroundColor: Colors.transparent,
-      insetPadding: EdgeInsets.zero,
-      child: Stack(
-        children: [
-          Container(
-            color: Colors.black.withOpacity(0.7),
-          ),
-
-          Center(
-  child: SizedBox(
-    width: MediaQuery.of(context).size.width * 0.95,
-    height: MediaQuery.of(context).size.height * 0.85,
-    child: InteractiveViewer(
-      minScale: 1,
-      maxScale: 5,
-      child: Image.network(
-        imageUrl,
-        fit: BoxFit.contain,
-      ),
-    ),
-  ),
-),
-
-          Positioned(
-            top: 40.h,
-            right: 20.w,
-            child: GestureDetector(
-              onTap: () => Navigator.pop(context),
-              child: Container(
-                decoration: const BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.black54,
-                ),
-                padding: EdgeInsets.all(8.w),
-                child: Icon(
-                  Icons.close,
-                  color: Colors.white,
-                  size: 24.sp,
+            Positioned(
+              top: 40.h,
+              right: 20.w,
+              child: GestureDetector(
+                onTap: () => Navigator.pop(context),
+                child: Container(
+                  decoration: const BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.black54,
+                  ),
+                  padding: EdgeInsets.all(8.w),
+                  child: Icon(Icons.close, color: Colors.white, size: 24.sp),
                 ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
-    ),
-  );
-}
+    );
+  }
+
+  void showSizeChartPopup(String imageUrl) {
+    showDialog(
+      context: context,
+      builder: (_) => Dialog(
+        backgroundColor: Colors.transparent,
+        insetPadding: EdgeInsets.zero,
+        child: Stack(
+          children: [
+            Container(color: Colors.black.withOpacity(0.7)),
+
+            Center(
+              child: SizedBox(
+                width: MediaQuery.of(context).size.width * 0.95,
+                height: MediaQuery.of(context).size.height * 0.85,
+                child: InteractiveViewer(
+                  minScale: 1,
+                  maxScale: 5,
+                  child: Image.network(imageUrl, fit: BoxFit.contain),
+                ),
+              ),
+            ),
+
+            Positioned(
+              top: 40.h,
+              right: 20.w,
+              child: GestureDetector(
+                onTap: () => Navigator.pop(context),
+                child: Container(
+                  decoration: const BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.black54,
+                  ),
+                  padding: EdgeInsets.all(8.w),
+                  child: Icon(Icons.close, color: Colors.white, size: 24.sp),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -183,16 +172,14 @@ void showSizeChartPopup(String imageUrl) {
             builder: (___) {
               if (___.product == null) return const SizedBox();
               return IconButton(
-               onPressed: () {
-  if (!___.isVariationSelected) {
-    Fluttertoast.showToast(
-      msg: "Please select variation ",
-    );
-    return;
-  }
+                onPressed: () {
+                  if (!___.isVariationSelected) {
+                    Fluttertoast.showToast(msg: "Please select variation ");
+                    return;
+                  }
 
-  ___.toggleWishlist();
-},
+                  ___.toggleWishlist();
+                },
                 icon: ___.isWishlistLoading
                     ? SizedBox(
                         width: 20.w,
@@ -203,7 +190,7 @@ void showSizeChartPopup(String imageUrl) {
                         ),
                       )
                     : Icon(
-                    ___.isCurrentWishlisted
+                        ___.isCurrentWishlisted
                             ? Icons.favorite
                             : Icons.favorite_border,
                         color: const Color(0xFFAE933F),
@@ -283,37 +270,31 @@ void showSizeChartPopup(String imageUrl) {
 
                   // Cart button
                   InkWell(
-                   onTap: () {
-  if (login != "IN") {
-    showLoginDialog();
-    return;
-  }
+                    onTap: () {
+                      if (login != "IN") {
+                        showLoginDialog();
+                        return;
+                      }
 
-  
-  if (!___.isVariationSelected) {
-    Fluttertoast.showToast(
-      msg: "Please select variation ",
-    );
-    return;
-  }
+                      if (!___.isVariationSelected && !___.isAnyVariationInCart ) {
+                        Fluttertoast.showToast(msg: "Please select variation ");
+                        return;
+                      }
+ 
+                      if (!___.checkStock() && !___.isAnyVariationInCart) {
+                        Fluttertoast.showToast(msg: "Product is out of stock");
+                        return;
+                      }
 
-  if (!___.checkStock()) {
-    Fluttertoast.showToast(
-      msg: "Product is out of stock",
-    );
-    return;
-  }
-
-
-  if (___.isCurrentInCart) {
-    Get.to(
-      () => CartScreen(),
-      transition: Transition.rightToLeft,
-    );
-  } else {
-    ___.addToCart();
-  }
-},
+                      if (___.isCurrentInCart) {
+                        Get.to(
+                          () => CartScreen(),
+                          transition: Transition.rightToLeft,
+                        );
+                      } else {
+                        ___.addToCart();
+                      }
+                    },
                     child: Container(
                       width: 180.w,
                       height: 45.h,
@@ -405,31 +386,32 @@ void showSizeChartPopup(String imageUrl) {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // ── Image Carousel ─────────────────────────────────────
-                 CarouselSlider(
-  items: [
-    for (int i = 0; i < _carouselImages.length; i++)
-      Padding(
-        padding: EdgeInsets.symmetric(horizontal: 5.w),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(10.r),
-          child: GestureDetector(
-            onTap: () => showImageOverlay(i),
-            child: Image.network(
-              _carouselImages[i],
-              fit: BoxFit.contain,
-              height: MediaQuery.of(context).size.width * 3 / 4,
-              width: double.infinity,
-            ),
-          ),
-        ),
-      ),
-  ],
-  options: CarouselOptions(
-    autoPlay: true,
-    viewportFraction: 0.9,
-    height: MediaQuery.of(context).size.width * 3 / 4,
-  ),
-),
+                  CarouselSlider(
+                    items: [
+                      for (int i = 0; i < _carouselImages.length; i++)
+                        Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 5.w),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(10.r),
+                            child: GestureDetector(
+                              onTap: () => showImageOverlay(i),
+                              child: Image.network(
+                                _carouselImages[i],
+                                fit: BoxFit.contain,
+                                height:
+                                    MediaQuery.of(context).size.width * 3 / 4,
+                                width: double.infinity,
+                              ),
+                            ),
+                          ),
+                        ),
+                    ],
+                    options: CarouselOptions(
+                      autoPlay: true,
+                      viewportFraction: 0.9,
+                      height: MediaQuery.of(context).size.width * 3 / 4,
+                    ),
+                  ),
 
                   SizedBox(height: 25.h),
 
@@ -451,7 +433,7 @@ void showSizeChartPopup(String imageUrl) {
                       ),
                       const Spacer(),
                       const Icon(Icons.star_rounded, color: Colors.amber),
-                      
+
                       Text(
                         (___.product!.reviewStats!.averageRating ?? 0)
                             .toStringAsFixed(1),
@@ -482,191 +464,198 @@ void showSizeChartPopup(String imageUrl) {
 
                   SizedBox(height: 10.h),
 
-                // ── Product Details + Size Chart ───────────────────────
-Padding(
-  padding: EdgeInsets.symmetric(horizontal: 16.w,vertical: 6.h),
-  child: Row(
-    children: [
-      Text(
-        "Product Details",
-        style: GoogleFonts.montserrat(
-          fontSize: 13.sp,
-          fontWeight: FontWeight.w600,
-          color: Colors.black,
-        ),
-      ),
-
-      const Spacer(),
-
-      if (___.product!.sizeChart != null &&
-          ___.product!.sizeChart!.isNotEmpty)
-        GestureDetector(
-          onTap: () {
-            showSizeChartPopup(___.product!.sizeChart!);
-          },
-          child: Text(
-            "Size Chart",
-            style: GoogleFonts.montserrat(
-              fontSize: 13.sp,
-              fontWeight: FontWeight.w600,
-              color: const Color(0xFFAE933F),
-              decoration: TextDecoration.underline,
-              decorationColor: const Color(0xFFAE933F),
-            ),
-          ),
-        ),
-    ],
-  ),
-),
-     
-if (___.hasVariations) ...[
-  SizedBox(height: 10.h),
-
-  // Size selector (if sizes exist)
-  if (___.hasSizeVariations) ...[
-    Padding(
-      padding: EdgeInsets.symmetric(horizontal: 16.w),
-      child: Text(
-        "Select Size",
-        style: GoogleFonts.montserrat(
-          fontSize: 13.sp,
-          fontWeight: FontWeight.w600,
-          color: Colors.black,
-        ),
-      ),
-    ),
-    SizedBox(height: 8.h),
-    SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Row(
-        children: [
-          SizedBox(width: 16.w),
-          for (final size in ___.availableSizes)
-            GestureDetector(
-              onTap: () => ___.selectSize(size),
-              child: Container(
-                padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
-                margin: EdgeInsets.only(right: 10.w),
-                decoration: BoxDecoration(
-                  color: ___.selectedSize == size
-                      ? const Color(0xFFAE933F)
-                      : Colors.white,
-                  border: Border.all(
-                    color: ___.selectedSize == size
-                        ? const Color(0xFFAE933F)
-                        : Colors.black12,
-                  ),
-                  borderRadius: BorderRadius.circular(8.r),
-                ),
-                child: Text(
-                  size,
-                  style: GoogleFonts.montserrat(
-                    fontSize: 13.sp,
-                    fontWeight: FontWeight.w500,
-                    color: ___.selectedSize == size
-                        ? Colors.white
-                        : Colors.black87,
-                  ),
-                ),
-              ),
-            ),
-        ],
-      ),
-    ),
-    SizedBox(height: 16.h),
-  ],                                                                                                                                                                                                                                                                                                                                                                                                    
-                  SizedBox(height: 5.h),
+                  // ── Product Details + Size Chart ───────────────────────
                   Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 16.w),
-                    child: ReadMoreText(
-                      ___.product!.description ?? "",
-                      trimLength: 140,
-                      moreStyle: GoogleFonts.montserrat(
-                        fontSize: 14.sp,
-                        fontWeight: FontWeight.w500,
-                        color: const Color(0xFFAE933F),
-                      ),
-                      lessStyle: GoogleFonts.montserrat(
-                        fontSize: 14.sp,
-                        fontWeight: FontWeight.w500,
-                        color: const Color(0xFFAE933F),
-                      ),
-                      textAlign: TextAlign.justify,
-                      style: GoogleFonts.montserrat(
-                        fontSize: 14.sp,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.black,
-                      ),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 16.w,
+                      vertical: 6.h,
+                    ),
+                    child: Row(
+                      children: [
+                        Text(
+                          "Product Details",
+                          style: GoogleFonts.montserrat(
+                            fontSize: 13.sp,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.black,
+                          ),
+                        ),
+
+                        const Spacer(),
+
+                        if (___.product!.sizeChart != null &&
+                            ___.product!.sizeChart!.isNotEmpty)
+                          GestureDetector(
+                            onTap: () {
+                              showSizeChartPopup(___.product!.sizeChart!);
+                            },
+                            child: Text(
+                              "Size Chart",
+                              style: GoogleFonts.montserrat(
+                                fontSize: 13.sp,
+                                fontWeight: FontWeight.w600,
+                                color: const Color(0xFFAE933F),
+                                decoration: TextDecoration.underline,
+                                decorationColor: const Color(0xFFAE933F),
+                              ),
+                            ),
+                          ),
+                      ],
                     ),
                   ),
-                
-    
 
-  // Color selector (if colors exist)
-  if (___.hasColorVariations) ...[
-    Padding(
-      padding: EdgeInsets.symmetric(horizontal: 16.w),
-      child: Text(
-        "Select Color",
-        style: GoogleFonts.montserrat(
-          fontSize: 13.sp,
-          fontWeight: FontWeight.w600,
-          color: Colors.black,
-        ),
-      ),
-    ),
-    SizedBox(height: 8.h),
-    SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Row(
-        children: [
-          SizedBox(width: 16.w),
-        for (final color in ___.availableColors)
-  GestureDetector(
-    onTap: () => ___.selectColor(color),
-    child: Container(
-      margin: EdgeInsets.only(right: 10.w),
-      padding: EdgeInsets.all(4.w),
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        border: Border.all(
-          color: ___.selectedColor == color
-              ? const Color(0xFFAE933F)
-              : Colors.black12,
-          width: 2,
-        ),
-      ),
-      child: Container(
-        width: 26.w,
-        height: 26.w,
-        decoration: BoxDecoration(
-          color: Color(
-            int.parse(
-              (___.getColorHex(color) ?? '#cccccc')
-                  .replaceFirst('#', '0xFF'),
-            ),
-          ),
-          shape: BoxShape.circle,
-        ),
-        child: ___.isVariationInCart(___.selectedSize, color)
-            ? const Center(
-                child: Icon(
-                  Icons.shopping_cart_rounded,
-                  size: 14,
-                  color: Colors.white,
-                ),
-              )
-            : null,
-      ),
-    ),
-  ),
-        ],
-      ),
-    ),
-    SizedBox(height: 20.h),
-  ],
-],
+                  if (___.hasVariations) ...[
+                    SizedBox(height: 10.h),
 
+                    // Size selector (if sizes exist)
+                    if (___.hasSizeVariations) ...[
+                      Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 16.w),
+                        child: Text(
+                          "Select Size",
+                          style: GoogleFonts.montserrat(
+                            fontSize: 13.sp,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.black,
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 8.h),
+                      SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          children: [
+                            SizedBox(width: 16.w),
+                            for (final size in ___.availableSizes)
+                              GestureDetector(
+                                onTap: () => ___.selectSize(size),
+                                child: Container(
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: 20.w,
+                                    vertical: 10.h,
+                                  ),
+                                  margin: EdgeInsets.only(right: 10.w),
+                                  decoration: BoxDecoration(
+                                    color: ___.selectedSize == size
+                                        ? const Color(0xFFAE933F)
+                                        : Colors.white,
+                                    border: Border.all(
+                                      color: ___.selectedSize == size
+                                          ? const Color(0xFFAE933F)
+                                          : Colors.black12,
+                                    ),
+                                    borderRadius: BorderRadius.circular(8.r),
+                                  ),
+                                  child: Text(
+                                    size,
+                                    style: GoogleFonts.montserrat(
+                                      fontSize: 13.sp,
+                                      fontWeight: FontWeight.w500,
+                                      color: ___.selectedSize == size
+                                          ? Colors.white
+                                          : Colors.black87,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                      SizedBox(height: 16.h),
+                    ],
+                    SizedBox(height: 5.h),
+                    Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 16.w),
+                      child: ReadMoreText(
+                        ___.product!.description ?? "",
+                        trimLength: 140,
+                        moreStyle: GoogleFonts.montserrat(
+                          fontSize: 14.sp,
+                          fontWeight: FontWeight.w500,
+                          color: const Color(0xFFAE933F),
+                        ),
+                        lessStyle: GoogleFonts.montserrat(
+                          fontSize: 14.sp,
+                          fontWeight: FontWeight.w500,
+                          color: const Color(0xFFAE933F),
+                        ),
+                        textAlign: TextAlign.justify,
+                        style: GoogleFonts.montserrat(
+                          fontSize: 14.sp,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.black,
+                        ),
+                      ),
+                    ),
+
+                    // Color selector (if colors exist)
+                    if (___.hasColorVariations) ...[
+                      Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 16.w),
+                        child: Text(
+                          "Select Color",
+                          style: GoogleFonts.montserrat(
+                            fontSize: 13.sp,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.black,
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 8.h),
+                      SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          children: [
+                            SizedBox(width: 16.w),
+                            for (final color in ___.availableColors)
+                              GestureDetector(
+                                onTap: () => ___.selectColor(color),
+                                child: Container(
+                                  margin: EdgeInsets.only(right: 10.w),
+                                  padding: EdgeInsets.all(4.w),
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                      color: ___.selectedColor == color
+                                          ? const Color(0xFFAE933F)
+                                          : Colors.black12,
+                                      width: 2,
+                                    ),
+                                  ),
+                                  child: Container(
+                                    width: 26.w,
+                                    height: 26.w,
+                                    decoration: BoxDecoration(
+                                      color: Color(
+                                        int.parse(
+                                          (___.getColorHex(color) ?? '#cccccc')
+                                              .replaceFirst('#', '0xFF'),
+                                        ),
+                                      ),
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child:
+                                        ___.isVariationInCart(
+                                          ___.selectedSize,
+                                          color,
+                                        )
+                                        ? const Center(
+                                            child: Icon(
+                                              Icons.shopping_cart_rounded,
+                                              size: 14,
+                                              color: Colors.white,
+                                            ),
+                                          )
+                                        : null,
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                      SizedBox(height: 20.h),
+                    ],
+                  ],
 
                   // ── Related Products ───────────────────────────────────
                   if (___.releatedProducts.isNotEmpty) ...[
