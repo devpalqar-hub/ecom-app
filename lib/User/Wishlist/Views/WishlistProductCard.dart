@@ -24,12 +24,17 @@ class WishlistProductCard extends StatelessWidget {
 
     final double price = double.tryParse(product.discountedPrice) ?? 0;
     final double mrp = double.tryParse(product.actualPrice) ?? 0;
-    final bool isOutOfStock = product.stockCount == 0;
+     final variation = wishlistProduct.productVariation;
+
+final bool isOutOfStock = variation != null
+    ? (!variation.isAvailable || variation.stockCount <= 0)
+    : (!product.isStock || product.stockCount <= 0);
+  
    final String imageUrl = (wishlistProduct.productVariation?.images.isNotEmpty ?? false)
     ? wishlistProduct.productVariation!.images.first
     : (product.images.isNotEmpty ? product.images.first.url : '');
 
-    // ── Extract variation attributes ──────────────────────────────────────
+  
     final attrs = wishlistProduct.productVariation?.attributes;
     final size = attrs?.size;
     final colorName = attrs?.color?.name;
@@ -178,37 +183,34 @@ class WishlistProductCard extends StatelessWidget {
                           ],
                         ),
                       ),
-
-                    // Stock Badge
-                    Container(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: 8.w,
-                        vertical: 3.h,
-                      ),
-                      decoration: BoxDecoration(
-                        color: isOutOfStock
-                            ? Colors.red.shade50
-                            : Colors.green.shade50,
-                        borderRadius: BorderRadius.circular(5.r),
-                        border: Border.all(
-                          color: isOutOfStock
-                              ? Colors.red.shade200
-                              : Colors.green.shade200,
-                          width: 0.8,
-                        ),
-                      ),
-                      child: Text(
-                        isOutOfStock ? 'Out of Stock' : 'In Stock',
-                        style: GoogleFonts.poppins(
-                          fontSize: 9.sp,
-                          fontWeight: FontWeight.w600,
-                          color: isOutOfStock
-                              ? Colors.red.shade700
-                              : Colors.green.shade700,
-                        ),
-                      ),
-                    ),
-
+                     Container(
+  padding: EdgeInsets.symmetric(
+    horizontal: 8.w,
+    vertical: 3.h,
+  ),
+  decoration: BoxDecoration(
+    color: isOutOfStock
+        ? Colors.red.shade50
+        : Colors.green.shade50,
+    borderRadius: BorderRadius.circular(5.r),
+    border: Border.all(
+      color: isOutOfStock
+          ? Colors.red.shade200
+          : Colors.green.shade200,
+      width: 0.8,
+    ),
+  ),
+  child: Text(
+    isOutOfStock ? 'Out of Stock' : 'In Stock',
+    style: GoogleFonts.poppins(
+      fontSize: 9.sp,
+      fontWeight: FontWeight.w600,
+      color: isOutOfStock
+          ? Colors.red.shade700
+          : Colors.green.shade700,
+    ),
+  ),
+),
                     SizedBox(height: 8.h),
 
                     // Price + Move to Cart
@@ -234,30 +236,30 @@ class WishlistProductCard extends StatelessWidget {
                           ),
                         ],
                         Spacer(),
-                        SizedBox(
-                          height: 32.h,
-                          child: ElevatedButton.icon(
-                            onPressed: isOutOfStock ? null : onMoveToBag,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Color(0xFFAE933F),
-                              foregroundColor: Colors.white,
-                              disabledBackgroundColor: Colors.grey.shade300,
-                              disabledForegroundColor: Colors.grey.shade600,
-                              elevation: 0,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8.r),
-                              ),
-                              padding: EdgeInsets.symmetric(horizontal: 12.w),
-                            ),
-                            label: Text(
-                              "Move to Cart",
-                              style: GoogleFonts.poppins(
-                                fontSize: 9.5.sp,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
-                        ),
+                       SizedBox(
+  height: 32.h,
+  child: ElevatedButton.icon(
+    onPressed: isOutOfStock ? null : onMoveToBag,
+    style: ElevatedButton.styleFrom(
+      backgroundColor: const Color(0xFFAE933F),
+      foregroundColor: Colors.white,
+      disabledBackgroundColor: Colors.grey.shade300,
+      disabledForegroundColor: Colors.grey.shade600,
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(8.r),
+      ),
+      padding: EdgeInsets.symmetric(horizontal: 12.w),
+    ),
+    label: Text(
+      isOutOfStock ? "Out of Stock" : "Move to Cart",
+      style: GoogleFonts.poppins(
+        fontSize: 9.5.sp,
+        fontWeight: FontWeight.w600,
+      ),
+    ),
+  ),
+),
                       ],
                     ),
                   ],

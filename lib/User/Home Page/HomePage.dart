@@ -118,11 +118,16 @@ class _HomePageState extends State<HomePage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
                 Obx(() {
-                  if (bannerController.isLoading.value) {
-                    return const Center(
-                      child: CircularProgressIndicator(color: Colors.white),
-                    );
-                  }
+                 if (bannerController.banners.isEmpty) {
+  return SizedBox(
+   height: 200.h,
+    width: double.infinity,
+    child: Image.asset(
+      "assets/section.png",
+      fit: BoxFit.cover,
+    ),
+  );
+}
 
                   if (bannerController.banners.isEmpty) {
                     return Image.asset("assets/section.png", fit: BoxFit.cover);
@@ -137,7 +142,7 @@ class _HomePageState extends State<HomePage> {
                       itemCount: bannerController.banners.length,
                       itemBuilder: (context, index, realIndex) {
                         return Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 5.w),
+                          padding: EdgeInsets.symmetric(horizontal: 10.w,),
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(10.r),
                             child: Image.network(
@@ -149,8 +154,8 @@ class _HomePageState extends State<HomePage> {
                         );
                       },
                       options: CarouselOptions(
-                        height: 230.h,
-                        viewportFraction: .85,
+                        height: 200.h,
+                        viewportFraction: 1,
 
                         autoPlay: true,
                         //  enlargeCenterPage: true,

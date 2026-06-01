@@ -96,24 +96,33 @@ class WishlistScreen extends StatelessWidget {
                       );
                     },
                     onMoveToBag: () async {
-                      if (product.stockCount > 0) {
-                        await cartController.addToCart(
-                          productId: product.id,
-                          quantity: 1,
-                          productVariationId: wishlistItem.productVariationId,
-                        );
-                        wishlistController.removeFromWishlist(
-                          wishlistItem.wishlistId,
-                        );
-                        Fluttertoast.showToast(
-                          msg: '${product.name} added to cart successfully.',
-                        );
-                      } else {
-                        Fluttertoast.showToast(
-                          msg: '${product.name} is currently out of stock.',
-                        );
-                      }
-                    },
+  final bool inStock =
+      wishlistItem.productVariation != null
+          ? (wishlistItem.productVariation!.stockCount > 0)
+          : product.stockCount > 0;
+
+  debugPrint('Final In Stock: $inStock');
+
+  if (inStock) {
+    await cartController.addToCart(
+      productId: product.id,
+      quantity: 1,
+      productVariationId: wishlistItem.productVariationId,
+    );
+
+    wishlistController.removeFromWishlist(
+      wishlistItem.wishlistId,
+    );
+
+    Fluttertoast.showToast(
+      msg: '${product.name} added to cart successfully.',
+    );
+  } else {
+    Fluttertoast.showToast(
+      msg: '${product.name} is currently out of stock.',
+    );
+  }
+}
                   );
                 },
               ),

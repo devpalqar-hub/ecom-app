@@ -232,8 +232,6 @@ class Productcontroller extends GetxController {
     return false;
   }
 
-  // Returns true if the product (or any of its variations) is in the cart.
-  // Only used when no size or color is selected (initial page load).
   bool get isAnyVariationInCart {
     if (selectedSize != null || selectedColor != null) {
       return false;
@@ -251,8 +249,6 @@ class Productcontroller extends GetxController {
 
     return false;
   }
-
-  // ── Rest of your existing code... ─────────────────────────────────────────
 
   String get _currentCartKey => selectedVariation?.id ?? productId;
 
@@ -298,8 +294,6 @@ class Productcontroller extends GetxController {
   Future<void> _syncCartState() async {
     try {
       final url = "$baseUrl/cart";
-      print("📡 REQUEST → GET: $url");
-      print("🔑 TOKEN: $accessToken");
 
       var response = await get(
         Uri.parse(url),
@@ -309,17 +303,10 @@ class Productcontroller extends GetxController {
         },
       );
 
-      print("📥 RESPONSE STATUS: ${response.statusCode}");
-      print("📥 RESPONSE BODY: ${response.body}");
-
       if (response.statusCode == 200) {
         final body = json.decode(response.body);
 
-        print("📦 PARSED BODY: $body");
-
         final items = body["data"]?["items"] as List<dynamic>? ?? [];
-
-        print("🛒 CART ITEMS COUNT: ${items.length}");
 
         cartedKeys = items
             .where((item) => item["productId"] == productId)
@@ -331,15 +318,8 @@ class Productcontroller extends GetxController {
               return key;
             })
             .toSet();
-
-        print("✅ CARTED KEYS FINAL: $cartedKeys");
-      } else {
-        print("❌ CART API FAILED");
-      }
-    } catch (e, stack) {
-      print("🔥 ERROR syncing cart state: $e");
-      print("STACKTRACE: $stack");
-    }
+      } else {}
+    } catch (e, stack) {}
 
     // if(isProductOrVariationInCart(
     //   productId: productId,
@@ -379,11 +359,9 @@ class Productcontroller extends GetxController {
     update();
   }
 
-  // ── Variation selection ───────────────────────────────────────────────────
-
   void selectVariation(int index) {
     if (product!.variations != null && index < product!.variations!.length) {
-      selectedVariationIndex = index; // ✅ Fix #2: now declared above
+      selectedVariationIndex = index;
       selectedVariation = product!.variations![index];
       update();
     }
@@ -417,7 +395,8 @@ class Productcontroller extends GetxController {
     if (selectedVariation != null) {
       return (selectedVariation!.stockCount ?? 0) > 0;
     }
-    return product!.isStock ?? true;
+
+    return product?.isStock ?? true;
   }
 
   // ── Wishlist ──────────────────────────────────────────────────────────────

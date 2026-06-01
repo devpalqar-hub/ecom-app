@@ -10,9 +10,8 @@ class WishlistController extends GetxController {
   final isLoading = false.obs;
   final error = RxnString();
 
-  
   final searchQuery = ''.obs;
-  final sortOption = ''.obs; 
+  final sortOption = ''.obs;
   final minPrice = 0.0.obs;
   final maxPrice = double.infinity.obs;
 
@@ -21,130 +20,113 @@ class WishlistController extends GetxController {
   void setMinPrice(double value) => minPrice.value = value;
   void setMaxPrice(double value) => maxPrice.value = value;
 
- 
- bool isProductWishlisted({
-  required String productId,
-  String? productVariationId,
-}) {
-  return wishlistItems.any((item) {
-    final sameProduct = item.product?.id == productId;
+  bool isProductWishlisted({
+    required String productId,
+    String? productVariationId,
+  }) {
+    return wishlistItems.any((item) {
+      final sameProduct = item.product?.id == productId;
 
-    final sameVariation =
-        (item.productVariationId ?? "") ==
-        (productVariationId ?? "");
+      final sameVariation =
+          (item.productVariationId ?? "") == (productVariationId ?? "");
 
-    return sameProduct && sameVariation;
-  });
-}
-
-Future<void> addToWishlist({
-  String? productId,
-  String? productVariationId,
-}) async {
-  try {
-    isLoading.value = true;
-    error.value = null;
-
-    final url = Uri.parse("$baseUrl/wishlist");
-
-    
-    final Map<String, dynamic> body = {};
-
-    if (productVariationId != null && productVariationId.isNotEmpty) {
-      body["productVariationId"] = productVariationId;
-    } else if (productId != null && productId.isNotEmpty) {
-      body["productId"] = productId;
-    } else {
-      throw Exception("Product ID or Product Variation ID is required");
-    }
-
-    
-
-    final response = await http.post(
-      url,
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $accessToken',
-      },
-      body: jsonEncode(body),
-    );
-
-    
-
-    if (response.statusCode == 200 || response.statusCode == 201) {
-      final decoded = jsonDecode(response.body);
-      if (decoded['success'] == true) {
-        await fetchWishlist();
-        Fluttertoast.showToast(msg: 'Added to wishlist successfully.');
-      } else {
-        error.value = decoded['message'] ?? "Failed to add to wishlist";
-      }
-    } else {
-      error.value = "Server error ${response.statusCode}";
-    }
-  } catch (e) {
-   
-    error.value = e.toString();
-  } finally {
-    isLoading.value = false;
+      return sameProduct && sameVariation;
+    });
   }
-}
-Future<void> fetchWishlist({
-  int page = 1,
-  int limit = 10,
-}) async {
-  try {
-    isLoading.value = true;
-    error.value = null;
 
-    final url = Uri.parse("$baseUrl/wishlist?page=$page&limit=$limit");
-   
-
-    final response = await http.get(
-      url,
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $accessToken',
-      },
-    );
-
-   
-    if (response.statusCode == 200) {
-      final decoded = jsonDecode(response.body);
-
-      if (decoded['success'] == true) {
-  
-        final List list = decoded['data']['data'] ?? [];
-        wishlistItems.value = list
-            .map((e) => WishlistProduct.fromJson(e))
-            .where((e) => e.product != null)
-            .toList();
-       
-      } else {
-        error.value = "Failed to fetch wishlist";
-      }
-    } else {
-      error.value = "Server error ${response.statusCode}";
-    }
-  } catch (e) {
-
-    error.value = e.toString();
-  } finally {
-    isLoading.value = false;
-  }
-}
-
-
-  Future<void> removeFromWishlist(
-      String wishlistItemId, {
-        bool showMessage = true,
-      }) async {
+  Future<void> addToWishlist({
+    String? productId,
+    String? productVariationId,
+  }) async {
     try {
       isLoading.value = true;
       error.value = null;
 
-      final url =
-          Uri.parse("$baseUrl/wishlist?id=$wishlistItemId");
+      final url = Uri.parse("$baseUrl/wishlist");
+
+      final Map<String, dynamic> body = {};
+
+      if (productVariationId != null && productVariationId.isNotEmpty) {
+        body["productVariationId"] = productVariationId;
+      } else if (productId != null && productId.isNotEmpty) {
+        body["productId"] = productId;
+      } else {
+        throw Exception("Product ID or Product Variation ID is required");
+      }
+
+      final response = await http.post(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+        body: jsonEncode(body),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final decoded = jsonDecode(response.body);
+        if (decoded['success'] == true) {
+          await fetchWishlist();
+          Fluttertoast.showToast(msg: 'Added to wishlist successfully.');
+        } else {
+          error.value = decoded['message'] ?? "Failed to add to wishlist";
+        }
+      } else {
+        error.value = "Server error ${response.statusCode}";
+      }
+    } catch (e) {
+      error.value = e.toString();
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  Future<void> fetchWishlist({int page = 1, int limit = 10}) async {
+    try {
+      isLoading.value = true;
+      error.value = null;
+
+      final url = Uri.parse("$baseUrl/wishlist?page=$page&limit=$limit");
+
+      final response = await http.get(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $accessToken',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final decoded = jsonDecode(response.body);
+
+        if (decoded['success'] == true) {
+          final List list = decoded['data']['data'] ?? [];
+          wishlistItems.value = list
+              .map((e) => WishlistProduct.fromJson(e))
+              .where((e) => e.product != null)
+              .toList();
+        } else {
+          error.value = "Failed to fetch wishlist";
+        }
+      } else {
+        error.value = "Server error ${response.statusCode}";
+      }
+    } catch (e) {
+      error.value = e.toString();
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  Future<void> removeFromWishlist(
+    String wishlistItemId, {
+    bool showMessage = true,
+  }) async {
+    try {
+      isLoading.value = true;
+      error.value = null;
+
+      final url = Uri.parse("$baseUrl/wishlist?id=$wishlistItemId");
 
       final response = await http.delete(
         url,
@@ -164,7 +146,6 @@ Future<void> fetchWishlist({
           if (showMessage) {
             Fluttertoast.showToast(msg: 'Removed from wishlist successfully.');
           }
-
         } else {
           error.value = "Failed to remove item";
         }
@@ -178,36 +159,34 @@ Future<void> fetchWishlist({
     }
   }
 
-  
   List<WishlistProduct> get filteredWishlist {
     final list = wishlistItems.where((item) {
       final product = item.product;
       if (product == null) return false;
 
-      final price =
-          double.tryParse(product.discountedPrice) ?? 0;
+      final price = double.tryParse(product.discountedPrice) ?? 0;
 
-      return product.name
-              .toLowerCase()
-              .contains(searchQuery.value.toLowerCase()) &&
+      return product.name.toLowerCase().contains(
+            searchQuery.value.toLowerCase(),
+          ) &&
           price >= minPrice.value &&
           price <= maxPrice.value;
     }).toList();
 
     if (sortOption.value == "asc") {
-      list.sort((a, b) =>
-          (double.tryParse(a.product!.discountedPrice) ?? 0)
-              .compareTo(
-                  double.tryParse(b.product!.discountedPrice) ??
-                      0));
+      list.sort(
+        (a, b) => (double.tryParse(a.product!.discountedPrice) ?? 0).compareTo(
+          double.tryParse(b.product!.discountedPrice) ?? 0,
+        ),
+      );
     }
 
     if (sortOption.value == "desc") {
-      list.sort((a, b) =>
-          (double.tryParse(b.product!.discountedPrice) ?? 0)
-              .compareTo(
-                  double.tryParse(a.product!.discountedPrice) ??
-                      0));
+      list.sort(
+        (a, b) => (double.tryParse(b.product!.discountedPrice) ?? 0).compareTo(
+          double.tryParse(a.product!.discountedPrice) ?? 0,
+        ),
+      );
     }
 
     return list;
