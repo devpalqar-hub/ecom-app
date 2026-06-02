@@ -8,7 +8,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:lottie/lottie.dart';
 import 'package:new_project/User/CartScreen/CartScreen.dart';
 import 'package:new_project/User/Home%20Page/Views/ProductsCard.dart';
-import 'package:new_project/User/ProductDetailScreen/Models/ProductDetailModel.dart';
 import 'package:new_project/User/ProductDetailScreen/Services/ProductController.dart';
 import 'package:new_project/User/ProductDetailScreen/Views/RatingBar.dart';
 import 'package:new_project/main.dart';
@@ -169,31 +168,41 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         actions: [
           GetBuilder<Productcontroller>(
             tag: widget.productId,
-            builder: (___) {
-              if (___.product == null) return const SizedBox();
-              return IconButton(
-                onPressed: () {
-                  if (!___.isVariationSelected) {
-                    Fluttertoast.showToast(msg: "Please select variation ");
-                    return;
-                  }
+            builder: (ctrl) {
+              if (ctrl.product == null) {
+                return const SizedBox();
+              }
 
-                  ___.toggleWishlist();
-                },
-                icon: ___.isWishlistLoading
+              return IconButton(
+                onPressed: ctrl.isWishlistLoading
+                    ? null
+                    : () async {
+                        if (!ctrl.isVariationSelected) {
+                          Fluttertoast.showToast(
+                            msg: "Please select variation",
+                          );
+                          return;
+                        }
+
+                        await ctrl.toggleWishlist();
+                      },
+                icon: ctrl.isWishlistLoading
                     ? SizedBox(
                         width: 20.w,
                         height: 20.h,
-                        child: CircularProgressIndicator(
+                        child: const CircularProgressIndicator(
                           strokeWidth: 2,
-                          color: const Color(0xFFAE933F),
+                          color: Color(0xFFAE933F),
                         ),
                       )
-                    : Icon(
-                        ___.isCurrentWishlisted
-                            ? Icons.favorite
-                            : Icons.favorite_border,
-                        color: const Color(0xFFAE933F),
+                    : AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 200),
+                        child: Icon(
+                          ctrl.isCurrentWishlisted
+                              ? Icons.favorite
+                              : Icons.favorite_border,
+                          color: const Color(0xFFAE933F),
+                        ),
                       ),
               );
             },
@@ -201,7 +210,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         ],
       ),
 
-      // ── Bottom Bar ──────────────────────────────────────────────────────
       bottomNavigationBar: GetBuilder<Productcontroller>(
         tag: widget.productId,
         builder: (___) {
@@ -276,11 +284,12 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                         return;
                       }
 
-                      if (!___.isVariationSelected && !___.isAnyVariationInCart ) {
+                      if (!___.isVariationSelected &&
+                          !___.isAnyVariationInCart) {
                         Fluttertoast.showToast(msg: "Please select variation ");
                         return;
                       }
- 
+
                       if (!___.checkStock() && !___.isAnyVariationInCart) {
                         Fluttertoast.showToast(msg: "Product is out of stock");
                         return;
@@ -344,7 +353,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         },
       ),
 
-      // ── Body ────────────────────────────────────────────────────────────
       body: SafeArea(
         child: GetBuilder<Productcontroller>(
           tag: widget.productId,
@@ -546,15 +554,34 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                     ),
                                     borderRadius: BorderRadius.circular(8.r),
                                   ),
-                                  child: Text(
-                                    size,
-                                    style: GoogleFonts.montserrat(
-                                      fontSize: 13.sp,
-                                      fontWeight: FontWeight.w500,
-                                      color: ___.selectedSize == size
-                                          ? Colors.white
-                                          : Colors.black87,
-                                    ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Text(
+                                        size,
+                                        style: GoogleFonts.montserrat(
+                                          fontSize: 13.sp,
+                                          fontWeight: FontWeight.w500,
+                                          color: ___.selectedSize == size
+                                              ? Colors.white
+                                              : Colors.black87,
+                                        ),
+                                      ),
+
+                                      if (___.isVariationInCart(
+                                        size,
+                                        ___.selectedColor,
+                                      )) ...[
+                                        SizedBox(width: 6.w),
+                                        Icon(
+                                          Icons.shopping_cart_outlined,
+                                          size: 16.sp,
+                                          color: ___.selectedSize == size
+                                              ? Colors.white
+                                              : const Color(0xFFAE933F),
+                                        ),
+                                      ],
+                                    ],
                                   ),
                                 ),
                               ),

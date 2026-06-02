@@ -180,7 +180,7 @@ class Variations {
   String? createdAt;
   String? updatedAt;
 
-  List<String>? images; // ✅ ADD THIS
+  List<String>? images; 
 
   Variations({
     this.id,

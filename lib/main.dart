@@ -15,16 +15,16 @@ import 'package:new_project/firebase_options.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 String? accessToken;
-String baseUrl = (true)
+String baseUrl = (false)
     ? "https://api.raheeb.qa/v1"
-    : "https://api.ecom.palqar.cloud/v1"; //"https://ecom.insightsmarketers.com/v1"
+    : "https://api.ecom.palqar.cloud/v1"; 
 String? login;
 String? role;
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // ✅ Register OTP Controller
+ 
 
   final prefs = await SharedPreferences.getInstance();
   accessToken = prefs.getString('access_token');
@@ -36,7 +36,7 @@ Future<void> main() async {
 
   final FirebaseMessaging messaging = FirebaseMessaging.instance;
 
-  // Request permission for iOS
+ 
   NotificationSettings settings = await messaging.requestPermission(
     alert: true,
     announcement: true,

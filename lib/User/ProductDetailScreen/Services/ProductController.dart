@@ -1,10 +1,11 @@
 import 'dart:convert';
-import 'package:flutter/widgets.dart';
+import 'package:flutter/foundation.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart';
 import 'package:new_project/User/Home%20Page/Model/ProdutModel.dart';
 import 'package:new_project/User/ProductDetailScreen/Models/ProductDetailModel.dart';
+import 'package:new_project/User/Wishlist/Model/WishlistProductModel.dart';
 import 'package:new_project/main.dart';
 import 'package:new_project/utils.dart';
 
@@ -35,6 +36,15 @@ class Productcontroller extends GetxController {
     return (variation?.images != null && variation!.images!.isNotEmpty)
         ? variation.images!.first
         : product?.images?.first.url;
+  }
+
+  bool isVariationInWishlist(String? size, String? color) {
+    final variation = product?.variations?.firstWhere(
+      (v) => v.attributes?.size == size && v.attributes?.color?.name == color,
+      orElse: () => Variations(),
+    );
+
+    return variation?.id != null && wishlistedKeys.contains(variation!.id);
   }
 
   String? getColorImage(String color) {
@@ -130,9 +140,7 @@ class Productcontroller extends GetxController {
   bool get hasSizeVariations => availableSizes.isNotEmpty;
   bool get hasColorVariations {
     if (product?.variations == null) return false;
-    return product!.variations!.any(
-      (v) => v.attributes?.color?.name != null,
-    ); // ✅ Fix #1
+    return product!.variations!.any((v) => v.attributes?.color?.name != null);
   }
 
   bool get hasVariations =>
@@ -141,10 +149,10 @@ class Productcontroller extends GetxController {
   // Get color hex for display
   String? getColorHex(String colorName) {
     final variation = product?.variations?.firstWhere(
-      (v) => v.attributes?.color?.name == colorName, // ✅ Fix #1
+      (v) => v.attributes?.color?.name == colorName,
       orElse: () => Variations(),
     );
-    return variation?.attributes?.color?.hex; // ✅ Fix #1
+    return variation?.attributes?.color?.hex;
   }
 
   // ── Selection methods ─────────────────────────────────────────────────────
@@ -214,9 +222,7 @@ class Productcontroller extends GetxController {
   // Check if a specific size/color combo is in cart
   bool isVariationInCart(String? size, String? color) {
     final variation = product?.variations?.firstWhere(
-      (v) =>
-          v.attributes?.size == size && // ✅ Fix #1
-          v.attributes?.color?.name == color, // ✅ Fix #1
+      (v) => v.attributes?.size == size && v.attributes?.color?.name == color,
       orElse: () => Variations(),
     );
     return variation?.id != null && cartedKeys.contains(variation!.id);
@@ -257,7 +263,24 @@ class Productcontroller extends GetxController {
 
   String get _currentWishlistKey => selectedVariation?.id ?? productId;
 
-  bool get isCurrentWishlisted => wishlistedKeys.contains(_currentWishlistKey);
+  bool get isCurrentWishlisted {
+    final result =
+        wishlistedKeys.contains(_currentWishlistKey) ||
+        isSelectedVariationWishlisted;
+    return result;
+  }
+
+  bool get isSelectedVariationWishlisted {
+    if (selectedVariation?.id != null &&
+        wishlistedKeys.contains(selectedVariation!.id!)) {
+      return true;
+    }
+    if (wishlistedKeys.contains(productId)) {
+      return true;
+    }
+
+    return false;
+  }
 
   Future<void> fetchProduct() async {
     isLoading = true;
@@ -271,21 +294,15 @@ class Productcontroller extends GetxController {
 
       if (response.statusCode == 200) {
         var data = json.decode(response.body);
+
         product = ProductDetailModel.fromJson(data["data"]);
 
-        if (hasVariations) {
-          // No variation selected by default
-          selectedSize = null;
-          selectedColor = null;
-          selectedVariation = null;
-        }
-
         await _syncCartState();
+        await _syncWishlistState();
+
         fetchRelatedProduct(product!.subCategory!.categoryId!);
       }
-    } catch (e) {
-      print("Error fetching product: $e");
-    }
+    } catch (e) {}
 
     isLoading = false;
     update();
@@ -333,31 +350,70 @@ class Productcontroller extends GetxController {
     update();
   }
 
-  Future<void> fetchRelatedProduct(String categoryID) async {
-    releatedProducts = [];
-    update();
+  Future<void> _syncWishlistState() async {
     try {
-      var response = await get(
-        Uri.parse("$baseUrl/products?categoryId=$categoryID&limit=8&page=1"),
-        headers: {"Authorization": "Bearer $accessToken"},
+      final response = await get(
+        Uri.parse("$baseUrl/wishlist"),
+        headers: {
+          "Authorization": "Bearer $accessToken",
+          "Content-Type": "application/json",
+        },
       );
 
       if (response.statusCode == 200) {
-        var body = json.decode(response.body);
-        releatedProducts = [];
-        update();
-        for (var data in body["data"]["data"]) {
-          releatedProducts.add(ProductModel.fromJson(data));
-        }
-        update();
-      }
-    } catch (e) {
-      print("Error fetching related products: $e");
-    }
+        final body = json.decode(response.body);
+        WishlistResponse wishlistResponse = WishlistResponse.fromJson(body);
 
-    isLoading = false;
+        final items = wishlistResponse.data.items;
+
+        wishlistedKeys.clear();
+
+        for (final item in items) {
+          if (item.productId == productId) {
+            final variationId = item.productVariationId;
+
+            if (variationId != null && variationId.toString().isNotEmpty) {
+              wishlistedKeys.add(variationId.toString());
+            } else {
+              wishlistedKeys.add(productId);
+            }
+          }
+        }
+      }
+    } catch (e) {}
+
     update();
   }
+
+ Future<void> fetchRelatedProduct(String categoryID) async {
+  try {
+    releatedProducts.clear();
+    update();
+
+    final response = await get(
+      Uri.parse(
+        "$baseUrl/products?categoryId=$categoryID&limit=8&page=1",
+      ),
+      headers: {
+        "Authorization": "Bearer $accessToken",
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final body = json.decode(response.body);
+
+      releatedProducts =
+          (body["data"]["data"] as List)
+              .map((e) => ProductModel.fromJson(e))
+              .where((product) => product.id != productId)
+              .toList();
+
+      update();
+    }
+  } catch (e) {
+    
+  }
+}
 
   void selectVariation(int index) {
     if (product!.variations != null && index < product!.variations!.length) {
@@ -441,13 +497,13 @@ class Productcontroller extends GetxController {
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
+        await _syncWishlistState();
         wishlistedKeys.add(_currentWishlistKey);
         Fluttertoast.showToast(msg: "Added to wishlist");
       } else {
         Fluttertoast.showToast(msg: "Failed to add to wishlist");
       }
     } catch (e) {
-      print("Error adding to wishlist: $e");
       Fluttertoast.showToast(msg: "Error adding to wishlist");
     }
 
@@ -460,18 +516,23 @@ class Productcontroller extends GetxController {
     update();
 
     try {
+      final query = selectedVariation != null
+          ? "productVariationId=${selectedVariation!.id}"
+          : "productId=$productId";
+
       var response = await delete(
-        Uri.parse("$baseUrl/wishlist?productId=$productId"),
+        Uri.parse("$baseUrl/wishlist?$query"),
         headers: {"Authorization": "Bearer $accessToken"},
       );
 
       if (response.statusCode == 200 || response.statusCode == 204) {
         wishlistedKeys.remove(_currentWishlistKey);
+        await _syncWishlistState();
+        Fluttertoast.showToast(msg: "Removed from wishlist");
       } else {
         Fluttertoast.showToast(msg: "Failed to remove from wishlist");
       }
     } catch (e) {
-      print("Error removing from wishlist: $e");
       Fluttertoast.showToast(msg: "Error removing from wishlist");
     }
 
@@ -524,7 +585,6 @@ class Productcontroller extends GetxController {
         Fluttertoast.showToast(msg: "Failed to add to cart");
       }
     } catch (e) {
-      print("Error adding to cart: $e");
       Fluttertoast.showToast(msg: "Error adding to cart");
     }
 
@@ -553,7 +613,6 @@ class Productcontroller extends GetxController {
         Fluttertoast.showToast(msg: "Failed to remove from cart");
       }
     } catch (e) {
-      print("Error removing from cart: $e");
       Fluttertoast.showToast(msg: "Error removing from cart");
     }
 
