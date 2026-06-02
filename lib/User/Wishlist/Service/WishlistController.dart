@@ -138,11 +138,13 @@ class WishlistController extends GetxController {
 
       if (response.statusCode == 200) {
         final decoded = jsonDecode(response.body);
+        await fetchWishlist();
 
         if (decoded['success'] == true) {
           wishlistItems.removeWhere(
             (item) => item.wishlistId == wishlistItemId,
           );
+
           if (showMessage) {
             Fluttertoast.showToast(msg: 'Removed from wishlist successfully.');
           }
@@ -152,7 +154,7 @@ class WishlistController extends GetxController {
       } else {
         error.value = "Server error ${response.statusCode}";
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
       error.value = e.toString();
     } finally {
       isLoading.value = false;

@@ -6,6 +6,7 @@ import 'package:http/http.dart';
 import 'package:new_project/User/Home%20Page/Model/ProdutModel.dart';
 import 'package:new_project/User/ProductDetailScreen/Models/ProductDetailModel.dart';
 import 'package:new_project/User/Wishlist/Model/WishlistProductModel.dart';
+import 'package:new_project/User/Wishlist/Service/WishlistController.dart';
 import 'package:new_project/main.dart';
 import 'package:new_project/utils.dart';
 
@@ -27,6 +28,10 @@ class Productcontroller extends GetxController {
   // ── Variation selection state ─────────────────────────────────────────────
   String? selectedSize;
   String? selectedColor;
+
+  final WishlistController wishlistController = Get.put(WishlistController());
+
+  final Map<String, String> wishlistIdMap = {};
 
   String? getSizeImage(String size) {
     final variation = product?.variations?.firstWhereOrNull(
@@ -219,7 +224,6 @@ class Productcontroller extends GetxController {
     update();
   }
 
-  // Check if a specific size/color combo is in cart
   bool isVariationInCart(String? size, String? color) {
     final variation = product?.variations?.firstWhere(
       (v) => v.attributes?.size == size && v.attributes?.color?.name == color,
@@ -362,58 +366,59 @@ class Productcontroller extends GetxController {
 
       if (response.statusCode == 200) {
         final body = json.decode(response.body);
-        WishlistResponse wishlistResponse = WishlistResponse.fromJson(body);
+        final wishlistResponse = WishlistResponse.fromJson(body);
 
         final items = wishlistResponse.data.items;
 
         wishlistedKeys.clear();
+        wishlistIdMap.clear();
 
         for (final item in items) {
           if (item.productId == productId) {
-            final variationId = item.productVariationId;
+            final key =
+                item.productVariationId != null &&
+                    item.productVariationId!.isNotEmpty
+                ? item.productVariationId!
+                : item.productId!;
 
-            if (variationId != null && variationId.toString().isNotEmpty) {
-              wishlistedKeys.add(variationId.toString());
-            } else {
-              wishlistedKeys.add(productId);
+            wishlistedKeys.add(key);
+
+            // Store wishlistId for later delete call
+            if (item.wishlistId != null) {
+              wishlistIdMap[key] = item.wishlistId!;
             }
           }
         }
       }
-    } catch (e) {}
-
-    update();
-  }
-
- Future<void> fetchRelatedProduct(String categoryID) async {
-  try {
-    releatedProducts.clear();
-    update();
-
-    final response = await get(
-      Uri.parse(
-        "$baseUrl/products?categoryId=$categoryID&limit=8&page=1",
-      ),
-      headers: {
-        "Authorization": "Bearer $accessToken",
-      },
-    );
-
-    if (response.statusCode == 200) {
-      final body = json.decode(response.body);
-
-      releatedProducts =
-          (body["data"]["data"] as List)
-              .map((e) => ProductModel.fromJson(e))
-              .where((product) => product.id != productId)
-              .toList();
-
-      update();
+    } catch (e) {
+      debugPrint("Wishlist Sync Error: $e");
     }
-  } catch (e) {
-    
+
+    update();
   }
-}
+
+  Future<void> fetchRelatedProduct(String categoryID) async {
+    try {
+      releatedProducts.clear();
+      update();
+
+      final response = await get(
+        Uri.parse("$baseUrl/products?categoryId=$categoryID&limit=8&page=1"),
+        headers: {"Authorization": "Bearer $accessToken"},
+      );
+
+      if (response.statusCode == 200) {
+        final body = json.decode(response.body);
+
+        releatedProducts = (body["data"]["data"] as List)
+            .map((e) => ProductModel.fromJson(e))
+            .where((product) => product.id != productId)
+            .toList();
+
+        update();
+      }
+    } catch (e) {}
+  }
 
   void selectVariation(int index) {
     if (product!.variations != null && index < product!.variations!.length) {
@@ -423,7 +428,7 @@ class Productcontroller extends GetxController {
     }
   }
 
-  // ── Price helpers ─────────────────────────────────────────────────────────
+  // ── Price helpers ────────
 
   String getCurrentPrice() {
     if (selectedVariation != null) {
@@ -455,7 +460,7 @@ class Productcontroller extends GetxController {
     return product?.isStock ?? true;
   }
 
-  // ── Wishlist ──────────────────────────────────────────────────────────────
+  // ── Wishlist ───────
 
   Future<void> toggleWishlist() async {
     if (isWishlistLoading) return;
@@ -476,6 +481,8 @@ class Productcontroller extends GetxController {
       await addToWishlist();
     }
   }
+
+  // --- add to wishlist -----
 
   Future<void> addToWishlist() async {
     isWishlistLoading = true;
@@ -511,28 +518,39 @@ class Productcontroller extends GetxController {
     update();
   }
 
+  /// --remove from wishlist ----
   Future<void> removeFromWishlist() async {
     isWishlistLoading = true;
     update();
 
-    try {
-      final query = selectedVariation != null
-          ? "productVariationId=${selectedVariation!.id}"
-          : "productId=$productId";
+    final currentKey = selectedVariation?.id ?? productId;
+    final wishlistId = wishlistIdMap[currentKey];
 
-      var response = await delete(
-        Uri.parse("$baseUrl/wishlist?$query"),
+    if (wishlistId == null) {
+      debugPrint("Wishlist ID not found for key: $currentKey");
+
+      Fluttertoast.showToast(msg: "Wishlist item not found");
+
+      isWishlistLoading = false;
+      update();
+      return;
+    }
+    final url = "$baseUrl/wishlist?id=$wishlistId";
+    try {
+      final response = await delete(
+        Uri.parse(url),
         headers: {"Authorization": "Bearer $accessToken"},
       );
-
       if (response.statusCode == 200 || response.statusCode == 204) {
-        wishlistedKeys.remove(_currentWishlistKey);
+        wishlistedKeys.remove(currentKey);
+        wishlistIdMap.remove(currentKey);
         await _syncWishlistState();
+        await wishlistController.fetchWishlist();
         Fluttertoast.showToast(msg: "Removed from wishlist");
       } else {
         Fluttertoast.showToast(msg: "Failed to remove from wishlist");
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
       Fluttertoast.showToast(msg: "Error removing from wishlist");
     }
 
@@ -540,25 +558,7 @@ class Productcontroller extends GetxController {
     update();
   }
 
-  Future<void> toggleCart() async {
-    if (isCartLoading) return;
-    if (login != "IN") {
-      showLoginDialog();
-      return;
-    }
-
-    if (!checkStock()) {
-      Fluttertoast.showToast(msg: "Product is out of stock");
-      return;
-    }
-
-    if (isCurrentInCart) {
-      await removeFromCart();
-    } else {
-      await addToCart();
-    }
-  }
-
+  //----add to cart---
   Future<void> addToCart() async {
     isCartLoading = true;
     update();
@@ -592,6 +592,7 @@ class Productcontroller extends GetxController {
     update();
   }
 
+  //----remove from cart---
   Future<void> removeFromCart() async {
     isCartLoading = true;
     update();
