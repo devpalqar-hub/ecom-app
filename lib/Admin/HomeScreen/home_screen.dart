@@ -142,7 +142,7 @@ class _DeliveryHomeScreenState extends State<DeliveryHomeScreen> {
               return SingleChildScrollView(
                 physics: const AlwaysScrollableScrollPhysics(),
                 child: Padding(
-                  padding: EdgeInsets.only(bottom: 20.h),
+                  padding: EdgeInsets.only(bottom: 15.h),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -165,7 +165,7 @@ class _DeliveryHomeScreenState extends State<DeliveryHomeScreen> {
 
                       /// ================= SEARCH =================
                       Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 16.w),
+                        padding: EdgeInsets.symmetric(horizontal: 16.w,vertical: 15.h),
                         child: TextField(
                           controller: searchController,
                           decoration: InputDecoration(
@@ -189,7 +189,7 @@ class _DeliveryHomeScreenState extends State<DeliveryHomeScreen> {
 
                       if (t.pageloader)
                         Container(
-                          height: 60,
+                          height: 50,
                           width: double.infinity,
                           child: Center(child: CircularProgressIndicator()),
                         )
@@ -199,7 +199,7 @@ class _DeliveryHomeScreenState extends State<DeliveryHomeScreen> {
                             if (order.orderNumber.contains(t.searchText) ||
                                 t.searchText.isEmpty)
                               Padding(
-                                padding:  EdgeInsets.symmetric(horizontal: 16.w,vertical: 16.h),
+                                padding:  EdgeInsets.symmetric(horizontal: 16.w,vertical: 1.h),
                                 child: OrderCard(
                                   title: order.items.isNotEmpty
                                       ? order.items.first.product.name
@@ -264,7 +264,7 @@ class _DeliveryHomeScreenState extends State<DeliveryHomeScreen> {
                                 ) ||
                                 t.searchText.isEmpty)
                               Padding(
-                                padding:  EdgeInsets.symmetric(horizontal: 16.w,vertical: 16.h),
+                                padding:  EdgeInsets.symmetric(horizontal: 16.w,vertical: 10.h),
                                 child: ReturnOrderCard(returnOrder: order),
                               ),
 

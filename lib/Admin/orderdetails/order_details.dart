@@ -208,12 +208,26 @@ class OrderDetailsScreen extends StatelessWidget {
         ? shipping.phone!
         : customer.phone;
 
-    /// ✅ get initials from name
-    String getInitials(String name) {
-      final names = name.split(' ');
-      if (names.isEmpty) return '';
-      if (names.length == 1) return names[0][0].toUpperCase();
-      return (names[0][0] + names[1][0]).toUpperCase();
+    String getInitials(String? name) {
+      if (name == null || name.trim().isEmpty) {
+        return "?";
+      }
+
+      final parts = name
+          .trim()
+          .split(RegExp(r'\s+'))
+          .where((e) => e.isNotEmpty)
+          .toList();
+
+      if (parts.isEmpty) {
+        return "?";
+      }
+
+      if (parts.length == 1) {
+        return parts.first[0].toUpperCase();
+      }
+
+      return "${parts.first[0]}${parts[1][0]}".toUpperCase();
     }
 
     return _cardContainer(
@@ -222,7 +236,6 @@ class OrderDetailsScreen extends StatelessWidget {
         children: [
           Row(
             children: [
-              /// ✅ CircleAvatar with initials
               CircleAvatar(
                 radius: 22,
                 backgroundColor: const Color(0xff2F80ED),
@@ -315,150 +328,124 @@ class OrderDetailsScreen extends StatelessWidget {
       ),
     );
   }
-Widget _buildOrderSummaryCard() {
-  return _cardContainer(
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          "${order.items.length} items",
-          style: const TextStyle(
-            fontSize: 15,
-            fontWeight: FontWeight.bold,
+
+  Widget _buildOrderSummaryCard() {
+    return _cardContainer(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            "${order.items.length} items",
+            style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
           ),
-        ),
 
-        const SizedBox(height: 16),
+          const SizedBox(height: 16),
 
-        ...order.items.map((item) {
-          final variation = item.productVariation;
+          ...order.items.map((item) {
+            final variation = item.productVariation;
 
-          final size =
-              variation?.attributes.size ?? "";
+            final size = variation?.attributes.size ?? "";
 
-          final colorName =
-              variation?.attributes.color?.name ?? "";
+            final colorName = variation?.attributes.color?.name ?? "";
 
-          final colorHex =
-              variation?.attributes.color?.hex ?? "";
+            final colorHex = variation?.attributes.color?.hex ?? "";
 
-          return Padding(
-            padding: const EdgeInsets.only(bottom: 16),
-            child: Column(
-              crossAxisAlignment:
-                  CrossAxisAlignment.start,
-              children: [
-                /// PRODUCT NAME
-                Text(
-                  item.product.name,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-
-                const SizedBox(height: 6),
-
-                /// SAME ROW
-                Row(
-                  children: [
-                    /// QTY
-                    Text(
-                      "Qty: ${item.quantity}",
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey.shade700,
-                        fontWeight: FontWeight.w500,
-                      ),
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  /// PRODUCT NAME
+                  Text(
+                    item.product.name,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
                     ),
+                  ),
 
-                    /// SIZE
-                    if (size.isNotEmpty) ...[
-                      Padding(
-                        padding:
-                            const EdgeInsets.symmetric(
-                              horizontal: 8,
-                            ),
-                        child: Text(
-                          "•",
-                          style: TextStyle(
-                            color:
-                                Colors.grey.shade500,
-                          ),
-                        ),
-                      ),
+                  const SizedBox(height: 6),
 
+                  /// SAME ROW
+                  Row(
+                    children: [
+                      /// QTY
                       Text(
-                        "Size: $size",
+                        "Qty: ${item.quantity}",
                         style: TextStyle(
                           fontSize: 12,
                           color: Colors.grey.shade700,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
-                    ],
 
-                    /// COLOR
-                    if (colorName.isNotEmpty) ...[
-                      Padding(
-                        padding:
-                            const EdgeInsets.symmetric(
-                              horizontal: 8,
-                            ),
-                        child: Text(
-                          "•",
-                          style: TextStyle(
-                            color:
-                                Colors.grey.shade500,
+                      /// SIZE
+                      if (size.isNotEmpty) ...[
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 8),
+                          child: Text(
+                            "•",
+                            style: TextStyle(color: Colors.grey.shade500),
                           ),
                         ),
-                      ),
 
-                      Container(
-                        width: 12,
-                        height: 12,
-                        margin: const EdgeInsets.only(
-                          right: 5,
+                        Text(
+                          "Size: $size",
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey.shade700,
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color:
-                              colorHex.isNotEmpty
-                              ? Color(
-                                  int.parse(
-                                    colorHex.replaceFirst(
-                                      "#",
-                                      "0xff",
+                      ],
+
+                      /// COLOR
+                      if (colorName.isNotEmpty) ...[
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 8),
+                          child: Text(
+                            "•",
+                            style: TextStyle(color: Colors.grey.shade500),
+                          ),
+                        ),
+
+                        Container(
+                          width: 12,
+                          height: 12,
+                          margin: const EdgeInsets.only(right: 5),
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: colorHex.isNotEmpty
+                                ? Color(
+                                    int.parse(
+                                      colorHex.replaceFirst("#", "0xff"),
                                     ),
-                                  ),
-                                )
-                              : Colors.grey,
-                          border: Border.all(
-                            color:
-                                Colors.grey.shade400,
+                                  )
+                                : Colors.grey,
+                            border: Border.all(color: Colors.grey.shade400),
                           ),
                         ),
-                      ),
 
-                      Text(
-                        colorName,
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey.shade700,
-                          fontWeight: FontWeight.w500,
+                        Text(
+                          colorName,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey.shade700,
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
-                      ),
+                      ],
                     ],
-                  ],
-                ),
-              ],
-            ),
-          );
-        }),
-      ],
-    ),
-  );
-}
+                  ),
+                ],
+              ),
+            );
+          }),
+        ],
+      ),
+    );
+  }
+
   Widget _buildIssueCard() {
     return _cardContainer(
       child: Column(
